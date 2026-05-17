@@ -15,6 +15,8 @@ interface ProfileState {
   sketchPoints: Point2D[]
   wizardIndex: number
   activeItemId: string | null
+  /** When true, wizard input mounts empty (after Next or first entry). */
+  clearWizardInput: boolean
   history: FoldedProfile[]
 
   setStep: (step: AppStep) => void
@@ -35,7 +37,9 @@ interface ProfileState {
   goBack: () => void
   goNext: () => void
   setWizardIndex: (index: number) => void
+  selectWizardItem: (type: 'segment' | 'bend', id: string) => void
   setActiveFromTableRow: (type: 'segment' | 'bend', id: string) => void
+  consumeClearWizardInput: () => boolean
   hydrateFromSession: () => void
   persistToSession: () => void
 }
@@ -74,6 +78,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   sketchPoints: [],
   wizardIndex: 0,
   activeItemId: null,
+  clearWizardInput: true,
   history: [],
 
   setStep: (step) => {
@@ -89,6 +94,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       wizardIndex: 0,
       activeItemId: syncWizardActive(get(), profile),
       currentStep: 'segment-wizard',
+      clearWizardInput: true,
       history: [],
     })
     schedulePersist(get)
@@ -111,6 +117,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       wizardIndex: 0,
       activeItemId: syncWizardActive(get(), profile),
       currentStep: 'segment-wizard',
+      clearWizardInput: true,
       history: [],
     })
     schedulePersist(get)
@@ -209,6 +216,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       sketchPoints: [],
       wizardIndex: 0,
       activeItemId: null,
+      clearWizardInput: true,
       history: [],
     })
   },
@@ -220,6 +228,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       set({
         wizardIndex: newIndex,
         activeItemId: profile ? syncWizardActive({ ...get(), wizardIndex: newIndex }, profile) : null,
+        clearWizardInput: false,
       })
       schedulePersist(get)
       return
@@ -246,6 +255,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         set({
           wizardIndex: newIndex,
           activeItemId: syncWizardActive({ ...get(), wizardIndex: newIndex }, profile),
+          clearWizardInput: true,
         })
         schedulePersist(get)
       } else {
@@ -261,8 +271,31 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     set({
       wizardIndex: index,
       activeItemId: syncWizardActive({ ...get(), wizardIndex: index }, profile),
+      clearWizardInput: false,
     })
     schedulePersist(get)
+  },
+
+  selectWizardItem: (type, id) => {
+    const { profile } = get()
+    if (!profile) return
+    const steps = buildWizardSteps(profile)
+    const index = steps.findIndex((s) => s.type === type && s.id === id)
+    if (index < 0) return
+    set({
+      wizardIndex: index,
+      activeItemId: id,
+      clearWizardInput: false,
+    })
+    schedulePersist(get)
+  },
+
+  consumeClearWizardInput: () => {
+    const { clearWizardInput } = get()
+    if (clearWizardInput) {
+      set({ clearWizardInput: false })
+    }
+    return clearWizardInput
   },
 
   setActiveFromTableRow: (_type: 'segment' | 'bend', id: string) => {

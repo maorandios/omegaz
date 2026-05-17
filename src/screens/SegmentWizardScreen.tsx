@@ -1,14 +1,13 @@
 import { useEffect } from 'react'
 import { ProfileCanvas } from '@/components/canvas/ProfileCanvas'
 import { SegmentInputPanel } from '@/components/wizard/SegmentInputPanel'
-import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
 import { useKeyboardInset, useWizardHeaderHeight } from '@/hooks/useKeyboardInset'
 import { useProfileStore } from '@/store/profileStore'
 
 export function SegmentWizardScreen() {
   const profile = useProfileStore((s) => s.profile)
   const activeItemId = useProfileStore((s) => s.activeItemId)
-  const wizardIndex = useProfileStore((s) => s.wizardIndex)
+  const selectWizardItem = useProfileStore((s) => s.selectWizardItem)
 
   useKeyboardInset(true)
   useWizardHeaderHeight(true)
@@ -20,14 +19,6 @@ export function SegmentWizardScreen() {
     }
   }, [])
 
-  useEffect(() => {
-    if (!profile) return
-    const steps = buildWizardSteps(profile)
-    const step = steps[wizardIndex]
-    if (step) {
-      useProfileStore.setState({ activeItemId: step.id })
-    }
-  }, [profile, wizardIndex])
 
   if (!profile) return null
 
@@ -38,6 +29,9 @@ export function SegmentWizardScreen() {
           <ProfileCanvas
             profile={profile}
             activeItemId={activeItemId}
+            showLabels
+            interactive
+            onSelectItem={selectWizardItem}
             className="h-full w-full bg-zinc-950"
           />
         </div>

@@ -38,6 +38,13 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
   useEffect(() => {
     const step = buildWizardSteps(profile)[wizardIndex]
     if (!step) return
+
+    const shouldClear = useProfileStore.getState().consumeClearWizardInput()
+    if (shouldClear) {
+      setInputValue('')
+      return
+    }
+
     if (step.type === 'segment') {
       const seg = profile.segments.find((s) => s.id === step.id)
       setInputValue(seg ? String(seg.length) : '')
