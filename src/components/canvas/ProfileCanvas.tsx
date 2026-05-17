@@ -14,7 +14,17 @@ interface ProfileCanvasProps {
   className?: string
 }
 
-function formatLength(n: number): string {
+const SEGMENT_LABEL_FONT_SIZE = 15 // 12 × 1.25
+
+function formatSegmentDim(n: number): string {
+  const v = Math.round(n * 10) / 10
+  return v.toLocaleString('en-US', {
+    maximumFractionDigits: Number.isInteger(v) ? 0 : 1,
+    minimumFractionDigits: 0,
+  })
+}
+
+function formatAngle(n: number): string {
   const v = Math.round(n * 10) / 10
   return Number.isInteger(v) ? `${v}` : `${v}`
 }
@@ -193,19 +203,19 @@ export function ProfileCanvas({
               const ny = (screenDx / segLen) * 14
               let angleDeg = (Math.atan2(screenDy, screenDx) * 180) / Math.PI
               if (angleDeg > 90 || angleDeg < -90) angleDeg += 180
-              const label = formatLength(seg.length)
+              const label = formatSegmentDim(seg.length)
               return (
                 <Text
                   key={`lbl-seg-${seg.id}`}
                   x={midX + nx}
                   y={midY + ny}
                   text={label}
-                  fontSize={12}
+                  fontSize={SEGMENT_LABEL_FONT_SIZE}
                   fontStyle={isActive ? 'bold' : 'normal'}
                   fill={isActive ? labelActiveFill : labelFill}
                   rotation={angleDeg}
-                  offsetX={label.length * 3.5}
-                  offsetY={6}
+                  offsetX={label.length * 4.4}
+                  offsetY={7.5}
                   listening={false}
                 />
               )
@@ -224,7 +234,7 @@ export function ProfileCanvas({
                   y={p.y + 12}
                   width={44}
                   align="center"
-                  text={`${formatLength(bend.angle)}°`}
+                  text={`${formatAngle(bend.angle)}°`}
                   fontSize={12}
                   fontStyle={isActive ? 'bold' : 'normal'}
                   fill={isActive ? labelActiveFill : labelFill}
