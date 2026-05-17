@@ -21,7 +21,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 interface SheetContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
-  side?: 'bottom' | 'right'
+  side?: 'top' | 'bottom' | 'right'
 }
 
 const SheetContent = React.forwardRef<
@@ -34,6 +34,8 @@ const SheetContent = React.forwardRef<
       ref={ref}
       className={cn(
         'fixed z-50 gap-4 bg-zinc-900 p-6 shadow-lg transition ease-in-out',
+        side === 'top' &&
+          'inset-x-0 top-0 rounded-b-2xl border-b border-zinc-800 pt-[max(1rem,env(safe-area-inset-top))]',
         side === 'bottom' &&
           'inset-x-0 bottom-0 rounded-t-2xl border-t border-zinc-800 pb-[max(1.5rem,env(safe-area-inset-bottom))]',
         side === 'right' && 'inset-y-0 right-0 h-full w-3/4 border-l border-zinc-800 sm:max-w-sm',

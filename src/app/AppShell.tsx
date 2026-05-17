@@ -1,136 +1,63 @@
-import { ArrowLeft } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { CircleUserRound, CircleX } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { ExitProcessSheet } from '@/components/shell/ExitProcessSheet'
 import { Button } from '@/components/ui/button'
-import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
-import type { AppStep } from '@/geometry/types'
 import { useProfileStore } from '@/store/profileStore'
-
-const STEP_LABELS: Partial<Record<AppStep, string>> = {
-  start: 'Start',
-  sketch: 'Sketch',
-  'segment-wizard': 'Dimensions',
-  fabrication: 'Fabrication',
-  summary: 'Review',
-  export: 'Export',
-}
-
-const STEP_ORDER: AppStep[] = [
-  'start',
-  'sketch',
-  'segment-wizard',
-  'fabrication',
-  'summary',
-]
 
 interface AppShellProps {
   children: ReactNode
 }
 
-function getWizardStepLabel(profile: ReturnType<typeof useProfileStore.getState>['profile'], wizardIndex: number) {
-  if (!profile) return ''
-  const steps = buildWizardSteps(profile)
-  const current = steps[wizardIndex]
-  if (!current) return ''
-  if (current.type === 'segment') {
-    const i = profile.segments.findIndex((s) => s.id === current.id) + 1
-    return `Step ${wizardIndex + 1}/${steps.length} · Seg ${i}`
-  }
-  const i = profile.bends.findIndex((b) => b.id === current.id) + 1
-  return `Step ${wizardIndex + 1}/${steps.length} · Bend ${i}`
-}
+const headerIconClass = 'h-7 w-7 shrink-0 stroke-[2px] text-zinc-100'
 
 export function AppShell({ children }: AppShellProps) {
   const currentStep = useProfileStore((s) => s.currentStep)
-  const profile = useProfileStore((s) => s.profile)
-  const wizardIndex = useProfileStore((s) => s.wizardIndex)
-  const setStep = useProfileStore((s) => s.setStep)
-  const goBack = useProfileStore((s) => s.goBack)
   const restart = useProfileStore((s) => s.restart)
-  const undo = useProfileStore((s) => s.undo)
+
+  const [exitSheetOpen, setExitSheetOpen] = useState(false)
 
   const isWizard = currentStep === 'segment-wizard'
-  const showBack = currentStep !== 'start'
-  const stepIndex = STEP_ORDER.indexOf(
-    currentStep === 'sketch' ? 'segment-wizard' : currentStep,
-  )
-  const wizardSubtitle = isWizard ? getWizardStepLabel(profile, wizardIndex) : ''
-
-  const handleBack = () => {
-    if (currentStep === 'sketch') {
-      setStep('start')
-      return
-    }
-    if (currentStep === 'segment-wizard') {
-      if (window.confirm('Leave dimension entry?')) setStep('start')
-      return
-    }
-    goBack()
-  }
+  const inProcess = currentStep !== 'start'
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-zinc-950 text-zinc-100">
       <header
         data-wizard-header={isWizard ? '' : undefined}
         className={`border-b border-zinc-800 bg-zinc-950 ${
-          isWizard ? 'relative z-50 shrink-0 py-1.5' : 'shrink-0'
+          isWizard ? 'relative z-50 shrink-0' : 'shrink-0'
         }`}
       >
-        <div className="mx-auto flex max-w-lg items-center gap-1 px-2">
-          {showBack ? (
+        <div className="mx-auto grid h-14 max-w-lg grid-cols-[3.5rem_1fr_3.5rem] items-center px-2">
+          <div className="flex items-center justify-start">
+            {inProcess ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-12 w-12 shrink-0 hover:bg-zinc-800"
+                onClick={() => setExitSheetOpen(true)}
+                aria-label="Exit process"
+              >
+                <CircleX className={headerIconClass} />
+              </Button>
+            ) : null}
+          </div>
+
+          <h1 className="text-center text-base font-bold tracking-tight text-amber-400">OMEGAZ</h1>
+
+          <div className="flex items-center justify-end">
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 shrink-0"
-              onClick={handleBack}
-              aria-label="Back"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          ) : (
-            <div className="w-9 shrink-0" />
-          )}
-          <div className="min-w-0 flex-1 text-center">
-            <h1 className="text-sm font-bold tracking-tight text-amber-400">OMEGAZ</h1>
-            {isWizard ? (
-              <p className="truncate text-[11px] text-zinc-400">{wizardSubtitle}</p>
-            ) : (
-              <p className="text-[10px] text-zinc-500">Fabrication request generator</p>
-            )}
-          </div>
-          <div className="flex shrink-0 items-center gap-0">
-            {isWizard && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-9 px-2 text-xs text-zinc-400"
-                onClick={undo}
-              >
-                Undo
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-9 px-2 text-xs text-zinc-500"
+              className="h-12 w-12 shrink-0 hover:bg-zinc-800"
+              aria-label="Account"
               onClick={() => {
-                if (currentStep !== 'start' && window.confirm('Start over?')) restart()
+                /* profile page — coming soon */
               }}
             >
-              {currentStep !== 'start' ? 'New' : ''}
+              <CircleUserRound className={headerIconClass} />
             </Button>
           </div>
         </div>
-        {currentStep !== 'start' && currentStep !== 'export' && (
-          <div className={`mx-auto flex max-w-lg justify-center gap-1 px-3 ${isWizard ? 'pt-1' : 'pb-3 pt-2'}`}>
-            {['start', 'segment-wizard', 'fabrication', 'summary'].map((step, i) => (
-              <div
-                key={step}
-                className={`h-0.5 flex-1 rounded-full ${i <= stepIndex ? 'bg-amber-500' : 'bg-zinc-800'}`}
-                title={STEP_LABELS[step as AppStep]}
-              />
-            ))}
-          </div>
-        )}
       </header>
 
       <main
@@ -140,6 +67,12 @@ export function AppShell({ children }: AppShellProps) {
       >
         {children}
       </main>
+
+      <ExitProcessSheet
+        open={exitSheetOpen}
+        onOpenChange={setExitSheetOpen}
+        onConfirmExit={() => restart()}
+      />
     </div>
   )
 }
