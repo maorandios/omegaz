@@ -71,7 +71,9 @@ export function AppShell({ children }: AppShellProps) {
     <div className="flex h-dvh flex-col overflow-hidden bg-zinc-950 text-zinc-100">
       <header
         data-wizard-header={isWizard ? '' : undefined}
-        className={`shrink-0 border-b border-zinc-800 bg-zinc-950 ${isWizard ? 'py-1.5' : ''}`}
+        className={`border-b border-zinc-800 bg-zinc-950 ${
+          isWizard ? 'relative z-50 shrink-0 py-1.5' : 'shrink-0'
+        }`}
       >
         <div className="mx-auto flex max-w-lg items-center gap-1 px-2">
           {showBack ? (

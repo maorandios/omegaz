@@ -36,7 +36,7 @@
   }
 
   html {
-    --wizard-header-h: 58px;
+    --wizard-header-top: 58px;
     --wizard-dock-h: 56px;
     --keyboard-inset: 0px;
   }
@@ -45,26 +45,28 @@
     padding-bottom: 0;
   }
 
-  /* Fixed band between header and dock — no extra padding for keyboard (dock handles that). */
+  /* Fixed band between header bottom and dock top (viewport coordinates). */
   .wizard-preview-zone {
     position: fixed;
     left: 0;
     right: 0;
-    top: var(--wizard-header-h);
+    top: var(--wizard-header-top, 58px);
     bottom: calc(var(--wizard-dock-h) + var(--keyboard-inset, 0px));
     z-index: 10;
-    container-type: size;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 0.25rem;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 0.375rem;
     overflow: hidden;
   }
 
+  /* Largest square that fits zone width; height capped by available space. */
   .wizard-preview {
-    width: min(100cqw, 100cqh);
+    box-sizing: border-box;
+    width: 100%;
+    max-height: 100%;
     aspect-ratio: 1 / 1;
-    max-width: 32rem;
     overflow: hidden;
     flex-shrink: 0;
   }

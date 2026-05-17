@@ -40,7 +40,7 @@ export function useKeyboardInset(active: boolean) {
   }, [active])
 }
 
-/** Sync header height into --wizard-header-h for preview zone sizing. */
+/** Sync header bottom edge (viewport px) into --wizard-header-top for preview zone. */
 export function useWizardHeaderHeight(active: boolean) {
   useEffect(() => {
     if (!active) return
@@ -49,21 +49,26 @@ export function useWizardHeaderHeight(active: boolean) {
     if (!header) return
 
     const root = document.documentElement
-    let lastH = -1
+    let lastTop = -1
+
     const set = () => {
-      const h = Math.round(header.getBoundingClientRect().height)
-      if (h === lastH) return
-      lastH = h
-      root.style.setProperty('--wizard-header-h', `${h}px`)
+      const top = Math.round(header.getBoundingClientRect().bottom)
+      if (top === lastTop) return
+      lastTop = top
+      root.style.setProperty('--wizard-header-top', `${top}px`)
     }
 
     const ro = new ResizeObserver(set)
     ro.observe(header)
+    window.addEventListener('resize', set)
+    window.visualViewport?.addEventListener('resize', set)
     set()
 
     return () => {
       ro.disconnect()
-      root.style.removeProperty('--wizard-header-h')
+      window.removeEventListener('resize', set)
+      window.visualViewport?.removeEventListener('resize', set)
+      root.style.removeProperty('--wizard-header-top')
     }
   }, [active])
 }
