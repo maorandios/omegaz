@@ -1,7 +1,5 @@
-import { useEffect } from 'react'
 import { ProfileCanvas } from '@/components/canvas/ProfileCanvas'
 import { SegmentInputPanel } from '@/components/wizard/SegmentInputPanel'
-import { useKeyboardInset } from '@/hooks/useKeyboardInset'
 import { useProfileStore } from '@/store/profileStore'
 
 export function SegmentWizardScreen() {
@@ -9,21 +7,11 @@ export function SegmentWizardScreen() {
   const activeItemId = useProfileStore((s) => s.activeItemId)
   const selectWizardItem = useProfileStore((s) => s.selectWizardItem)
 
-  useKeyboardInset(true)
-
-  useEffect(() => {
-    document.documentElement.dataset.wizard = 'true'
-    return () => {
-      delete document.documentElement.dataset.wizard
-    }
-  }, [])
-
-
   if (!profile) return null
 
   return (
-    <>
-      <div className="wizard-preview-zone wizard-vv-sync">
+    <div className="wizard-workspace">
+      <div className="wizard-preview-area">
         <div className="wizard-preview">
           <ProfileCanvas
             profile={profile}
@@ -36,9 +24,9 @@ export function SegmentWizardScreen() {
         </div>
       </div>
 
-      <div className="wizard-dock mx-auto flex max-w-lg justify-center">
+      <div className="wizard-dock-bar">
         <SegmentInputPanel profile={profile} dock />
       </div>
-    </>
+    </div>
   )
 }

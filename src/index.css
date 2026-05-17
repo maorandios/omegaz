@@ -36,46 +36,66 @@
   }
 
   html {
-    --wizard-header-top: 58px;
+    --vv-offset-top: 0px;
+    --vv-height: 100dvh;
     --wizard-dock-h: 56px;
-    --keyboard-inset: 0px;
   }
 
   html[data-wizard],
   html[data-wizard] body {
     overflow: hidden;
     overscroll-behavior: none;
+    height: 100%;
   }
 
   html[data-wizard] body {
-    padding-bottom: 0;
-    padding-left: 0;
-    padding-right: 0;
+    padding: 0;
   }
 
-  /* Shift fixed wizard UI with iOS visual-viewport pan (keyboard open/close). */
-  html[data-wizard] .wizard-vv-sync {
-    transform: translate3d(0, var(--vv-offset-top, 0px), 0);
-  }
-
-  /* Fills visible area between header and dock (height from visualViewport). */
-  .wizard-preview-zone {
+  /*
+   * One shell pinned to the visible viewport — header, preview, and dock
+   * flex inside so they never drift independently on iOS keyboard toggle.
+   */
+  .wizard-shell {
     position: fixed;
+    top: var(--vv-offset-top, 0px);
     left: 0;
     right: 0;
-    top: var(--wizard-header-top, 48px);
-    height: var(--wizard-preview-height, calc(100dvh - var(--wizard-header-top) - var(--wizard-dock-h)));
-    z-index: 10;
-    container-type: size;
+    height: var(--vv-height, 100dvh);
+    z-index: 20;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
+    flex-direction: column;
     overflow: hidden;
     background: #09090b;
   }
 
-  /* Largest centered square that fits the zone (full width when possible). */
+  .wizard-shell__main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .wizard-workspace {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .wizard-preview-area {
+    flex: 1;
+    min-height: 0;
+    container-type: size;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #09090b;
+  }
+
   .wizard-preview {
     box-sizing: border-box;
     width: min(100cqw, 100cqh);
@@ -83,6 +103,14 @@
     aspect-ratio: 1 / 1;
     overflow: hidden;
     flex-shrink: 0;
+  }
+
+  .wizard-dock-bar {
+    flex-shrink: 0;
+    min-height: var(--wizard-dock-h);
+    border-top: 1px solid #3f3f46;
+    background: #18181b;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   @keyframes sheet-overlay-in {
@@ -121,14 +149,4 @@
     }
   }
 
-  .wizard-dock {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: var(--keyboard-inset, 0px);
-    z-index: 50;
-    height: var(--wizard-dock-h);
-    border-top: 1px solid #3f3f46;
-    background: #18181b;
-  }
 }

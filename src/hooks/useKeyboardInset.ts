@@ -1,45 +1,22 @@
 import { useEffect } from 'react'
 
-const WIZARD_DOCK_PX = 56
-const WIZARD_HEADER_PX = 48
-
-function getWizardChromeTop(): number {
-  const header = document.querySelector<HTMLElement>('[data-wizard-header]')
-  const headerH = header?.offsetHeight ?? WIZARD_HEADER_PX
-  const safeTop = Number.parseFloat(getComputedStyle(document.body).paddingTop) || 0
-  return Math.round(headerH + safeTop)
-}
-
-function syncWizardLayout() {
+/** Syncs --vv-offset-top / --vv-height to match the visible viewport (iOS keyboard-safe). */
+function syncVisualViewport() {
   const root = document.documentElement
   const vv = window.visualViewport
   if (!vv) return
 
-  const inset = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))
-  const vvHeight = Math.round(vv.height)
-  const vvOffset = Math.round(vv.offsetTop)
-  const chromeTop = getWizardChromeTop()
-
-  root.style.setProperty('--keyboard-inset', `${inset}px`)
-  root.style.setProperty('--vv-height', `${vvHeight}px`)
-  root.style.setProperty('--vv-offset-top', `${vvOffset}px`)
-  root.style.setProperty('--wizard-header-top', `${chromeTop}px`)
-
-  const previewHeight = Math.max(120, vvHeight - chromeTop - WIZARD_DOCK_PX)
-  root.style.setProperty('--wizard-preview-height', `${previewHeight}px`)
-
+  root.style.setProperty('--vv-offset-top', `${Math.round(vv.offsetTop)}px`)
+  root.style.setProperty('--vv-height', `${Math.round(vv.height)}px`)
   window.dispatchEvent(new Event('wizard-vv-update'))
 }
 
-/** Tracks visual viewport for wizard dock + preview (CSS vars only, no React re-renders). */
-export function useKeyboardInset(active: boolean) {
+export function useVisualViewportSync(active: boolean) {
   useEffect(() => {
     const root = document.documentElement
     if (!active) {
-      root.style.removeProperty('--keyboard-inset')
-      root.style.removeProperty('--vv-height')
       root.style.removeProperty('--vv-offset-top')
-      root.style.removeProperty('--wizard-preview-height')
+      root.style.removeProperty('--vv-height')
       return
     }
 
@@ -50,11 +27,10 @@ export function useKeyboardInset(active: boolean) {
     let lastKey = ''
 
     const update = () => {
-      const inset = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))
-      const key = `${inset}:${Math.round(vv.height)}:${Math.round(vv.offsetTop)}`
+      const key = `${Math.round(vv.offsetTop)}:${Math.round(vv.height)}`
       if (key === lastKey) return
       lastKey = key
-      syncWizardLayout()
+      syncVisualViewport()
     }
 
     const schedule = () => {
@@ -68,35 +44,39 @@ export function useKeyboardInset(active: boolean) {
     window.addEventListener('orientationchange', schedule)
     update()
 
-    // Catch keyboard open/close after focus changes
-    const t1 = window.setTimeout(update, 100)
-    const t2 = window.setTimeout(update, 350)
+    const t1 = window.setTimeout(update, 80)
+    const t2 = window.setTimeout(update, 200)
+    const t3 = window.setTimeout(update, 450)
 
     return () => {
       cancelAnimationFrame(raf)
       window.clearTimeout(t1)
       window.clearTimeout(t2)
+      window.clearTimeout(t3)
       vv.removeEventListener('resize', schedule)
       vv.removeEventListener('scroll', schedule)
       window.removeEventListener('resize', schedule)
       window.removeEventListener('orientationchange', schedule)
-      root.style.removeProperty('--keyboard-inset')
-      root.style.removeProperty('--vv-height')
       root.style.removeProperty('--vv-offset-top')
-      root.style.removeProperty('--wizard-preview-height')
+      root.style.removeProperty('--vv-height')
     }
   }, [active])
 }
 
-/** Re-measure header + preview after keyboard toggle (call from input focus/blur). */
+/** Re-sync after input focus / blur (keyboard animation). */
 export function refreshWizardViewport() {
   requestAnimationFrame(() => {
-    syncWizardLayout()
-    requestAnimationFrame(syncWizardLayout)
+    syncVisualViewport()
+    requestAnimationFrame(syncVisualViewport)
   })
 }
 
-/** @deprecated Use layout values from useKeyboardInset */
+/** @deprecated */
+export function useKeyboardInset(active: boolean) {
+  useVisualViewportSync(active)
+}
+
+/** @deprecated */
 export function useWizardHeaderHeight(active: boolean) {
-  useKeyboardInset(active)
+  useVisualViewportSync(active)
 }
