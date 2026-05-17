@@ -48,11 +48,14 @@
   }
 
   html[data-wizard] body {
-    position: fixed;
-    width: 100%;
     padding-bottom: 0;
     padding-left: 0;
     padding-right: 0;
+  }
+
+  /* Shift fixed wizard UI with iOS visual-viewport pan (keyboard open/close). */
+  html[data-wizard] .wizard-vv-sync {
+    transform: translate3d(0, var(--vv-offset-top, 0px), 0);
   }
 
   /* Fills visible area between header and dock (height from visualViewport). */

@@ -1,6 +1,14 @@
 import { useEffect } from 'react'
 
 const WIZARD_DOCK_PX = 56
+const WIZARD_HEADER_PX = 48
+
+function getWizardChromeTop(): number {
+  const header = document.querySelector('[data-wizard-header]')
+  const headerH = header?.offsetHeight ?? WIZARD_HEADER_PX
+  const safeTop = Number.parseFloat(getComputedStyle(document.body).paddingTop) || 0
+  return Math.round(headerH + safeTop)
+}
 
 function syncWizardLayout() {
   const root = document.documentElement
@@ -10,24 +18,15 @@ function syncWizardLayout() {
   const inset = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))
   const vvHeight = Math.round(vv.height)
   const vvOffset = Math.round(vv.offsetTop)
+  const chromeTop = getWizardChromeTop()
 
   root.style.setProperty('--keyboard-inset', `${inset}px`)
   root.style.setProperty('--vv-height', `${vvHeight}px`)
   root.style.setProperty('--vv-offset-top', `${vvOffset}px`)
+  root.style.setProperty('--wizard-header-top', `${chromeTop}px`)
 
-  const header = document.querySelector('[data-wizard-header]')
-  const headerBottom = header
-    ? Math.round(header.getBoundingClientRect().bottom)
-    : 48
-  root.style.setProperty('--wizard-header-top', `${headerBottom}px`)
-
-  const previewHeight = Math.max(120, vvHeight - headerBottom - WIZARD_DOCK_PX)
+  const previewHeight = Math.max(120, vvHeight - chromeTop - WIZARD_DOCK_PX)
   root.style.setProperty('--wizard-preview-height', `${previewHeight}px`)
-
-  // iOS keeps offsetTop after Done — reset so fixed layout doesn't drift upward
-  if (inset === 0 && vvOffset > 0) {
-    window.scrollTo(0, 0)
-  }
 
   window.dispatchEvent(new Event('wizard-vv-update'))
 }

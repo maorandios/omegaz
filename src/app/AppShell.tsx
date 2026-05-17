@@ -24,7 +24,7 @@ export function AppShell({ children }: AppShellProps) {
       <header
         data-wizard-header={isWizard ? '' : undefined}
         className={`border-b border-zinc-800 bg-zinc-950 ${
-          isWizard ? 'fixed left-0 right-0 top-0 z-50' : 'shrink-0'
+          isWizard ? 'wizard-vv-sync fixed left-0 right-0 top-0 z-50' : 'shrink-0'
         }`}
       >
         <div className="mx-auto grid h-12 max-w-lg grid-cols-[2.75rem_1fr_2.75rem] items-center px-2">
