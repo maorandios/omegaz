@@ -29,12 +29,12 @@ export function SketchCanvas({ points, onPointsChange }: SketchCanvasProps) {
     return () => observer.disconnect()
   }, [])
 
+  const flatPoints = points.flatMap((p) => [p.x, p.y])
+
   const getPos = (stage: { getPointerPosition: () => Point2D | null }) => {
     const pos = stage.getPointerPosition()
     return pos ?? null
   }
-
-  const flatPoints = points.flatMap((p) => [p.x, p.y])
 
   return (
     <div

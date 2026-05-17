@@ -22,12 +22,13 @@ export function pointAtDirection(
 }
 
 export function calculateProfilePoints(
-  segments: Pick<Segment, 'id' | 'length'>[],
+  segments: Pick<Segment, 'id' | 'length' | 'angle'>[],
   bends: Bend[],
 ): Segment[] {
   if (segments.length === 0) return []
 
-  let direction = 0
+  // Use first segment bearing (e.g. from freehand sketch); templates start at 0°
+  let direction = segments[0]?.angle ?? 0
   let current: Point2D = { x: 0, y: 0 }
   const result: Segment[] = []
 

@@ -12,6 +12,13 @@
     @apply border-zinc-800;
   }
 
+  html,
+  body,
+  #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
     @apply bg-zinc-950 text-zinc-100 antialiased;
     padding: env(safe-area-inset-top) env(safe-area-inset-right)

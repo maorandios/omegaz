@@ -1,8 +1,10 @@
 import {
   DEFAULT_SKETCH_TARGET_WIDTH_MM,
   MIN_SEGMENT_LENGTH_MM,
-  SNAP_ANGLES,
-  SNAP_TOLERANCE_DEG,
+  SNAP_CARDINAL_ANGLES,
+  SNAP_CARDINAL_TOLERANCE_DEG,
+  SNAP_DIAGONAL_ANGLES,
+  SNAP_DIAGONAL_TOLERANCE_DEG,
 } from './constants'
 import type { Bend, Point2D, Segment } from './types'
 import { createId } from './types'
@@ -70,25 +72,85 @@ function rdp(points: Point2D[], epsilon: number): Point2D[] {
   return [points[0], points[end]]
 }
 
-function snapDirectionAngle(deg: number): number {
-  let normalized = ((deg % 360) + 360) % 360
-  if (normalized > 180) normalized -= 360
+function normalizeAngleDeg(deg: number): number {
+  let n = ((deg % 360) + 360) % 360
+  if (n > 180) n -= 360
+  return n
+}
 
-  let best = normalized
+function nearestSnapAngle(deg: number, candidates: readonly number[]): number {
+  const normalized = normalizeAngleDeg(deg)
+  let best = candidates[0]
   let bestDiff = Infinity
-  for (const snap of SNAP_ANGLES) {
-    const candidates = [snap, snap - 360, snap + 360]
-    for (const c of candidates) {
+  for (const snap of candidates) {
+    for (const c of [snap, snap - 360, snap + 360]) {
       const diff = Math.abs(normalized - c)
       if (diff < bestDiff) {
         bestDiff = diff
-        best = c
+        best = snap
       }
     }
   }
+  return best
+}
 
-  if (bestDiff <= SNAP_TOLERANCE_DEG) return best
-  return normalized
+function diffToSnap(deg: number, snap: number): number {
+  const normalized = normalizeAngleDeg(deg)
+  return Math.min(
+    Math.abs(normalized - snap),
+    Math.abs(normalized - (snap - 360)),
+    Math.abs(normalized - (snap + 360)),
+  )
+}
+
+/**
+ * Prefer horizontal/vertical; allow 45° only when the stroke is clearly diagonal.
+ * Anything in-between defaults to the nearest H/V.
+ */
+function snapSketchDirectionAngle(deg: number): number {
+  const normalized = normalizeAngleDeg(deg)
+
+  for (const diagonal of SNAP_DIAGONAL_ANGLES) {
+    if (diffToSnap(normalized, diagonal) <= SNAP_DIAGONAL_TOLERANCE_DEG) {
+      return diagonal
+    }
+  }
+
+  for (const cardinal of SNAP_CARDINAL_ANGLES) {
+    if (diffToSnap(normalized, cardinal) <= SNAP_CARDINAL_TOLERANCE_DEG) {
+      return cardinal
+    }
+  }
+
+  return nearestSnapAngle(normalized, SNAP_CARDINAL_ANGLES)
+}
+
+/** Snap bend turns — prefer 90° corners; 45° only when unambiguous. */
+function snapSketchBendAngle(turnDeg: number): number {
+  const t = normalizeAngleDeg(turnDeg)
+  const abs = Math.abs(t)
+
+  if (abs >= 40 && abs <= 50) return t >= 0 ? 45 : -45
+  if (abs >= 130 && abs <= 140) return t >= 0 ? 135 : -135
+  if (abs >= 55 && abs <= 125) return t >= 0 ? 90 : -90
+  if (abs >= 160) return t >= 0 ? 180 : -180
+
+  return t >= 0 ? 90 : -90
+}
+
+/** Signed turn from one travel direction to the next (degrees, -180..180). */
+function signedTurnDeg(fromDir: number, toDir: number): number {
+  let d = toDir - fromDir
+  while (d > 180) d -= 360
+  while (d < -180) d += 360
+  return d
+}
+
+/** Edge direction in profile math space (Y-up, matches ProfileCanvas). */
+function edgeDirectionDeg(a: Point2D, b: Point2D, scale: number): number {
+  const dx = (b.x - a.x) * scale
+  const dy = -(b.y - a.y) * scale
+  return snapSketchDirectionAngle((Math.atan2(dy, dx) * 180) / Math.PI)
 }
 
 function cornerPoints(points: Point2D[], minCornerDeg = 15): Point2D[] {
@@ -122,9 +184,9 @@ export function cleanFreehandSketch(
     return { segments: [], bends: [] }
   }
 
-  const resampled = resample(rawPoints, 3)
-  const simplified = rdp(resampled, 10)
-  const corners = cornerPoints(simplified, 12)
+  const resampled = resample(rawPoints, 4)
+  const simplified = rdp(resampled, 14)
+  const corners = cornerPoints(simplified, 22)
 
   if (corners.length < 2) {
     return { segments: [], bends: [] }
@@ -146,6 +208,8 @@ export function cleanFreehandSketch(
   const segments: Segment[] = []
   const bends: Bend[] = []
 
+  const edgeDirs: number[] = []
+
   for (let i = 0; i < corners.length - 1; i++) {
     const a = corners[i]
     const b = corners[i + 1]
@@ -155,7 +219,8 @@ export function cleanFreehandSketch(
 
     if (length < MIN_SEGMENT_LENGTH_MM) continue
 
-    const dirDeg = snapDirectionAngle((Math.atan2(-dy, dx) * 180) / Math.PI)
+    const dirDeg = edgeDirectionDeg(a, b, scale)
+    edgeDirs.push(dirDeg)
 
     segments.push({
       id: createId('seg'),
@@ -167,13 +232,11 @@ export function cleanFreehandSketch(
   }
 
   for (let i = 0; i < segments.length - 1; i++) {
-    const rawTurn = segments[i + 1].angle - segments[i].angle
-    let bendAngle = ((rawTurn % 360) + 360) % 360
-    if (bendAngle > 180) bendAngle = 360 - bendAngle
-    const snapped = Math.round(snapDirectionAngle(bendAngle))
+    const turn = signedTurnDeg(edgeDirs[i], edgeDirs[i + 1])
+    const bendAngle = snapSketchBendAngle(turn)
     bends.push({
       id: createId('bend'),
-      angle: Math.max(1, snapped),
+      angle: bendAngle,
       betweenSegmentIds: [segments[i].id, segments[i + 1].id],
     })
   }

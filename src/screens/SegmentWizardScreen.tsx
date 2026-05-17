@@ -21,18 +21,13 @@ export function SegmentWizardScreen() {
   if (!profile) return null
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <div>
-        <h2 className="text-lg font-semibold">Enter Dimensions</h2>
-        <p className="text-sm text-zinc-400">One measurement at a time — profile updates live.</p>
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden px-1 pt-1">
+        <ProfileCanvas profile={profile} activeItemId={activeItemId} className="h-full w-full" />
       </div>
 
-      <div className="min-h-[220px] flex-1">
-        <ProfileCanvas profile={profile} activeItemId={activeItemId} className="h-full min-h-[220px]" />
-      </div>
-
-      <div className="rounded-t-2xl border border-zinc-800 bg-zinc-900 p-4">
-        <SegmentInputPanel profile={profile} />
+      <div className="shrink-0 border-t border-zinc-800 bg-zinc-900/95 px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <SegmentInputPanel profile={profile} compact />
       </div>
     </div>
   )

@@ -1,3 +1,13 @@
+/** Horizontal / vertical — preferred for freehand cleanup */
+export const SNAP_CARDINAL_ANGLES = [0, 90, -90, 180] as const
+/** Diagonals — only when the stroke is clearly intentional */
+export const SNAP_DIAGONAL_ANGLES = [45, -45, 135, -135] as const
+/** Within this range, wobbly strokes snap to H/V (degrees) */
+export const SNAP_CARDINAL_TOLERANCE_DEG = 22
+/** Tight range — only obvious 45° lines (degrees) */
+export const SNAP_DIAGONAL_TOLERANCE_DEG = 6
+
+/** @deprecated Use cardinal/diagonal tolerances above */
 export const SNAP_ANGLES = [0, 45, 90, 135, 180] as const
 export const SNAP_TOLERANCE_DEG = 7
 

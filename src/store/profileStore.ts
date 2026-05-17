@@ -23,6 +23,8 @@ interface ProfileState {
   applyCleanedSketch: () => boolean
   setSegmentLength: (segmentId: string, length: number) => void
   setBendAngle: (bendId: string, angle: number) => void
+  previewSegmentLength: (segmentId: string, length: number) => void
+  previewBendAngle: (bendId: string, angle: number) => void
   setFabricationField: <K extends keyof FabricationDetails>(
     key: K,
     value: FabricationDetails[K],
@@ -141,6 +143,30 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     })
     set({ profile: next })
     schedulePersist(get)
+  },
+
+  previewSegmentLength: (segmentId, length) => {
+    const { profile } = get()
+    if (!profile) return
+    const next = updateProfileGeometry({
+      ...profile,
+      segments: profile.segments.map((s) =>
+        s.id === segmentId ? { ...s, length: Math.max(0, length) } : s,
+      ),
+    })
+    set({ profile: next })
+  },
+
+  previewBendAngle: (bendId, angle) => {
+    const { profile } = get()
+    if (!profile) return
+    const next = updateProfileGeometry({
+      ...profile,
+      bends: profile.bends.map((b) =>
+        b.id === bendId ? { ...b, angle: Math.max(0, angle) } : b,
+      ),
+    })
+    set({ profile: next })
   },
 
   setFabricationField: (key, value) => {
