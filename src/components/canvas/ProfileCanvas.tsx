@@ -182,26 +182,30 @@ export function ProfileCanvas({
           {showLabels &&
             segments.map((seg) => {
               const isActive = activeItemId === seg.id
-              const mid = layout.tx({
-                x: (seg.startPoint.x + seg.endPoint.x) / 2,
-                y: (seg.startPoint.y + seg.endPoint.y) / 2,
-              })
-              const dx = seg.endPoint.x - seg.startPoint.x
-              const dy = seg.endPoint.y - seg.startPoint.y
-              const len = Math.hypot(dx, dy) || 1
-              const nx = (-dy / len) * 14
-              const ny = (dx / len) * 14
+              const start = layout.tx(seg.startPoint)
+              const end = layout.tx(seg.endPoint)
+              const screenDx = end.x - start.x
+              const screenDy = end.y - start.y
+              const segLen = Math.hypot(screenDx, screenDy) || 1
+              const midX = (start.x + end.x) / 2
+              const midY = (start.y + end.y) / 2
+              const nx = (-screenDy / segLen) * 14
+              const ny = (screenDx / segLen) * 14
+              let angleDeg = (Math.atan2(screenDy, screenDx) * 180) / Math.PI
+              if (angleDeg > 90 || angleDeg < -90) angleDeg += 180
+              const label = formatLength(seg.length)
               return (
                 <Text
                   key={`lbl-seg-${seg.id}`}
-                  x={mid.x + nx - 20}
-                  y={mid.y + ny - 8}
-                  width={40}
-                  align="center"
-                  text={`${formatLength(seg.length)} mm`}
+                  x={midX + nx}
+                  y={midY + ny}
+                  text={label}
                   fontSize={12}
                   fontStyle={isActive ? 'bold' : 'normal'}
                   fill={isActive ? labelActiveFill : labelFill}
+                  rotation={angleDeg}
+                  offsetX={label.length * 3.5}
+                  offsetY={6}
                   listening={false}
                 />
               )

@@ -8,7 +8,7 @@ interface AppShellProps {
   children: ReactNode
 }
 
-const headerIconClass = 'h-7 w-7 shrink-0 stroke-[2px] text-zinc-100'
+const headerIconClass = 'h-[1.4rem] w-[1.4rem] shrink-0 stroke-[1.75px] text-zinc-100'
 
 export function AppShell({ children }: AppShellProps) {
   const currentStep = useProfileStore((s) => s.currentStep)
@@ -27,13 +27,13 @@ export function AppShell({ children }: AppShellProps) {
           isWizard ? 'relative z-50 shrink-0' : 'shrink-0'
         }`}
       >
-        <div className="mx-auto grid h-14 max-w-lg grid-cols-[3.5rem_1fr_3.5rem] items-center px-2">
+        <div className="mx-auto grid h-12 max-w-lg grid-cols-[2.75rem_1fr_2.75rem] items-center px-2">
           <div className="flex items-center justify-start">
             {inProcess ? (
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-12 w-12 shrink-0 hover:bg-zinc-800"
+                className="h-10 w-10 shrink-0 hover:bg-zinc-800"
                 onClick={() => setExitSheetOpen(true)}
                 aria-label="Exit process"
               >
@@ -48,7 +48,7 @@ export function AppShell({ children }: AppShellProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-12 w-12 shrink-0 hover:bg-zinc-800"
+              className="h-10 w-10 shrink-0 hover:bg-zinc-800"
               aria-label="Account"
               onClick={() => {
                 /* profile page — coming soon */
