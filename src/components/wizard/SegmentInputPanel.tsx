@@ -43,10 +43,32 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
 
   useEffect(() => {
     if (!dock) return
-    const id = window.setTimeout(() => {
-      inputRef.current?.focus({ preventScroll: true })
-    }, 50)
+    const focusInput = () => {
+      const el = inputRef.current
+      if (!el) return
+      el.focus({ preventScroll: true })
+      el.select()
+    }
+    const id = window.setTimeout(focusInput, 80)
     return () => window.clearTimeout(id)
+  }, [stepKey, dock])
+
+  useEffect(() => {
+    if (!dock) return
+    const el = inputRef.current
+    if (!el) return
+
+    const onBlur = () => {
+      window.setTimeout(() => {
+        if (useProfileStore.getState().currentStep !== 'segment-wizard') return
+        const active = document.activeElement
+        if (active?.tagName === 'BUTTON' || active === el) return
+        el.focus({ preventScroll: true })
+      }, 120)
+    }
+
+    el.addEventListener('blur', onBlur)
+    return () => el.removeEventListener('blur', onBlur)
   }, [stepKey, dock])
 
   if (!current) return null
@@ -88,6 +110,7 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
           type="button"
           variant="outline"
           className="h-11 w-[4.25rem] shrink-0 px-0 text-sm"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={goBack}
           disabled={wizardIndex === 0}
         >
@@ -110,7 +133,12 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
           <span className="shrink-0 text-xs font-medium text-zinc-400">{unit}</span>
         </div>
 
-        <Button type="button" className="h-11 w-[4.25rem] shrink-0 px-0 text-sm" onClick={handleNext}>
+        <Button
+          type="button"
+          className="h-11 w-[4.25rem] shrink-0 px-0 text-sm"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={handleNext}
+        >
           Next
         </Button>
       </div>

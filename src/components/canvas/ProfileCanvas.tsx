@@ -3,6 +3,7 @@ import { Stage, Layer, Line, Circle, Text, Rect } from 'react-konva'
 import { calculateProfileBounds } from '@/geometry/calculateProfileBounds'
 import { getBendVertexPoint } from '@/geometry/calculateProfilePoints'
 import type { FoldedProfile } from '@/geometry/types'
+import { cn } from '@/lib/utils'
 
 interface ProfileCanvasProps {
   profile: FoldedProfile
@@ -19,23 +20,25 @@ export function ProfileCanvas({
 }: ProfileCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ width: 320, height: 240 })
+  const fillParent = Boolean(className?.includes('h-full'))
 
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
 
+    const minHeight = fillParent ? 1 : 200
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0]
       if (entry) {
         setSize({
           width: entry.contentRect.width,
-          height: Math.max(entry.contentRect.height, 200),
+          height: Math.max(entry.contentRect.height, minHeight),
         })
       }
     })
     observer.observe(el)
     return () => observer.disconnect()
-  }, [])
+  }, [fillParent])
 
   const { segments, bends } = profile
 
@@ -69,8 +72,12 @@ export function ProfileCanvas({
   return (
     <div
       ref={containerRef}
-      className={`w-full overflow-hidden rounded-xl border border-zinc-700 bg-slate-50 ${className ?? ''}`}
-      style={{ minHeight: 200 }}
+      className={cn(
+        'w-full overflow-hidden rounded-xl border border-zinc-700 bg-slate-50',
+        fillParent && 'h-full min-h-0',
+        className,
+      )}
+      style={fillParent ? undefined : { minHeight: 200 }}
     >
       <Stage width={size.width} height={size.height}>
         <Layer>
