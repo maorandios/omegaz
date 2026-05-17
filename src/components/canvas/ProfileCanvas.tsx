@@ -14,7 +14,9 @@ interface ProfileCanvasProps {
   className?: string
 }
 
-const SEGMENT_LABEL_FONT_SIZE = 15 // 12 × 1.25
+const LABEL_FONT_SIZE = 15 // 12 × 1.25
+const SEGMENT_LABEL_OFFSET = 28 // 14 × 2 — gap from segment line
+const BEND_LABEL_OFFSET = 24 // 12 × 2 — gap from bend vertex
 
 function formatSegmentDim(n: number): string {
   const v = Math.round(n * 10) / 10
@@ -199,8 +201,8 @@ export function ProfileCanvas({
               const segLen = Math.hypot(screenDx, screenDy) || 1
               const midX = (start.x + end.x) / 2
               const midY = (start.y + end.y) / 2
-              const nx = (-screenDy / segLen) * 14
-              const ny = (screenDx / segLen) * 14
+              const nx = (-screenDy / segLen) * SEGMENT_LABEL_OFFSET
+              const ny = (screenDx / segLen) * SEGMENT_LABEL_OFFSET
               let angleDeg = (Math.atan2(screenDy, screenDx) * 180) / Math.PI
               if (angleDeg > 90 || angleDeg < -90) angleDeg += 180
               const label = formatSegmentDim(seg.length)
@@ -210,7 +212,7 @@ export function ProfileCanvas({
                   x={midX + nx}
                   y={midY + ny}
                   text={label}
-                  fontSize={SEGMENT_LABEL_FONT_SIZE}
+                  fontSize={LABEL_FONT_SIZE}
                   fontStyle={isActive ? 'bold' : 'normal'}
                   fill={isActive ? labelActiveFill : labelFill}
                   rotation={angleDeg}
@@ -227,17 +229,18 @@ export function ProfileCanvas({
               const vertex = getBendVertexPoint(segments, i)
               if (!vertex) return null
               const p = layout.tx(vertex)
+              const label = `${formatAngle(bend.angle)}°`
               return (
                 <Text
                   key={`lbl-bend-${bend.id}`}
-                  x={p.x - 22}
-                  y={p.y + 12}
-                  width={44}
-                  align="center"
-                  text={`${formatAngle(bend.angle)}°`}
-                  fontSize={12}
+                  x={p.x}
+                  y={p.y + BEND_LABEL_OFFSET}
+                  text={label}
+                  fontSize={LABEL_FONT_SIZE}
                   fontStyle={isActive ? 'bold' : 'normal'}
                   fill={isActive ? labelActiveFill : labelFill}
+                  offsetX={label.length * 4.4}
+                  offsetY={7.5}
                   listening={false}
                 />
               )
