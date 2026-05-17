@@ -15,7 +15,8 @@ interface ExitProcessSheetProps {
 export function ExitProcessSheet({ open, onOpenChange, onConfirmExit }: ExitProcessSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="top" className="mx-auto max-w-lg">
+      <SheetContent side="bottom" className="mx-auto max-w-lg">
+        <div className="mx-auto mb-2 h-1 w-10 shrink-0 rounded-full bg-zinc-600" aria-hidden />
         <SheetHeader>
           <SheetTitle>Leave this process?</SheetTitle>
         </SheetHeader>
@@ -24,7 +25,7 @@ export function ExitProcessSheet({ open, onOpenChange, onConfirmExit }: ExitProc
         </p>
         <div className="mt-6 flex gap-3">
           <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
-            Stay
+            Continue
           </Button>
           <Button
             type="button"
