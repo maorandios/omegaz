@@ -35,7 +35,11 @@ export function SegmentWizardScreen() {
     <>
       <div className="wizard-preview-zone">
         <div className="wizard-preview">
-          <ProfileCanvas profile={profile} activeItemId={activeItemId} className="h-full w-full" />
+          <ProfileCanvas
+            profile={profile}
+            activeItemId={activeItemId}
+            className="h-full w-full bg-zinc-950"
+          />
         </div>
       </div>
 

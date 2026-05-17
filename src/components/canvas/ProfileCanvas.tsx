@@ -21,6 +21,8 @@ export function ProfileCanvas({
   const containerRef = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ width: 320, height: 240 })
   const fillParent = Boolean(className?.includes('h-full'))
+  const darkCanvas = Boolean(className?.includes('bg-zinc-950'))
+  const stageFill = darkCanvas ? '#09090b' : '#f8fafc'
 
   useEffect(() => {
     const el = containerRef.current
@@ -73,7 +75,10 @@ export function ProfileCanvas({
     <div
       ref={containerRef}
       className={cn(
-        'w-full overflow-hidden rounded-xl border border-zinc-700 bg-slate-50',
+        'w-full overflow-hidden',
+        darkCanvas
+          ? 'rounded-none border-0 bg-zinc-950'
+          : 'rounded-xl border border-zinc-700 bg-slate-50',
         fillParent && 'h-full min-h-0',
         className,
       )}
@@ -81,7 +86,7 @@ export function ProfileCanvas({
     >
       <Stage width={size.width} height={size.height}>
         <Layer>
-          <Rect width={size.width} height={size.height} fill="#f8fafc" />
+          <Rect width={size.width} height={size.height} fill={stageFill} />
           <Line
             points={flatPoints}
             stroke="#18181b"
