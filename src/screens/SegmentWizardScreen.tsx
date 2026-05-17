@@ -33,12 +33,9 @@ export function SegmentWizardScreen() {
 
   return (
     <>
-      <div
-        className="flex min-h-0 flex-1 flex-col items-center px-1 pt-1"
-        style={{ paddingBottom: 'calc(var(--wizard-dock-h) + var(--keyboard-inset, 0px))' }}
-      >
-        <div className="wizard-preview max-w-lg">
-          <ProfileCanvas profile={profile} activeItemId={activeItemId} className="h-full w-full !min-h-0" />
+      <div className="wizard-preview-zone">
+        <div className="wizard-preview">
+          <ProfileCanvas profile={profile} activeItemId={activeItemId} className="h-full w-full" />
         </div>
       </div>
 

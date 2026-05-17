@@ -45,14 +45,28 @@
     padding-bottom: 0;
   }
 
-  .wizard-preview {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    max-height: calc(
-      100dvh - var(--wizard-header-h) - var(--wizard-dock-h) - var(--keyboard-inset, 0px) - 0.5rem
-    );
-    flex-shrink: 0;
+  /* Fixed band between header and dock — no extra padding for keyboard (dock handles that). */
+  .wizard-preview-zone {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--wizard-header-h);
+    bottom: calc(var(--wizard-dock-h) + var(--keyboard-inset, 0px));
+    z-index: 10;
+    container-type: size;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0.25rem;
     overflow: hidden;
+  }
+
+  .wizard-preview {
+    width: min(100cqw, 100cqh);
+    aspect-ratio: 1 / 1;
+    max-width: 32rem;
+    overflow: hidden;
+    flex-shrink: 0;
   }
 
   .wizard-dock {
@@ -62,7 +76,7 @@
     bottom: var(--keyboard-inset, 0px);
     z-index: 50;
     height: var(--wizard-dock-h);
-    border-top: 1px solid var(--color-zinc-700, #3f3f46);
+    border-top: 1px solid #3f3f46;
     background: #18181b;
   }
 }

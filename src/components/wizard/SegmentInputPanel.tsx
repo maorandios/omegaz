@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
@@ -28,6 +28,13 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
   const [inputValue, setInputValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const focusInput = useCallback(() => {
+    const el = inputRef.current
+    if (!el) return
+    el.focus({ preventScroll: true })
+    el.select()
+  }, [])
+
   useEffect(() => {
     const step = buildWizardSteps(profile)[wizardIndex]
     if (!step) return
@@ -43,33 +50,16 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
 
   useEffect(() => {
     if (!dock) return
-    const focusInput = () => {
-      const el = inputRef.current
-      if (!el) return
-      el.focus({ preventScroll: true })
-      el.select()
+    focusInput()
+    const t1 = window.setTimeout(focusInput, 60)
+    const t2 = window.setTimeout(focusInput, 180)
+    const t3 = window.setTimeout(focusInput, 360)
+    return () => {
+      window.clearTimeout(t1)
+      window.clearTimeout(t2)
+      window.clearTimeout(t3)
     }
-    const id = window.setTimeout(focusInput, 80)
-    return () => window.clearTimeout(id)
-  }, [stepKey, dock])
-
-  useEffect(() => {
-    if (!dock) return
-    const el = inputRef.current
-    if (!el) return
-
-    const onBlur = () => {
-      window.setTimeout(() => {
-        if (useProfileStore.getState().currentStep !== 'segment-wizard') return
-        const active = document.activeElement
-        if (active?.tagName === 'BUTTON' || active === el) return
-        el.focus({ preventScroll: true })
-      }, 120)
-    }
-
-    el.addEventListener('blur', onBlur)
-    return () => el.removeEventListener('blur', onBlur)
-  }, [stepKey, dock])
+  }, [stepKey, dock, focusInput])
 
   if (!current) return null
 
@@ -85,6 +75,13 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
     }
   }
 
+  const scheduleFocus = () => {
+    requestAnimationFrame(() => {
+      focusInput()
+      requestAnimationFrame(focusInput)
+    })
+  }
+
   const handleNext = () => {
     const num = parseFloat(inputValue)
     if (!Number.isFinite(num) || num <= 0) return
@@ -96,6 +93,12 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
       previewBendAngle(current.id, num)
     }
     goNext()
+    scheduleFocus()
+  }
+
+  const handleBack = () => {
+    goBack()
+    scheduleFocus()
   }
 
   const handleChange = (raw: string) => {
@@ -111,7 +114,7 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
           variant="outline"
           className="h-11 w-[4.25rem] shrink-0 px-0 text-sm"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={goBack}
+          onClick={handleBack}
           disabled={wizardIndex === 0}
         >
           Back
@@ -120,7 +123,6 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
         <div className="flex h-11 min-w-0 flex-1 items-center rounded-lg border border-zinc-700 bg-zinc-950 px-2">
           <Input
             ref={inputRef}
-            key={stepKey}
             id="wizard-input"
             type="text"
             inputMode="decimal"
