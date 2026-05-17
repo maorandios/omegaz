@@ -4,7 +4,7 @@ const WIZARD_DOCK_PX = 56
 const WIZARD_HEADER_PX = 48
 
 function getWizardChromeTop(): number {
-  const header = document.querySelector('[data-wizard-header]')
+  const header = document.querySelector<HTMLElement>('[data-wizard-header]')
   const headerH = header?.offsetHeight ?? WIZARD_HEADER_PX
   const safeTop = Number.parseFloat(getComputedStyle(document.body).paddingTop) || 0
   return Math.round(headerH + safeTop)
