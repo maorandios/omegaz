@@ -36,7 +36,7 @@ export function SegmentWizardScreen() {
         </div>
       </div>
 
-      <div className="wizard-dock wizard-vv-sync mx-auto flex max-w-lg justify-center">
+      <div className="wizard-dock mx-auto flex max-w-lg justify-center">
         <SegmentInputPanel profile={profile} dock />
       </div>
     </>
