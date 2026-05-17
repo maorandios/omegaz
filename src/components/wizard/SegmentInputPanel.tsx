@@ -7,10 +7,11 @@ import { useProfileStore } from '@/store/profileStore'
 
 interface SegmentInputPanelProps {
   profile: FoldedProfile
-  compact?: boolean
+  /** Single row: Back | value | Next — for mobile keyboard dock */
+  dock?: boolean
 }
 
-export function SegmentInputPanel({ profile, compact = false }: SegmentInputPanelProps) {
+export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelProps) {
   const wizardIndex = useProfileStore((s) => s.wizardIndex)
   const goNext = useProfileStore((s) => s.goNext)
   const goBack = useProfileStore((s) => s.goBack)
@@ -41,16 +42,7 @@ export function SegmentInputPanel({ profile, compact = false }: SegmentInputPane
 
   if (!current) return null
 
-  const segmentIndex = profile.segments.findIndex((s) => s.id === current.id)
-  const bendIndex = profile.bends.findIndex((b) => b.id === current.id)
-
-  const title =
-    current.type === 'segment'
-      ? `Segment ${segmentIndex + 1} Length`
-      : `Bend ${bendIndex + 1} Angle`
-
   const unit = current.type === 'segment' ? 'mm' : '°'
-  const stepLabel = `Step ${wizardIndex + 1} of ${steps.length}`
 
   const applyPreview = (raw: string) => {
     const num = parseFloat(raw)
@@ -80,17 +72,20 @@ export function SegmentInputPanel({ profile, compact = false }: SegmentInputPane
     applyPreview(raw)
   }
 
-  if (compact) {
+  if (dock) {
     return (
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-2">
-          <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-zinc-500">
-            {stepLabel}
-          </span>
-          <span className="truncate text-sm font-medium text-zinc-200">{title}</span>
-        </div>
+      <div className="flex h-full w-full max-w-lg items-center gap-2 px-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 w-[4.25rem] shrink-0 px-0 text-sm"
+          onClick={goBack}
+          disabled={wizardIndex === 0}
+        >
+          Back
+        </Button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex h-11 min-w-0 flex-1 items-center rounded-lg border border-zinc-700 bg-zinc-950 px-2">
           <Input
             key={stepKey}
             id="wizard-input"
@@ -100,44 +95,26 @@ export function SegmentInputPanel({ profile, compact = false }: SegmentInputPane
             value={inputValue}
             onChange={(e) => handleChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleNext()}
-            className="h-11 flex-1 text-center text-lg font-semibold"
+            className="h-full min-w-0 flex-1 border-0 bg-transparent px-1 text-center text-lg font-semibold shadow-none focus-visible:ring-0"
             autoFocus
           />
-          <span className="w-8 shrink-0 text-sm text-zinc-400">{unit}</span>
+          <span className="shrink-0 text-xs font-medium text-zinc-400">{unit}</span>
         </div>
 
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11 min-h-11 flex-1"
-            onClick={goBack}
-            disabled={wizardIndex === 0}
-          >
-            Back
-          </Button>
-          <Button type="button" className="h-11 min-h-11 flex-[1.4]" size="lg" onClick={handleNext}>
-            Next
-          </Button>
-        </div>
-
-        <div className="flex justify-center gap-5 text-xs text-zinc-500">
-          <button type="button" className="underline-offset-2 hover:text-zinc-300 hover:underline" onClick={undo}>
-            Undo
-          </button>
-          <button
-            type="button"
-            className="underline-offset-2 hover:text-zinc-300 hover:underline"
-            onClick={() => {
-              if (window.confirm('Restart and lose current progress?')) restart()
-            }}
-          >
-            Restart
-          </button>
-        </div>
+        <Button type="button" className="h-11 w-[4.25rem] shrink-0 px-0 text-sm" onClick={handleNext}>
+          Next
+        </Button>
       </div>
     )
   }
+
+  const segmentIndex = profile.segments.findIndex((s) => s.id === current.id)
+  const bendIndex = profile.bends.findIndex((b) => b.id === current.id)
+  const title =
+    current.type === 'segment'
+      ? `Segment ${segmentIndex + 1} Length`
+      : `Bend ${bendIndex + 1} Angle`
+  const stepLabel = `Step ${wizardIndex + 1} of ${steps.length}`
 
   return (
     <div className="space-y-4">

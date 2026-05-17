@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
 import type { AppStep } from '@/geometry/types'
 import { useVisualViewport } from '@/hooks/useVisualViewport'
 import { useProfileStore } from '@/store/profileStore'
@@ -26,11 +27,27 @@ interface AppShellProps {
   children: ReactNode
 }
 
+function getWizardStepLabel(profile: ReturnType<typeof useProfileStore.getState>['profile'], wizardIndex: number) {
+  if (!profile) return ''
+  const steps = buildWizardSteps(profile)
+  const current = steps[wizardIndex]
+  if (!current) return ''
+  if (current.type === 'segment') {
+    const i = profile.segments.findIndex((s) => s.id === current.id) + 1
+    return `Step ${wizardIndex + 1}/${steps.length} · Seg ${i}`
+  }
+  const i = profile.bends.findIndex((b) => b.id === current.id) + 1
+  return `Step ${wizardIndex + 1}/${steps.length} · Bend ${i}`
+}
+
 export function AppShell({ children }: AppShellProps) {
   const currentStep = useProfileStore((s) => s.currentStep)
+  const profile = useProfileStore((s) => s.profile)
+  const wizardIndex = useProfileStore((s) => s.wizardIndex)
   const setStep = useProfileStore((s) => s.setStep)
   const goBack = useProfileStore((s) => s.goBack)
   const restart = useProfileStore((s) => s.restart)
+  const undo = useProfileStore((s) => s.undo)
   const { height: viewportHeight } = useVisualViewport()
 
   const isWizard = currentStep === 'segment-wizard'
@@ -38,6 +55,7 @@ export function AppShell({ children }: AppShellProps) {
   const stepIndex = STEP_ORDER.indexOf(
     currentStep === 'sketch' ? 'segment-wizard' : currentStep,
   )
+  const wizardSubtitle = isWizard ? getWizardStepLabel(profile, wizardIndex) : ''
 
   const handleBack = () => {
     if (currentStep === 'sketch') {
@@ -53,17 +71,23 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div
-      className="flex flex-col overflow-hidden bg-zinc-950 text-zinc-100"
+      className="relative overflow-hidden bg-zinc-950 text-zinc-100"
       style={{ height: viewportHeight }}
     >
       <header
-        className={`z-40 shrink-0 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur ${
-          isWizard ? 'py-2' : ''
+        className={`fixed left-0 right-0 top-0 z-40 border-b border-zinc-800 bg-zinc-950 ${
+          isWizard ? 'py-1.5' : ''
         }`}
       >
-        <div className="mx-auto flex max-w-lg items-center gap-2 px-3">
+        <div className="mx-auto flex max-w-lg items-center gap-1 px-2">
           {showBack ? (
-            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={handleBack} aria-label="Back">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0"
+              onClick={handleBack}
+              aria-label="Back"
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
           ) : (
@@ -71,23 +95,37 @@ export function AppShell({ children }: AppShellProps) {
           )}
           <div className="min-w-0 flex-1 text-center">
             <h1 className="text-sm font-bold tracking-tight text-amber-400">OMEGAZ</h1>
-            {!isWizard && (
+            {isWizard ? (
+              <p className="truncate text-[11px] text-zinc-400">{wizardSubtitle}</p>
+            ) : (
               <p className="text-[10px] text-zinc-500">Fabrication request generator</p>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9 shrink-0 px-2 text-xs text-zinc-500"
-            onClick={() => {
-              if (currentStep !== 'start' && window.confirm('Start over?')) restart()
-            }}
-          >
-            {currentStep !== 'start' ? 'New' : ''}
-          </Button>
+          <div className="flex shrink-0 items-center gap-0">
+            {isWizard && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 px-2 text-xs text-zinc-400"
+                onClick={undo}
+              >
+                Undo
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 px-2 text-xs text-zinc-500"
+              onClick={() => {
+                if (currentStep !== 'start' && window.confirm('Start over?')) restart()
+              }}
+            >
+              {currentStep !== 'start' ? 'New' : ''}
+            </Button>
+          </div>
         </div>
         {currentStep !== 'start' && currentStep !== 'export' && (
-          <div className={`mx-auto flex max-w-lg justify-center gap-1 px-3 ${isWizard ? 'pt-1.5' : 'pb-3 pt-2'}`}>
+          <div className={`mx-auto flex max-w-lg justify-center gap-1 px-3 ${isWizard ? 'pt-1' : 'pb-3 pt-2'}`}>
             {['start', 'segment-wizard', 'fabrication', 'summary'].map((step, i) => (
               <div
                 key={step}
@@ -100,9 +138,10 @@ export function AppShell({ children }: AppShellProps) {
       </header>
 
       <main
-        className={`mx-auto flex w-full max-w-lg min-h-0 flex-1 flex-col overflow-hidden ${
-          isWizard ? 'px-0 py-0' : 'overflow-y-auto px-4 py-4'
+        className={`mx-auto w-full max-w-lg ${
+          isWizard ? 'pointer-events-none h-0 overflow-hidden' : 'overflow-y-auto px-4 py-4'
         }`}
+        style={isWizard ? undefined : { minHeight: viewportHeight }}
       >
         {children}
       </main>

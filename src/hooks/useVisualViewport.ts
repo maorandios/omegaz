@@ -4,17 +4,25 @@ export interface VisualViewportState {
   height: number
   width: number
   offsetTop: number
+  /** Pixels from visual viewport bottom to window bottom (keyboard area) */
+  keyboardInsetBottom: number
   /** True when viewport is noticeably shorter (keyboard likely open) */
   keyboardLikelyOpen: boolean
 }
 
 export function useVisualViewport(): VisualViewportState {
-  const [state, setState] = useState<VisualViewportState>(() => ({
-    height: window.visualViewport?.height ?? window.innerHeight,
-    width: window.visualViewport?.width ?? window.innerWidth,
-    offsetTop: window.visualViewport?.offsetTop ?? 0,
-    keyboardLikelyOpen: false,
-  }))
+  const [state, setState] = useState<VisualViewportState>(() => {
+    const vv = window.visualViewport
+    const h = vv?.height ?? window.innerHeight
+    const top = vv?.offsetTop ?? 0
+    return {
+      height: h,
+      width: vv?.width ?? window.innerWidth,
+      offsetTop: top,
+      keyboardInsetBottom: Math.max(0, window.innerHeight - h - top),
+      keyboardLikelyOpen: false,
+    }
+  })
 
   useEffect(() => {
     const vv = window.visualViewport
@@ -22,23 +30,34 @@ export function useVisualViewport(): VisualViewportState {
 
     const update = () => {
       const fullHeight = window.innerHeight
+      const inset = Math.max(0, fullHeight - vv.height - vv.offsetTop)
       setState({
         height: vv.height,
         width: vv.width,
         offsetTop: vv.offsetTop,
-        keyboardLikelyOpen: vv.height < fullHeight * 0.82,
+        keyboardInsetBottom: inset,
+        keyboardLikelyOpen: inset > 48 || vv.height < fullHeight * 0.78,
       })
     }
 
-    vv.addEventListener('resize', update)
-    vv.addEventListener('scroll', update)
-    window.addEventListener('orientationchange', update)
+    let raf = 0
+    const scheduleUpdate = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(update)
+    }
+
+    vv.addEventListener('resize', scheduleUpdate)
+    vv.addEventListener('scroll', scheduleUpdate)
+    window.addEventListener('orientationchange', scheduleUpdate)
+    window.addEventListener('resize', scheduleUpdate)
     update()
 
     return () => {
-      vv.removeEventListener('resize', update)
-      vv.removeEventListener('scroll', update)
-      window.removeEventListener('orientationchange', update)
+      cancelAnimationFrame(raf)
+      vv.removeEventListener('resize', scheduleUpdate)
+      vv.removeEventListener('scroll', scheduleUpdate)
+      window.removeEventListener('orientationchange', scheduleUpdate)
+      window.removeEventListener('resize', scheduleUpdate)
     }
   }, [])
 
