@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
@@ -26,6 +26,7 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
   const stepKey = current ? `${wizardIndex}-${current.type}-${current.id}` : ''
   const historyLength = useProfileStore((s) => s.history.length)
   const [inputValue, setInputValue] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const step = buildWizardSteps(profile)[wizardIndex]
@@ -39,6 +40,14 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- stepKey + historyLength are intentional triggers
   }, [stepKey, historyLength])
+
+  useEffect(() => {
+    if (!dock) return
+    const id = window.setTimeout(() => {
+      inputRef.current?.focus({ preventScroll: true })
+    }, 50)
+    return () => window.clearTimeout(id)
+  }, [stepKey, dock])
 
   if (!current) return null
 
@@ -87,6 +96,7 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
 
         <div className="flex h-11 min-w-0 flex-1 items-center rounded-lg border border-zinc-700 bg-zinc-950 px-2">
           <Input
+            ref={inputRef}
             key={stepKey}
             id="wizard-input"
             type="text"
@@ -96,7 +106,6 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
             onChange={(e) => handleChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleNext()}
             className="h-full min-w-0 flex-1 border-0 bg-transparent px-1 text-center text-lg font-semibold shadow-none focus-visible:ring-0"
-            autoFocus
           />
           <span className="shrink-0 text-xs font-medium text-zinc-400">{unit}</span>
         </div>

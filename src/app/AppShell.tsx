@@ -3,7 +3,6 @@ import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
 import type { AppStep } from '@/geometry/types'
-import { useVisualViewport } from '@/hooks/useVisualViewport'
 import { useProfileStore } from '@/store/profileStore'
 
 const STEP_LABELS: Partial<Record<AppStep, string>> = {
@@ -48,7 +47,6 @@ export function AppShell({ children }: AppShellProps) {
   const goBack = useProfileStore((s) => s.goBack)
   const restart = useProfileStore((s) => s.restart)
   const undo = useProfileStore((s) => s.undo)
-  const { height: viewportHeight } = useVisualViewport()
 
   const isWizard = currentStep === 'segment-wizard'
   const showBack = currentStep !== 'start'
@@ -70,14 +68,9 @@ export function AppShell({ children }: AppShellProps) {
   }
 
   return (
-    <div
-      className="relative overflow-hidden bg-zinc-950 text-zinc-100"
-      style={{ height: viewportHeight }}
-    >
+    <div className="flex h-dvh flex-col overflow-hidden bg-zinc-950 text-zinc-100">
       <header
-        className={`fixed left-0 right-0 top-0 z-40 border-b border-zinc-800 bg-zinc-950 ${
-          isWizard ? 'py-1.5' : ''
-        }`}
+        className={`shrink-0 border-b border-zinc-800 bg-zinc-950 ${isWizard ? 'py-1.5' : ''}`}
       >
         <div className="mx-auto flex max-w-lg items-center gap-1 px-2">
           {showBack ? (
@@ -138,10 +131,9 @@ export function AppShell({ children }: AppShellProps) {
       </header>
 
       <main
-        className={`mx-auto w-full max-w-lg ${
-          isWizard ? 'pointer-events-none h-0 overflow-hidden' : 'overflow-y-auto px-4 py-4'
+        className={`mx-auto flex w-full max-w-lg min-h-0 flex-1 flex-col ${
+          isWizard ? 'overflow-hidden' : 'overflow-y-auto px-4 py-4'
         }`}
-        style={isWizard ? undefined : { minHeight: viewportHeight }}
       >
         {children}
       </main>
