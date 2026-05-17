@@ -63,7 +63,20 @@ export function ProfileCanvas({
       }
     })
     observer.observe(el)
-    return () => observer.disconnect()
+    const onLayout = () => {
+      const entry = el.getBoundingClientRect()
+      if (entry.width > 0 && entry.height > 0) {
+        setSize({
+          width: entry.width,
+          height: Math.max(entry.height, minHeight),
+        })
+      }
+    }
+    window.addEventListener('wizard-vv-update', onLayout)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('wizard-vv-update', onLayout)
+    }
   }, [fillParent])
 
   const { segments, bends } = profile

@@ -41,19 +41,27 @@
     --keyboard-inset: 0px;
   }
 
+  html[data-wizard],
   html[data-wizard] body {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  html[data-wizard] body {
+    position: fixed;
+    width: 100%;
     padding-bottom: 0;
     padding-left: 0;
     padding-right: 0;
   }
 
-  /* Fixed band between header bottom and dock top (viewport coordinates). */
+  /* Fills visible area between header and dock (height from visualViewport). */
   .wizard-preview-zone {
     position: fixed;
     left: 0;
     right: 0;
-    top: var(--wizard-header-top, 58px);
-    bottom: calc(var(--wizard-dock-h) + var(--keyboard-inset, 0px));
+    top: var(--wizard-header-top, 48px);
+    height: var(--wizard-preview-height, calc(100dvh - var(--wizard-header-top) - var(--wizard-dock-h)));
     z-index: 10;
     container-type: size;
     display: flex;

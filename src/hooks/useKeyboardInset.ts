@@ -1,11 +1,46 @@
 import { useEffect } from 'react'
 
-/** Writes --keyboard-inset on <html> from visualViewport (CSS only, no React re-renders). */
+const WIZARD_DOCK_PX = 56
+
+function syncWizardLayout() {
+  const root = document.documentElement
+  const vv = window.visualViewport
+  if (!vv) return
+
+  const inset = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))
+  const vvHeight = Math.round(vv.height)
+  const vvOffset = Math.round(vv.offsetTop)
+
+  root.style.setProperty('--keyboard-inset', `${inset}px`)
+  root.style.setProperty('--vv-height', `${vvHeight}px`)
+  root.style.setProperty('--vv-offset-top', `${vvOffset}px`)
+
+  const header = document.querySelector('[data-wizard-header]')
+  const headerBottom = header
+    ? Math.round(header.getBoundingClientRect().bottom)
+    : 48
+  root.style.setProperty('--wizard-header-top', `${headerBottom}px`)
+
+  const previewHeight = Math.max(120, vvHeight - headerBottom - WIZARD_DOCK_PX)
+  root.style.setProperty('--wizard-preview-height', `${previewHeight}px`)
+
+  // iOS keeps offsetTop after Done — reset so fixed layout doesn't drift upward
+  if (inset === 0 && vvOffset > 0) {
+    window.scrollTo(0, 0)
+  }
+
+  window.dispatchEvent(new Event('wizard-vv-update'))
+}
+
+/** Tracks visual viewport for wizard dock + preview (CSS vars only, no React re-renders). */
 export function useKeyboardInset(active: boolean) {
   useEffect(() => {
     const root = document.documentElement
     if (!active) {
       root.style.removeProperty('--keyboard-inset')
+      root.style.removeProperty('--vv-height')
+      root.style.removeProperty('--vv-offset-top')
+      root.style.removeProperty('--wizard-preview-height')
       return
     }
 
@@ -13,13 +48,14 @@ export function useKeyboardInset(active: boolean) {
     if (!vv) return
 
     let raf = 0
-    let lastInset = -1
+    let lastKey = ''
 
     const update = () => {
       const inset = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))
-      if (inset === lastInset) return
-      lastInset = inset
-      root.style.setProperty('--keyboard-inset', `${inset}px`)
+      const key = `${inset}:${Math.round(vv.height)}:${Math.round(vv.offsetTop)}`
+      if (key === lastKey) return
+      lastKey = key
+      syncWizardLayout()
     }
 
     const schedule = () => {
@@ -28,47 +64,40 @@ export function useKeyboardInset(active: boolean) {
     }
 
     vv.addEventListener('resize', schedule)
+    vv.addEventListener('scroll', schedule)
+    window.addEventListener('resize', schedule)
     window.addEventListener('orientationchange', schedule)
     update()
 
+    // Catch keyboard open/close after focus changes
+    const t1 = window.setTimeout(update, 100)
+    const t2 = window.setTimeout(update, 350)
+
     return () => {
       cancelAnimationFrame(raf)
+      window.clearTimeout(t1)
+      window.clearTimeout(t2)
       vv.removeEventListener('resize', schedule)
+      vv.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
       window.removeEventListener('orientationchange', schedule)
       root.style.removeProperty('--keyboard-inset')
+      root.style.removeProperty('--vv-height')
+      root.style.removeProperty('--vv-offset-top')
+      root.style.removeProperty('--wizard-preview-height')
     }
   }, [active])
 }
 
-/** Sync header bottom edge (viewport px) into --wizard-header-top for preview zone. */
+/** Re-measure header + preview after keyboard toggle (call from input focus/blur). */
+export function refreshWizardViewport() {
+  requestAnimationFrame(() => {
+    syncWizardLayout()
+    requestAnimationFrame(syncWizardLayout)
+  })
+}
+
+/** @deprecated Use layout values from useKeyboardInset */
 export function useWizardHeaderHeight(active: boolean) {
-  useEffect(() => {
-    if (!active) return
-
-    const header = document.querySelector('[data-wizard-header]')
-    if (!header) return
-
-    const root = document.documentElement
-    let lastTop = -1
-
-    const set = () => {
-      const top = Math.round(header.getBoundingClientRect().bottom)
-      if (top === lastTop) return
-      lastTop = top
-      root.style.setProperty('--wizard-header-top', `${top}px`)
-    }
-
-    const ro = new ResizeObserver(set)
-    ro.observe(header)
-    window.addEventListener('resize', set)
-    window.visualViewport?.addEventListener('resize', set)
-    set()
-
-    return () => {
-      ro.disconnect()
-      window.removeEventListener('resize', set)
-      window.visualViewport?.removeEventListener('resize', set)
-      root.style.removeProperty('--wizard-header-top')
-    }
-  }, [active])
+  useKeyboardInset(active)
 }

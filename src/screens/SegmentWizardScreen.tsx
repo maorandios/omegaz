@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { ProfileCanvas } from '@/components/canvas/ProfileCanvas'
 import { SegmentInputPanel } from '@/components/wizard/SegmentInputPanel'
-import { useKeyboardInset, useWizardHeaderHeight } from '@/hooks/useKeyboardInset'
+import { useKeyboardInset } from '@/hooks/useKeyboardInset'
 import { useProfileStore } from '@/store/profileStore'
 
 export function SegmentWizardScreen() {
@@ -10,7 +10,6 @@ export function SegmentWizardScreen() {
   const selectWizardItem = useProfileStore((s) => s.selectWizardItem)
 
   useKeyboardInset(true)
-  useWizardHeaderHeight(true)
 
   useEffect(() => {
     document.documentElement.dataset.wizard = 'true'

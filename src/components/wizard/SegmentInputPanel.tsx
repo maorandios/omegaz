@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
 import type { FoldedProfile } from '@/geometry/types'
+import { refreshWizardViewport } from '@/hooks/useKeyboardInset'
 import { useProfileStore } from '@/store/profileStore'
 
 interface SegmentInputPanelProps {
@@ -136,6 +137,11 @@ export function SegmentInputPanel({ profile, dock = false }: SegmentInputPanelPr
             enterKeyHint="next"
             value={inputValue}
             onChange={(e) => handleChange(e.target.value)}
+            onFocus={() => refreshWizardViewport()}
+            onBlur={() => {
+              window.setTimeout(refreshWizardViewport, 50)
+              window.setTimeout(refreshWizardViewport, 300)
+            }}
             onKeyDown={(e) => e.key === 'Enter' && handleNext()}
             className="h-full min-w-0 flex-1 border-0 bg-transparent px-1 text-center text-lg font-semibold shadow-none focus-visible:ring-0"
           />
