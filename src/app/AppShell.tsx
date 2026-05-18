@@ -134,7 +134,7 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
   const header = (
     <AppHeader
       title={headerTitle}
-      showReset={inWorkflow}
+      showReset={isWizard}
       onReset={resetPlateShape}
       showBack={isFabrication || isSummary}
       onBack={goBack}

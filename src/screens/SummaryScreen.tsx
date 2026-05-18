@@ -1,5 +1,6 @@
 import { ProfileCanvas } from '@/components/canvas/ProfileCanvas'
 import { SaveToProjectButton } from '@/components/export/SaveToProjectButton'
+import { Plate3DPreviewButton } from '@/components/preview/Plate3DPreviewModal'
 import { FLAT_WIDTH_LABEL } from '@/geometry/types'
 import { useProfileMetrics } from '@/hooks/useProfileMetrics'
 import { formatKg, formatMm } from '@/lib/format'
@@ -50,6 +51,8 @@ export function SummaryScreen() {
           </p>
         )}
       </div>
+
+      <Plate3DPreviewButton profile={profile} />
 
       <SaveToProjectButton profile={profile} selectedTemplate={selectedTemplate} />
     </div>
