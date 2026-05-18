@@ -56,9 +56,13 @@
   .wizard-shell {
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
     height: 100dvh;
     overflow: hidden;
     background: #09090b;
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-left: env(safe-area-inset-left);
   }
 
   .wizard-shell__main {
@@ -106,6 +110,7 @@
 
   .wizard-keypad-bar {
     flex-shrink: 0;
+    box-sizing: border-box;
     height: var(--wizard-keypad-h);
     border-top: 1px solid #3f3f46;
     background: #18181b;
