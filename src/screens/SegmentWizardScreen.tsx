@@ -1,5 +1,5 @@
 import { ProfileCanvas } from '@/components/canvas/ProfileCanvas'
-import { SegmentInputPanel } from '@/components/wizard/SegmentInputPanel'
+import { PlateWizardPanel } from '@/components/wizard/PlateWizardPanel'
 import { useProfileStore } from '@/store/profileStore'
 
 export function SegmentWizardScreen() {
@@ -24,9 +24,7 @@ export function SegmentWizardScreen() {
         </div>
       </div>
 
-      <div className="wizard-dock-bar">
-        <SegmentInputPanel profile={profile} dock />
-      </div>
+      <PlateWizardPanel profile={profile} />
     </div>
   )
 }

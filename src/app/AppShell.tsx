@@ -2,7 +2,6 @@ import { CircleUserRound, CircleX } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { ExitProcessSheet } from '@/components/shell/ExitProcessSheet'
 import { Button } from '@/components/ui/button'
-import { useVisualViewportSync } from '@/hooks/useKeyboardInset'
 import { useProfileStore } from '@/store/profileStore'
 
 interface AppShellProps {
@@ -66,8 +65,6 @@ export function AppShell({ children }: AppShellProps) {
 
   const isWizard = currentStep === 'segment-wizard'
   const inProcess = currentStep !== 'start'
-
-  useVisualViewportSync(isWizard)
 
   useEffect(() => {
     if (isWizard) {

@@ -36,9 +36,9 @@
   }
 
   html {
-    --vv-offset-top: 0px;
-    --vv-height: 100dvh;
-    --wizard-dock-h: 56px;
+    --wizard-header-h: 3rem;
+    --wizard-dock-h: 3.5rem;
+    --wizard-keypad-h: clamp(11.5rem, 28dvh, 14.5rem);
   }
 
   html[data-wizard],
@@ -52,19 +52,11 @@
     padding: 0;
   }
 
-  /*
-   * One shell pinned to the visible viewport — header, preview, and dock
-   * flex inside so they never drift independently on iOS keyboard toggle.
-   */
+  /* Plate wizard: header + preview + dock + keypad — no scroll, no OS keyboard */
   .wizard-shell {
-    position: fixed;
-    top: var(--vv-offset-top, 0px);
-    left: 0;
-    right: 0;
-    height: var(--vv-height, 100dvh);
-    z-index: 20;
     display: flex;
     flex-direction: column;
+    height: 100dvh;
     overflow: hidden;
     background: #09090b;
   }
@@ -107,7 +99,14 @@
 
   .wizard-dock-bar {
     flex-shrink: 0;
-    min-height: var(--wizard-dock-h);
+    height: var(--wizard-dock-h);
+    border-top: 1px solid #3f3f46;
+    background: #18181b;
+  }
+
+  .wizard-keypad-bar {
+    flex-shrink: 0;
+    height: var(--wizard-keypad-h);
     border-top: 1px solid #3f3f46;
     background: #18181b;
     padding-bottom: env(safe-area-inset-bottom);
