@@ -138,11 +138,15 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   history: [],
 
   setStep: (step) => {
+    if (step === 'sketch') {
+      useAppStore.setState({ editingPlateId: null })
+    }
     set({ currentStep: step })
     schedulePersist(get)
   },
 
   loadTemplate: (templateId) => {
+    useAppStore.setState({ editingPlateId: null })
     const profile = createTemplateProfile(templateId)
     const initialProfile = snapshotProfile(profile)
     set({
@@ -288,6 +292,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   restart: () => {
     clearSession()
+    useAppStore.setState({ editingPlateId: null })
     useAppStore.getState().setMainTab('projects')
     set({
       currentStep: null,
