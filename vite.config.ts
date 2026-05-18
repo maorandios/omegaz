@@ -27,13 +27,13 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'pwa-192.svg'],
+      includeAssets: ['favicon.svg', 'pwa-192.svg', 'folds-logo.svg'],
       manifest: {
-        name: 'OMEGAZ — Fabrication Request',
-        short_name: 'OMEGAZ',
+        name: 'FOLDS — Fabrication Request',
+        short_name: 'FOLDS',
         description: 'Fast guided fabrication request generator for folded metal profiles',
-        theme_color: '#09090b',
-        background_color: '#09090b',
+        theme_color: '#161616',
+        background_color: '#161616',
         display: 'standalone',
         orientation: 'portrait',
         icons: [

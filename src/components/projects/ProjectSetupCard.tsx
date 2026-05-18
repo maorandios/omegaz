@@ -21,23 +21,23 @@ export function ProjectSetupCard() {
 
   if (activeProject) {
     return (
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-amber-500/90">
+      <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+        <p className="text-xs font-medium uppercase tracking-wide text-primary/90">
           Current project
         </p>
-        <p className="mt-1 font-semibold text-zinc-100">{activeProject.name}</p>
-        <p className="mt-0.5 text-sm text-zinc-400">
-          <span className="font-mono text-zinc-300">{activeProject.serial}</span>
-          <span className="mx-1.5 text-zinc-600">·</span>
+        <p className="mt-1 font-semibold text-foreground">{activeProject.name}</p>
+        <p className="mt-0.5 text-sm text-muted">
+          <span className="font-mono text-foreground/90">{activeProject.serial}</span>
+          <span className="mx-1.5 text-muted/60">·</span>
           {activeProject.plates.length} plate{activeProject.plates.length === 1 ? '' : 's'}
-          <span className="mx-1.5 text-zinc-600">·</span>
+          <span className="mx-1.5 text-muted/60">·</span>
           {formatKg(activeProject.weightKg)}
         </p>
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="mt-2 h-8 px-0 text-zinc-400 hover:text-zinc-200"
+          className="mt-2 h-8 px-0 text-muted hover:text-foreground"
           onClick={() => setActiveProject(null)}
         >
           Switch project
@@ -48,10 +48,10 @@ export function ProjectSetupCard() {
 
   return (
     <>
-      <div className="space-y-4 rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
+      <div className="space-y-4 rounded-lg border border-border bg-surface/80 p-4">
         <div>
-          <h3 className="text-sm font-medium text-zinc-100">Start a project batch</h3>
-          <p className="mt-1 text-sm text-zinc-400">
+          <h3 className="text-sm font-medium text-foreground">Start a project batch</h3>
+          <p className="mt-1 text-sm text-muted">
             Name your project, then add one or more plates to it.
           </p>
         </div>

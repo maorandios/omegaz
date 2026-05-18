@@ -23,13 +23,13 @@ export function CancelSubscriptionSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="mx-auto max-w-lg">
-        <div className="mx-auto mb-2 h-1 w-10 shrink-0 rounded-full bg-zinc-600" aria-hidden />
+        <div className="mx-auto mb-2 h-1 w-10 shrink-0 rounded-full bg-border" aria-hidden />
         <SheetHeader>
           <SheetTitle>Cancel subscription?</SheetTitle>
         </SheetHeader>
-        <p className="text-sm leading-relaxed text-zinc-400">
+        <p className="text-sm leading-relaxed text-muted">
           You&apos;ll keep Pro access until{' '}
-          <span className="text-zinc-200">{formatSubscriptionPeriodEnd(periodEnd)}</span>. After
+          <span className="text-foreground">{formatSubscriptionPeriodEnd(periodEnd)}</span>. After
           that, your account moves to the Free plan.
         </p>
         <div className="mt-6 flex gap-3">

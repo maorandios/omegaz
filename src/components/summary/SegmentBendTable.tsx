@@ -18,10 +18,10 @@ export function SegmentBendTable({ profile }: SegmentBendTableProps) {
   let bendNum = 0
 
   return (
-    <div className="overflow-hidden rounded-lg border border-zinc-800">
+    <div className="overflow-hidden rounded-lg border border-border">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-zinc-800 bg-zinc-900/80 text-left text-zinc-400">
+          <tr className="border-b border-border bg-surface/80 text-left text-muted">
             <th className="px-3 py-2 font-medium">Item</th>
             <th className="px-3 py-2 font-medium">Value</th>
           </tr>
@@ -37,13 +37,13 @@ export function SegmentBendTable({ profile }: SegmentBendTableProps) {
                 <tr
                   key={step.id}
                   className={cn(
-                    'cursor-pointer border-b border-zinc-800/80 transition-colors',
-                    activeItemId === step.id ? 'bg-amber-500/15' : 'hover:bg-zinc-800/50',
+                    'cursor-pointer border-b border-border/80 transition-colors',
+                    activeItemId === step.id ? 'bg-primary/15' : 'hover:bg-surface-raised/50',
                   )}
                   onClick={() => setActiveFromTableRow('segment', step.id)}
                 >
                   <td className="px-3 py-3 font-medium">{label}</td>
-                  <td className="px-3 py-3 text-zinc-300">{value}</td>
+                  <td className="px-3 py-3 text-foreground/90">{value}</td>
                 </tr>
               )
             }
@@ -53,13 +53,13 @@ export function SegmentBendTable({ profile }: SegmentBendTableProps) {
               <tr
                 key={step.id}
                 className={cn(
-                  'cursor-pointer border-b border-zinc-800/80 transition-colors',
-                  activeItemId === step.id ? 'bg-amber-500/15' : 'hover:bg-zinc-800/50',
+                  'cursor-pointer border-b border-border/80 transition-colors',
+                  activeItemId === step.id ? 'bg-primary/15' : 'hover:bg-surface-raised/50',
                 )}
                 onClick={() => setActiveFromTableRow('bend', step.id)}
               >
                 <td className="px-3 py-3 font-medium">Bend {bendNum}</td>
-                <td className="px-3 py-3 text-zinc-300">{formatInteriorBendDeg(bend)}</td>
+                <td className="px-3 py-3 text-foreground/90">{formatInteriorBendDeg(bend)}</td>
               </tr>
             )
           })}

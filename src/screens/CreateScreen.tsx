@@ -17,8 +17,8 @@ export function CreateScreen() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-zinc-100">Add a plate</h2>
-        <p className="mt-1 text-sm text-zinc-400">
+        <h2 className="text-xl font-semibold text-foreground">Add a plate</h2>
+        <p className="mt-1 text-sm text-muted">
           Start or select a project batch, then choose a template or sketch a profile.
         </p>
       </div>
@@ -26,7 +26,7 @@ export function CreateScreen() {
       <ProjectSetupCard />
 
       {!canAddPlate ? (
-        <p className="rounded-lg border border-dashed border-zinc-700 px-4 py-6 text-center text-sm text-zinc-500">
+        <p className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted">
           Create or select a project above before adding plates.
         </p>
       ) : (
@@ -51,7 +51,7 @@ export function CreateScreen() {
           <Separator />
 
           <section id="templates-section" className="space-y-3">
-            <h3 className="text-sm font-medium uppercase tracking-wide text-zinc-500">Templates</h3>
+            <h3 className="text-sm font-medium uppercase tracking-wide text-muted">Templates</h3>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {TEMPLATE_DEFINITIONS.map((t) => (
                 <TemplateCard

@@ -12,7 +12,7 @@ interface State {
 async function resetAppStorage() {
   try {
     clearSession()
-    localStorage.removeItem('omegaz-app')
+    localStorage.removeItem('FOLDS-app')
   } catch {
     // ignore
   }
@@ -45,15 +45,15 @@ export class AppErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-zinc-950 p-6 text-center text-zinc-100">
-          <h1 className="text-lg font-semibold text-amber-400">OMEGAZ could not start</h1>
-          <p className="max-w-sm text-sm text-zinc-400">
+        <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background p-6 text-center text-foreground">
+          <h1 className="text-lg font-semibold text-primary">FOLDS could not start</h1>
+          <p className="max-w-sm text-sm text-muted">
             Something went wrong loading the app. Reset stored data and reload — your saved
             projects on this device will be cleared.
           </p>
           <button
             type="button"
-            className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-zinc-950"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
             onClick={() => void resetAppStorage()}
           >
             Reset app &amp; reload

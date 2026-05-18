@@ -38,16 +38,16 @@ const SheetContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed z-50 gap-4 bg-zinc-900 p-6 shadow-2xl',
+        'fixed z-50 gap-4 bg-surface p-6 shadow-2xl',
         side === 'top' &&
-          'inset-x-0 top-0 rounded-b-2xl border-b border-zinc-800 pt-[max(1rem,env(safe-area-inset-top))]',
+          'inset-x-0 top-0 rounded-b-2xl border-b border-border pt-[max(1rem,env(safe-area-inset-top))]',
         side === 'bottom' && [
-          'inset-x-0 bottom-0 rounded-t-2xl border-t border-zinc-800',
+          'inset-x-0 bottom-0 rounded-t-2xl border-t border-border',
           'pb-[max(1.5rem,env(safe-area-inset-bottom))]',
           'data-[state=open]:animate-[sheet-slide-in_0.35s_cubic-bezier(0.32,0.72,0,1)]',
           'data-[state=closed]:animate-[sheet-slide-out_0.3s_cubic-bezier(0.4,0,0.2,1)_forwards]',
         ],
-        side === 'right' && 'inset-y-0 right-0 h-full w-3/4 border-l border-zinc-800 sm:max-w-sm',
+        side === 'right' && 'inset-y-0 right-0 h-full w-3/4 border-l border-border sm:max-w-sm',
         className,
       )}
       {...props}
@@ -68,7 +68,7 @@ const SheetTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn('text-lg font-semibold text-zinc-100', className)}
+    className={cn('text-lg font-semibold text-foreground', className)}
     {...props}
   />
 ))

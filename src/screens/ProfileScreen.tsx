@@ -10,7 +10,7 @@ import { useAppStore } from '@/store/appStore'
 import { formatSubscriptionPeriodEnd } from '@/store/userTypes'
 
 const readOnlyInputClass =
-  'cursor-not-allowed border-zinc-800 bg-zinc-950/80 text-zinc-400 opacity-100'
+  'cursor-not-allowed border-border bg-background/80 text-muted opacity-100'
 
 export function ProfileScreen() {
   const user = useAppStore((s) => s.user)
@@ -27,12 +27,12 @@ export function ProfileScreen() {
   return (
     <div className="space-y-6 pb-4">
       <div>
-        <h2 className="text-xl font-semibold text-zinc-100">Profile</h2>
-        <p className="mt-1 text-sm text-zinc-400">Account, subscription, and sign out</p>
+        <h2 className="text-xl font-semibold text-foreground">Profile</h2>
+        <p className="mt-1 text-sm text-muted">Account, subscription, and sign out</p>
       </div>
 
-      <section className="space-y-4 rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-        <h3 className="text-sm font-medium text-zinc-300">Personal details</h3>
+      <section className="space-y-4 rounded-lg border border-border bg-surface/80 p-4">
+        <h3 className="text-sm font-medium text-foreground/90">Personal details</h3>
 
         <div className="space-y-2">
           <Label htmlFor="full-name">Full name</Label>
@@ -59,7 +59,7 @@ export function ProfileScreen() {
             className={readOnlyInputClass}
             aria-readonly="true"
           />
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-muted">
             Email is managed by your account and cannot be changed here.
           </p>
         </div>
@@ -96,13 +96,13 @@ export function ProfileScreen() {
         </div>
       </section>
 
-      <section className="space-y-3 rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-        <h3 className="text-sm font-medium text-zinc-300">Subscription</h3>
+      <section className="space-y-3 rounded-lg border border-border bg-surface/80 p-4">
+        <h3 className="text-sm font-medium text-foreground/90">Subscription</h3>
 
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-lg font-semibold text-zinc-100">{subscription.planName} plan</p>
-            <p className="mt-1 text-sm text-zinc-400">
+            <p className="text-lg font-semibold text-foreground">{subscription.planName} plan</p>
+            <p className="mt-1 text-sm text-muted">
               {subscription.status === 'cancelled' ? (
                 'Subscription ended'
               ) : subscription.cancelAtPeriodEnd ? (
@@ -118,10 +118,10 @@ export function ProfileScreen() {
             className={cn(
               'shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium',
               subscription.status === 'cancelled'
-                ? 'bg-zinc-800 text-zinc-400'
+                ? 'bg-surface-raised text-muted'
                 : subscription.cancelAtPeriodEnd
-                  ? 'bg-amber-500/15 text-amber-400'
-                  : 'bg-emerald-500/15 text-emerald-400',
+                  ? 'bg-primary/15 text-primary'
+                  : 'bg-secondary/20 text-primary',
             )}
           >
             {subscription.status === 'cancelled'
@@ -138,7 +138,7 @@ export function ProfileScreen() {
             <Button
               type="button"
               variant="outline"
-              className="w-full border-zinc-700 text-zinc-300"
+              className="w-full border-border text-foreground/90"
               onClick={() => setCancelOpen(true)}
             >
               Cancel subscription
@@ -146,18 +146,18 @@ export function ProfileScreen() {
           )}
 
         {isCancelled && subscription.status !== 'cancelled' && (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-muted">
             Pro features remain available until the end of your billing period.
           </p>
         )}
       </section>
 
-      <Separator className="bg-zinc-800" />
+      <Separator className="bg-border" />
 
       <Button
         type="button"
         variant="outline"
-        className="w-full gap-2 border-zinc-700 text-zinc-300"
+        className="w-full gap-2 border-border text-foreground/90"
         onClick={logout}
       >
         <LogOut className="h-4 w-4" aria-hidden />

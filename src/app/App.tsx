@@ -25,7 +25,7 @@ const SummaryScreen = lazy(() =>
 
 function ScreenFallback() {
   return (
-    <div className="flex flex-1 items-center justify-center py-12 text-sm text-zinc-500">
+    <div className="flex flex-1 items-center justify-center py-12 text-sm text-muted">
       Loading…
     </div>
   )

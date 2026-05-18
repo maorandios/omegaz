@@ -14,7 +14,7 @@ export function SketchScreen() {
     <div className="flex flex-col gap-4">
       <div>
         <h2 className="text-lg font-semibold">Freehand Sketch</h2>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-muted">
           Draw your folded profile on the white canvas. We&apos;ll convert it to straight segments.
         </p>
       </div>

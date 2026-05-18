@@ -38,7 +38,7 @@ export function ThicknessSlider({ material, value, onChange }: ThicknessSliderPr
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <Label>Thickness *</Label>
-        <span className="text-sm font-semibold tabular-nums text-amber-400">{display} mm</span>
+        <span className="text-sm font-semibold tabular-nums text-primary">{display} mm</span>
       </div>
       <input
         type="range"
@@ -51,13 +51,13 @@ export function ThicknessSlider({ material, value, onChange }: ThicknessSliderPr
           const next = steps[i]
           if (next !== undefined) onChange(next)
         }}
-        className="h-2 w-full cursor-pointer accent-amber-500"
+        className="h-2 w-full cursor-pointer accent-primary"
         aria-valuemin={steps[0]}
         aria-valuemax={steps[steps.length - 1]}
         aria-valuenow={display}
         aria-label="Thickness in millimeters"
       />
-      <div className="flex justify-between text-xs text-zinc-500">
+      <div className="flex justify-between text-xs text-muted">
         <span>{steps[0]} mm</span>
         <span>up to {maxMm} mm</span>
       </div>

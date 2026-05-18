@@ -4,6 +4,7 @@ import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const Select = SelectPrimitive.Root
+const SelectGroup = SelectPrimitive.Group
 const SelectValue = SelectPrimitive.Value
 
 const SelectTrigger = React.forwardRef<
@@ -13,7 +14,7 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-12 w-full items-center justify-between rounded-lg border border-zinc-700 bg-zinc-900 px-4 text-base focus:outline-none focus:ring-2 focus:ring-amber-500',
+      'flex h-12 w-full items-center justify-between rounded-lg border border-border bg-surface px-4 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary',
       className,
     )}
     {...props}
@@ -34,7 +35,9 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        'relative z-50 max-h-72 min-w-[8rem] overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-100 shadow-md',
+        'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-lg border border-border bg-surface text-foreground shadow-md',
+        position === 'popper' &&
+          'data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
         className,
       )}
       position={position}
@@ -53,14 +56,14 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex w-full cursor-pointer select-none items-center rounded-md py-2.5 pl-8 pr-2 text-sm outline-none focus:bg-zinc-800 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'relative flex w-full cursor-default select-none items-center rounded-md py-2 pl-8 pr-2 text-sm outline-none focus:bg-surface-raised data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className,
     )}
     {...props}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4 text-amber-500" />
+        <Check className="h-4 w-4 text-primary" />
       </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
@@ -68,4 +71,4 @@ const SelectItem = React.forwardRef<
 ))
 SelectItem.displayName = SelectPrimitive.Item.displayName
 
-export { Select, SelectValue, SelectTrigger, SelectContent, SelectItem }
+export { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectItem }

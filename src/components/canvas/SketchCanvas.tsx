@@ -39,7 +39,7 @@ export function SketchCanvas({ points, onPointsChange }: SketchCanvasProps) {
   return (
     <div
       ref={containerRef}
-      className="w-full rounded-xl border border-zinc-700 bg-white touch-none"
+      className="w-full rounded-xl border border-border bg-white touch-none"
       style={{ minHeight: 280 }}
     >
       <Stage

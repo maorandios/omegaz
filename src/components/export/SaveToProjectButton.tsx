@@ -21,7 +21,7 @@ export function SaveToProjectButton({ profile, selectedTemplate }: SaveToProject
 
   if (!activeProject) {
     return (
-      <p className="text-center text-sm text-amber-500/90">
+      <p className="text-center text-sm text-primary/90">
         No active project. Go to Create and start or select a project first.
       </p>
     )
@@ -48,7 +48,7 @@ export function SaveToProjectButton({ profile, selectedTemplate }: SaveToProject
   if (saved) {
     return (
       <div className="space-y-2">
-        <p className="text-center text-sm text-emerald-400">
+        <p className="text-center text-sm text-primary">
           Plate saved to {activeProject.name} ({activeProject.serial})
         </p>
         <Button type="button" className="w-full" size="lg" variant="outline" onClick={handleAddAnother}>

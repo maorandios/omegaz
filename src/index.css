@@ -1,15 +1,28 @@
 @import 'tailwindcss';
 
 @theme {
+  --font-sans: 'Funnel Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: #161616;
+  --color-foreground: #f5f5f5;
+  --color-primary: #00ffd4;
+  --color-primary-foreground: #161616;
+  --color-secondary: #00705d;
+  --color-secondary-foreground: #e8fff9;
+  --color-muted: #b7b7b7;
+  --color-surface: #1e1e1e;
+  --color-surface-raised: #252525;
+  --color-border: #333333;
+  --color-border-subtle: #2a2a2a;
+
+  /* Canvas / profile drawing (light stage on dark shell) */
   --color-canvas: #f8fafc;
   --color-canvas-border: #e2e8f0;
-  --color-accent: #f59e0b;
-  --color-accent-muted: #b45309;
 }
 
 @layer base {
   * {
-    @apply border-zinc-800;
+    @apply border-border;
   }
 
   html,
@@ -17,14 +30,15 @@
   #root {
     height: 100%;
     overflow: hidden;
+    font-family: var(--font-sans);
   }
 
   html {
-    background: #09090b;
+    background: var(--color-background);
   }
 
   body {
-    @apply bg-zinc-950 text-zinc-100 antialiased;
+    @apply bg-background text-foreground antialiased;
     padding: 0;
   }
 
@@ -45,14 +59,13 @@
     --bottom-dock-h: 3.75rem;
   }
 
-  /* Main tabs: full viewport with safe areas on shell + bottom dock */
   .app-tab-shell {
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
     height: 100dvh;
     overflow: hidden;
-    background: #09090b;
+    background: var(--color-background);
     padding-top: env(safe-area-inset-top);
     padding-right: env(safe-area-inset-right);
     padding-left: env(safe-area-inset-left);
@@ -61,7 +74,7 @@
   .bottom-dock {
     flex-shrink: 0;
     box-sizing: border-box;
-    background: #09090b;
+    background: var(--color-background);
     padding-bottom: env(safe-area-inset-bottom);
   }
 
@@ -80,14 +93,13 @@
     padding: 0;
   }
 
-  /* Plate wizard: header + preview + dock + keypad — no scroll, no OS keyboard */
   .wizard-shell {
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
     height: 100dvh;
     overflow: hidden;
-    background: #09090b;
+    background: var(--color-background);
     padding-top: env(safe-area-inset-top);
     padding-right: env(safe-area-inset-right);
     padding-left: env(safe-area-inset-left);
@@ -117,7 +129,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: #09090b;
+    background: var(--color-background);
   }
 
   .wizard-preview {
@@ -132,16 +144,16 @@
   .wizard-dock-bar {
     flex-shrink: 0;
     height: var(--wizard-dock-h);
-    border-top: 1px solid #3f3f46;
-    background: #18181b;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
   }
 
   .wizard-keypad-bar {
     flex-shrink: 0;
     box-sizing: border-box;
     height: var(--wizard-keypad-h);
-    border-top: 1px solid #3f3f46;
-    background: #18181b;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
     padding-bottom: env(safe-area-inset-bottom);
   }
 
@@ -180,5 +192,4 @@
       transform: translateY(100%);
     }
   }
-
 }

@@ -26,8 +26,8 @@ function Key({
       type="button"
       aria-label={ariaLabel ?? (typeof label === 'string' ? label : undefined)}
       className={cn(
-        'flex min-h-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900 text-lg font-semibold text-zinc-100',
-        'active:bg-zinc-700 touch-manipulation select-none',
+        'flex min-h-0 items-center justify-center rounded-lg border border-border bg-surface text-lg font-semibold text-foreground',
+        'active:bg-surface-raised touch-manipulation select-none',
         className,
       )}
       onPointerDown={(e) => e.preventDefault()}

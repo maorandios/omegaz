@@ -15,12 +15,12 @@ export function FlowCard({ title, description, icon, onClick, className }: FlowC
     <button type="button" onClick={onClick} className="w-full text-left">
       <Card
         className={cn(
-          'cursor-pointer transition-colors hover:border-amber-500/50 hover:bg-zinc-800/80 active:scale-[0.99]',
+          'cursor-pointer transition-colors hover:border-primary/50 hover:bg-surface-raised active:scale-[0.99]',
           className,
         )}
       >
         <CardHeader className="flex flex-row items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-400">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
             {icon}
           </div>
           <div>

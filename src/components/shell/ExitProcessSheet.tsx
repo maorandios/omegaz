@@ -16,11 +16,11 @@ export function ExitProcessSheet({ open, onOpenChange, onConfirmExit }: ExitProc
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="mx-auto max-w-lg">
-        <div className="mx-auto mb-2 h-1 w-10 shrink-0 rounded-full bg-zinc-600" aria-hidden />
+        <div className="mx-auto mb-2 h-1 w-10 shrink-0 rounded-full bg-border" aria-hidden />
         <SheetHeader>
           <SheetTitle>Leave this process?</SheetTitle>
         </SheetHeader>
-        <p className="text-sm leading-relaxed text-zinc-400">
+        <p className="text-sm leading-relaxed text-muted">
           You&apos;re about to cancel this plate process. Your changes won&apos;t be saved.
         </p>
         <div className="mt-6 flex gap-3">

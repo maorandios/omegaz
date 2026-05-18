@@ -12,10 +12,12 @@ interface AppShellProps {
   inWorkflow: boolean
 }
 
-const headerIconClass = 'h-[1.4rem] w-[1.4rem] shrink-0 stroke-[1.75px] text-zinc-100'
+const FOLDS_LOGO_SRC = '/folds-logo.svg'
+
+const headerIconClass = 'h-[1.4rem] w-[1.4rem] shrink-0 stroke-[1.75px] text-foreground'
 /** RotateCcw reads larger at 1.4rem — scale down ÷1.25 to match CircleX. */
 const headerResetIconClass =
-  'h-[1.12rem] w-[1.12rem] shrink-0 stroke-[1.75px] text-zinc-100'
+  'h-[1.12rem] w-[1.12rem] shrink-0 stroke-[1.75px] text-foreground'
 
 function AppHeader({
   title,
@@ -39,7 +41,7 @@ function AppHeader({
   return (
     <header
       data-wizard-header
-      className="shrink-0 border-b border-zinc-800 bg-zinc-950"
+      className="shrink-0 bg-background"
     >
       <div
         className={`mx-auto grid h-12 max-w-lg items-center px-2 ${
@@ -51,7 +53,7 @@ function AppHeader({
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 shrink-0 hover:bg-zinc-800"
+              className="h-10 w-10 shrink-0 hover:bg-surface-raised"
               onClick={onReset}
               aria-label="Reset shape to initial values"
             >
@@ -62,7 +64,7 @@ function AppHeader({
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 shrink-0 hover:bg-zinc-800"
+              className="h-10 w-10 shrink-0 hover:bg-surface-raised"
               onClick={onBack}
               aria-label="Go back"
             >
@@ -72,16 +74,26 @@ function AppHeader({
           {!showReset && !showBack && <span aria-hidden className="block w-[2.75rem]" />}
         </div>
 
-        <h1 className="truncate text-center text-base font-bold tracking-tight text-amber-400">
-          {title}
-        </h1>
+        {title === 'FOLDS' ? (
+          <img
+            src={FOLDS_LOGO_SRC}
+            alt="FOLDS"
+            className="mx-auto h-7 w-auto max-w-[9.5rem] object-contain object-center"
+            height={28}
+            width={109}
+          />
+        ) : (
+          <h1 className="truncate text-center text-base font-bold tracking-tight text-primary">
+            {title}
+          </h1>
+        )}
 
         {showExit ? (
           <div className="flex items-center justify-end">
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 shrink-0 hover:bg-zinc-800"
+              className="h-10 w-10 shrink-0 hover:bg-surface-raised"
               onClick={onExit}
               aria-label="Exit process"
             >
@@ -110,7 +122,7 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
   const isFabrication = currentStep === 'fabrication'
   const isSummary = currentStep === 'summary' || currentStep === 'export'
   const goBack = useProfileStore((s) => s.goBack)
-  const headerTitle = isWizard ? getPlateShapeLabel(selectedTemplate) : 'OMEGAZ'
+  const headerTitle = isWizard ? getPlateShapeLabel(selectedTemplate) : 'FOLDS'
 
   useEffect(() => {
     if (isWizard) {
@@ -157,7 +169,7 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
 
   if (inWorkflow) {
     return (
-      <div className="app-tab-shell text-zinc-100">
+      <div className="app-tab-shell text-foreground">
         {header}
         <main className="mx-auto flex w-full max-w-lg min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4">
           {children}
@@ -168,7 +180,7 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
   }
 
   return (
-    <div className="app-tab-shell text-zinc-100">
+    <div className="app-tab-shell text-foreground">
       {header}
       <main className="mx-auto flex w-full max-w-lg min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4">
         {children}

@@ -1,6 +1,6 @@
 import type { AppStep, FoldedProfile, Point2D } from '@/geometry/types'
 
-const STORAGE_KEY = 'omegaz-session'
+const STORAGE_KEY = 'FOLDS-session'
 
 export interface PersistedState {
   currentStep: AppStep | null

@@ -36,7 +36,7 @@ export function normalizeUser(raw: unknown): StoredUser {
     email:
       typeof u.email === 'string' && u.email.trim()
         ? u.email.trim()
-        : 'guest@omegaz.app',
+        : 'guest@FOLDS.app',
     phone: typeof u.phone === 'string' && u.phone.trim() ? u.phone.trim() : undefined,
     businessName:
       typeof u.businessName === 'string' && u.businessName.trim()

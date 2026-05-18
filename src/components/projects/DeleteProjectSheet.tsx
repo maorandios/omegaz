@@ -22,12 +22,12 @@ export function DeleteProjectSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="mx-auto max-w-lg">
-        <div className="mx-auto mb-2 h-1 w-10 shrink-0 rounded-full bg-zinc-600" aria-hidden />
+        <div className="mx-auto mb-2 h-1 w-10 shrink-0 rounded-full bg-border" aria-hidden />
         <SheetHeader>
           <SheetTitle>Delete project?</SheetTitle>
         </SheetHeader>
-        <p className="text-sm leading-relaxed text-zinc-400">
-          <span className="font-medium text-zinc-200">{projectName}</span> and all plates in
+        <p className="text-sm leading-relaxed text-muted">
+          <span className="font-medium text-foreground">{projectName}</span> and all plates in
           this batch will be permanently removed.
         </p>
         <div className="mt-6 flex gap-3">

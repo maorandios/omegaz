@@ -19,7 +19,7 @@ export function SegmentWizardScreen() {
             showLabels
             interactive
             onSelectItem={selectWizardItem}
-            className="h-full w-full bg-zinc-950"
+            className="h-full w-full bg-background"
           />
         </div>
       </div>

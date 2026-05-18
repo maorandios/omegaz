@@ -17,7 +17,7 @@ export function BottomDock({ activeTab, onTabChange }: BottomDockProps) {
   return (
     <nav
       aria-label="Main navigation"
-      className="bottom-dock border-t border-zinc-800"
+      className="bottom-dock border-t border-border"
     >
       <div className="bottom-dock__inner mx-auto grid max-w-lg grid-cols-3 px-2">
         {tabs.map(({ id, label, Icon }) => {
@@ -29,12 +29,12 @@ export function BottomDock({ activeTab, onTabChange }: BottomDockProps) {
               onClick={() => onTabChange(id)}
               className={cn(
                 'flex flex-col items-center justify-center gap-0.5 rounded-lg text-xs font-medium transition-colors',
-                active ? 'text-amber-400' : 'text-zinc-500 hover:text-zinc-300',
+                active ? 'text-primary' : 'text-muted hover:text-foreground/90',
               )}
               aria-current={active ? 'page' : undefined}
             >
               <Icon
-                className={cn('h-6 w-6 stroke-[1.75px]', active && 'text-amber-400')}
+                className={cn('h-6 w-6 stroke-[1.75px]', active && 'text-primary')}
                 aria-hidden
               />
               <span>{label}</span>

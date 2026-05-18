@@ -147,11 +147,11 @@ export function ProfileCanvas({
   const containerRef = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ width: 320, height: 240 })
   const fillParent = Boolean(className?.includes('h-full'))
-  const darkCanvas = Boolean(className?.includes('bg-zinc-950'))
-  const stageFill = darkCanvas ? '#09090b' : '#f8fafc'
-  const strokeIdle = darkCanvas ? '#a1a1aa' : '#18181b'
+  const darkCanvas = Boolean(className?.includes('bg-background'))
+  const stageFill = darkCanvas ? '#161616' : '#f8fafc'
+  const strokeIdle = darkCanvas ? '#b7b7b7' : '#18181b'
   const labelFill = darkCanvas ? '#e4e4e7' : '#52525b'
-  const labelActiveFill = '#fbbf24'
+  const labelActiveFill = '#00ffd4'
 
   useEffect(() => {
     const el = containerRef.current
@@ -222,8 +222,8 @@ export function ProfileCanvas({
       className={cn(
         'w-full overflow-hidden',
         darkCanvas
-          ? 'rounded-none border-0 bg-zinc-950'
-          : 'rounded-xl border border-zinc-700 bg-slate-50',
+          ? 'rounded-none border-0 bg-background'
+          : 'rounded-xl border border-border bg-slate-50',
         fillParent && 'h-full min-h-0',
         interactive && 'touch-none',
         className,
@@ -269,7 +269,7 @@ export function ProfileCanvas({
               <Line
                 key={`hl-${seg.id}`}
                 points={[s.x, s.y, e.x, e.y]}
-                stroke="#f59e0b"
+                stroke="#00ffd4"
                 strokeWidth={5}
                 lineCap="round"
                 listening={false}
@@ -298,7 +298,7 @@ export function ProfileCanvas({
                   x={p.x}
                   y={p.y}
                   radius={isActive ? 8 : 5}
-                  fill={isActive ? '#f59e0b' : '#71717a'}
+                  fill={isActive ? '#00ffd4' : '#b7b7b7'}
                   stroke={isActive ? '#b45309' : undefined}
                   strokeWidth={isActive ? 2 : 0}
                   listening={false}

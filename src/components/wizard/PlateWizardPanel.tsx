@@ -39,7 +39,7 @@ export function PlateWizardPanel({ profile }: PlateWizardPanelProps) {
   return (
     <>
       {isCustom && (
-        <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-t border-zinc-800 bg-zinc-950 px-2">
+        <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-t border-border bg-background px-2">
           <Button
             type="button"
             variant="outline"
@@ -53,7 +53,7 @@ export function PlateWizardPanel({ profile }: PlateWizardPanelProps) {
             <Minus className="h-4 w-4" aria-hidden />
             Remove
           </Button>
-          <span className="shrink-0 text-xs tabular-nums text-zinc-400">
+          <span className="shrink-0 text-xs tabular-nums text-muted">
             {segmentCount}/{CUSTOM_MAX_SEGMENTS}
           </span>
           <Button
@@ -85,14 +85,14 @@ export function PlateWizardPanel({ profile }: PlateWizardPanelProps) {
         </Button>
 
         <div
-          className="mx-2 flex h-11 min-w-0 flex-1 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-950 px-3"
+          className="mx-2 flex h-11 min-w-0 flex-1 items-center justify-center rounded-lg border border-border bg-background px-3"
           aria-live="polite"
           aria-atomic="true"
         >
-          <span className="truncate text-center text-lg font-semibold tabular-nums text-zinc-100">
+          <span className="truncate text-center text-lg font-semibold tabular-nums text-foreground">
             {inputValue || '—'}
           </span>
-          <span className="ml-1.5 shrink-0 text-xs font-medium text-zinc-400">{unit}</span>
+          <span className="ml-1.5 shrink-0 text-xs font-medium text-muted">{unit}</span>
         </div>
 
         <Button

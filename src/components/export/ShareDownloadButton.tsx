@@ -29,7 +29,7 @@ export function ShareDownloadButton({ profile }: ShareDownloadButtonProps) {
         await navigator.share({
           files: [file],
           title: profile.fabrication.partName || profile.name,
-          text: 'Fabrication package from OMEGAZ',
+          text: 'Fabrication package from FOLDS',
         })
       } else {
         const url = URL.createObjectURL(blob)

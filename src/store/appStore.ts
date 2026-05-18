@@ -72,7 +72,7 @@ function loadProfileIntoWorkflow(profile: FoldedProfile, selectedTemplate: strin
 
 export const useAppStore = create<AppState>((set, get) => ({
   mainTab: 'projects',
-  user: { fullName: 'Guest User', email: 'guest@omegaz.app' },
+  user: { fullName: 'Guest User', email: 'guest@FOLDS.app' },
   subscription: defaultSubscription(),
   projects: [],
   activeProjectId: null,

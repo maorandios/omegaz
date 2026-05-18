@@ -77,12 +77,12 @@ export function FabricationScreen() {
   return (
     <div className="space-y-5">
       <div className="fabrication-preview mx-auto w-full max-w-sm">
-        <div className="aspect-square w-full overflow-hidden rounded-lg bg-zinc-950">
+        <div className="aspect-square w-full overflow-hidden rounded-lg bg-background">
           <ProfileCanvas
             profile={profile}
             activeItemId={activeItemId}
             showLabels
-            className="h-full w-full bg-zinc-950"
+            className="h-full w-full bg-background"
           />
         </div>
       </div>

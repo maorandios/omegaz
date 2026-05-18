@@ -17,7 +17,7 @@ import {
 
 export type { StoredSubscription, StoredUser }
 
-const STORAGE_KEY = 'omegaz-app'
+const STORAGE_KEY = 'FOLDS-app'
 const DATA_VERSION = 3
 
 export interface StoredAppData {
@@ -179,7 +179,7 @@ export function loadAppData(): StoredAppData {
     version: DATA_VERSION,
     user: normalizeUser({
       fullName: 'Guest User',
-      email: 'guest@omegaz.app',
+      email: 'guest@FOLDS.app',
     }),
     subscription: defaultSubscription(),
     projects: seedProjects(),
