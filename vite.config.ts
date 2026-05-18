@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const OPTIONAL_CHUNKS = /three-viewer|Plate3D|konva|react-konva/
+const OPTIONAL_CHUNKS = /konva|react-konva/
 
 export default defineConfig({
   build: {
@@ -15,12 +15,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (
-            id.includes('node_modules/three') ||
-            id.includes('node_modules/@react-three')
-          ) {
-            return 'three-viewer'
-          }
           if (id.includes('node_modules/konva') || id.includes('node_modules/react-konva')) {
             return 'konva-canvas'
           }
@@ -49,7 +43,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        globIgnores: ['**/three-viewer-*.js', '**/Plate3D*.js', '**/konva-canvas-*.js'],
+        globIgnores: ['**/konva-canvas-*.js'],
         maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
       },
     }),
