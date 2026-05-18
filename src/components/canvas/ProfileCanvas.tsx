@@ -148,7 +148,7 @@ export function ProfileCanvas({
   const [size, setSize] = useState({ width: 320, height: 240 })
   const fillParent = Boolean(className?.includes('h-full'))
   const darkCanvas = Boolean(className?.includes('bg-background'))
-  const stageFill = darkCanvas ? '#161616' : '#f8fafc'
+  const stageFill = darkCanvas ? '#0d0d0d' : '#f8fafc'
   const strokeIdle = darkCanvas ? '#b7b7b7' : '#18181b'
   const labelFill = darkCanvas ? '#e4e4e7' : '#52525b'
   const labelActiveFill = '#00ffd4'

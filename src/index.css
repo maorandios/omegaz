@@ -3,10 +3,10 @@
 @theme {
   --font-sans: 'Funnel Sans', ui-sans-serif, system-ui, sans-serif;
 
-  --color-background: #161616;
+  --color-background: #0d0d0d;
   --color-foreground: #f5f5f5;
   --color-primary: #00ffd4;
-  --color-primary-foreground: #161616;
+  --color-primary-foreground: #0d0d0d;
   --color-secondary: #00705d;
   --color-secondary-foreground: #e8fff9;
   --color-muted: #b7b7b7;
@@ -60,10 +60,11 @@
   }
 
   .app-tab-shell {
+    position: fixed;
+    inset: 0;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    height: 100dvh;
     overflow: hidden;
     background: var(--color-background);
     padding-top: env(safe-area-inset-top);
@@ -75,12 +76,14 @@
     flex-shrink: 0;
     box-sizing: border-box;
     background: var(--color-background);
-    /* Half safe-area inset — tighter to screen edge on mobile */
-    padding-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) / 2));
+    padding-bottom: 0;
   }
 
   .bottom-dock__inner {
-    height: var(--bottom-dock-h);
+    box-sizing: border-box;
+    min-height: var(--bottom-dock-h);
+    /* Icons sit above home indicator; bar background fills safe area below */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   html[data-wizard],
@@ -95,10 +98,11 @@
   }
 
   .wizard-shell {
+    position: fixed;
+    inset: 0;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    height: 100dvh;
     overflow: hidden;
     background: var(--color-background);
     padding-top: env(safe-area-inset-top);

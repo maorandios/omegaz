@@ -32,8 +32,8 @@ export default defineConfig({
         name: 'FOLDS — Fabrication Request',
         short_name: 'FOLDS',
         description: 'Fast guided fabrication request generator for folded metal profiles',
-        theme_color: '#161616',
-        background_color: '#161616',
+        theme_color: '#0D0D0D',
+        background_color: '#0D0D0D',
         display: 'standalone',
         orientation: 'portrait',
         icons: [

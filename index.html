@@ -14,7 +14,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, interactive-widget=overlays-content"
     />
-    <meta name="theme-color" content="#161616" />
+    <meta name="theme-color" content="#0D0D0D" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="description" content="FOLDS — fast guided fabrication requests for folded metal profiles" />
@@ -29,7 +29,7 @@
           min-height: 100dvh;
           align-items: center;
           justify-content: center;
-          background: #161616;
+          background: #0d0d0d;
           color: #b7b7b7;
           font-family: 'Funnel Sans', system-ui, sans-serif;
           font-size: 0.875rem;
@@ -48,7 +48,7 @@
           '<div style="text-align:center;padding:1.5rem;max-width:20rem;font-family:\'Funnel Sans\',system-ui,sans-serif">' +
           '<p style="color:#00ffd4;font-weight:600;margin-bottom:0.5rem">Still loading?</p>' +
           '<p style="margin-bottom:1rem;font-size:0.8rem;color:#b7b7b7">Try closing all tabs, then reopen. Or open in Safari/Chrome (not the home-screen icon) once.</p>' +
-          '<button type="button" style="background:#00ffd4;color:#161616;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600" ' +
+          '<button type="button" style="background:#00ffd4;color:#0d0d0d;border:none;border-radius:0.5rem;padding:0.5rem 1rem;font-size:0.875rem;font-weight:600" ' +
           'onclick="(async function(){try{localStorage.clear();sessionStorage.clear();if(navigator.serviceWorker){var r=await navigator.serviceWorker.getRegistrations();await Promise.all(r.map(function(x){return x.unregister()}))}if(window.caches){var k=await caches.keys();await Promise.all(k.map(function(c){return caches.delete(c)}))}}catch(e){}location.reload()})()">Reset &amp; reload</button>' +
           '</div>'
       }, 12000)
