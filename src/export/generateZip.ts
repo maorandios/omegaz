@@ -15,11 +15,12 @@ interface ProfileMetrics {
 export async function generateFabricationZip(
   profile: FoldedProfile,
   metrics: ProfileMetrics,
+  templateId?: string | null,
 ): Promise<Blob> {
   const zip = new JSZip()
 
   const pdfBlob = generatePdf(profile, metrics)
-  const xlsxBlob = generateExcel(profile, metrics)
+  const xlsxBlob = generateExcel(profile, metrics, templateId)
 
   zip.file('drawing.pdf', pdfBlob)
   zip.file('cut-list.xlsx', xlsxBlob)

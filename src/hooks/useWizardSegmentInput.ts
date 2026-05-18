@@ -5,13 +5,14 @@ import { useProfileStore } from '@/store/profileStore'
 
 export function useWizardSegmentInput(profile: FoldedProfile) {
   const wizardIndex = useProfileStore((s) => s.wizardIndex)
+  const selectedTemplate = useProfileStore((s) => s.selectedTemplate)
   const goNext = useProfileStore((s) => s.goNext)
   const goBack = useProfileStore((s) => s.goBack)
   const pushHistory = useProfileStore((s) => s.pushHistory)
   const previewSegmentLength = useProfileStore((s) => s.previewSegmentLength)
   const previewBendAngle = useProfileStore((s) => s.previewBendAngle)
 
-  const steps = buildWizardSteps(profile)
+  const steps = buildWizardSteps(profile, selectedTemplate)
   const current = steps[wizardIndex]
   const stepKey = current ? `${wizardIndex}-${current.type}-${current.id}` : ''
   const historyLength = useProfileStore((s) => s.history.length)
@@ -20,7 +21,7 @@ export function useWizardSegmentInput(profile: FoldedProfile) {
   const replaceOnNextKey = useRef(false)
 
   useEffect(() => {
-    const step = buildWizardSteps(profile)[wizardIndex]
+    const step = buildWizardSteps(profile, selectedTemplate)[wizardIndex]
     if (!step) return
 
     const shouldClear = useProfileStore.getState().consumeClearWizardInput()

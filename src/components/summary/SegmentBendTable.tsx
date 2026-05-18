@@ -12,7 +12,8 @@ export function SegmentBendTable({ profile }: SegmentBendTableProps) {
   const activeItemId = useProfileStore((s) => s.activeItemId)
   const setActiveFromTableRow = useProfileStore((s) => s.setActiveFromTableRow)
 
-  const steps = buildWizardSteps(profile)
+  const selectedTemplate = useProfileStore((s) => s.selectedTemplate)
+  const steps = buildWizardSteps(profile, selectedTemplate)
   let segNum = 0
   let bendNum = 0
 

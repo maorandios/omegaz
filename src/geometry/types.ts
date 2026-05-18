@@ -46,6 +46,14 @@ export interface FoldedProfile {
   segments: Segment[]
   bends: Bend[]
   fabrication: FabricationDetails
+  /** Segment forced to screen-horizontal. Omega / channel use 0° (east); Z uses 180° (west). */
+  horizontalSegmentIndex?: number
+  /** Locked horizontal travel direction (default 0°). Z profile top flange uses 180°. */
+  horizontalReferenceDeg?: number
+  /** Polyline start (default 0,0). C / Z profiles set this for open layouts. */
+  layoutOrigin?: Point2D
+  /** Wizard + geometry constraints (e.g. square plate = 2 inputs, 90° corners). */
+  plateConstraint?: 'square' | 'custom'
 }
 
 export type WizardItemType = 'segment' | 'bend'

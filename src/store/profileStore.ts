@@ -2,10 +2,21 @@ import { create } from 'zustand'
 import { cleanFreehandSketch } from '@/geometry/cleanFreehandSketch'
 import {
   buildWizardSteps,
+  ensureHorizontalLock,
   migrateProfileBends,
   updateProfileGeometry,
 } from '@/geometry/calculateProfilePoints'
 import { createProfileFromSketch, createTemplateProfile } from '@/geometry/createTemplateProfile'
+import {
+  appendCustomSegment,
+  removeCustomSegment,
+} from '@/geometry/customProfile'
+import {
+  applySquarePlateProfile,
+  isSquarePlateProfile,
+  squareHeightFromProfile,
+  squareWidthFromProfile,
+} from '@/geometry/squareProfile'
 import type { AppStep, FabricationDetails, FoldedProfile, Point2D } from '@/geometry/types'
 import { useAppStore } from '@/store/appStore'
 import { clearSession, loadSession, saveSession } from './persist'
@@ -13,6 +24,8 @@ import { clearSession, loadSession, saveSession } from './persist'
 interface ProfileState {
   currentStep: AppStep | null
   profile: FoldedProfile | null
+  /** Snapshot when plate process started (template / sketch / opened project). */
+  initialProfile: FoldedProfile | null
   selectedTemplate: string | null
   sketchPoints: Point2D[]
   wizardIndex: number
@@ -23,6 +36,7 @@ interface ProfileState {
 
   setStep: (step: AppStep) => void
   loadTemplate: (templateId: string) => void
+  resetPlateShape: () => void
   setSketchPoints: (points: Point2D[]) => void
   applyCleanedSketch: () => boolean
   setSegmentLength: (segmentId: string, length: number) => void
@@ -41,6 +55,8 @@ interface ProfileState {
   setWizardIndex: (index: number) => void
   selectWizardItem: (type: 'segment' | 'bend', id: string) => void
   setActiveFromTableRow: (type: 'segment' | 'bend', id: string) => void
+  addCustomSegment: () => void
+  removeCustomSegment: () => void
   consumeClearWizardInput: () => boolean
   hydrateFromSession: () => void
   persistToSession: () => void
@@ -60,6 +76,7 @@ function schedulePersist(get: () => ProfileState) {
     saveSession({
       currentStep: s.currentStep,
       profile: s.profile,
+      initialProfile: s.initialProfile,
       wizardIndex: s.wizardIndex,
       sketchPoints: s.sketchPoints,
       selectedTemplate: s.selectedTemplate,
@@ -67,15 +84,52 @@ function schedulePersist(get: () => ProfileState) {
   }, 300)
 }
 
-function syncWizardActive(get: ProfileState, profile: FoldedProfile): string | null {
-  const steps = buildWizardSteps(profile)
-  const step = steps[get.wizardIndex]
+function syncWizardActive(state: ProfileState, profile: FoldedProfile): string | null {
+  const steps = buildWizardSteps(profile, state.selectedTemplate)
+  const step = steps[state.wizardIndex]
   return step?.id ?? null
+}
+
+function finalizeProfile(profile: FoldedProfile, templateId: string | null): FoldedProfile {
+  if (isSquarePlateProfile(profile, templateId)) {
+    return applySquarePlateProfile(
+      profile,
+      squareWidthFromProfile(profile),
+      squareHeightFromProfile(profile),
+    )
+  }
+  return updateProfileGeometry(profile)
+}
+
+function withSegmentLength(
+  profile: FoldedProfile,
+  segmentId: string,
+  length: number,
+  templateId: string | null,
+): FoldedProfile {
+  const value = Math.max(0, length)
+  if (isSquarePlateProfile(profile, templateId)) {
+    const w =
+      profile.segments[0]?.id === segmentId ? value : squareWidthFromProfile(profile)
+    const h =
+      profile.segments[1]?.id === segmentId ? value : squareHeightFromProfile(profile)
+    return applySquarePlateProfile(profile, w, h)
+  }
+  return finalizeProfile(
+    {
+      ...profile,
+      segments: profile.segments.map((s) =>
+        s.id === segmentId ? { ...s, length: value } : s,
+      ),
+    },
+    templateId,
+  )
 }
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
   currentStep: null,
   profile: null,
+  initialProfile: null,
   selectedTemplate: null,
   sketchPoints: [],
   wizardIndex: 0,
@@ -90,12 +144,43 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   loadTemplate: (templateId) => {
     const profile = createTemplateProfile(templateId)
+    const initialProfile = snapshotProfile(profile)
     set({
       profile,
+      initialProfile,
       selectedTemplate: templateId,
       wizardIndex: 0,
       activeItemId: syncWizardActive(get(), profile),
       currentStep: 'segment-wizard',
+      clearWizardInput: true,
+      history: [],
+    })
+    schedulePersist(get)
+  },
+
+  resetPlateShape: () => {
+    const { currentStep, initialProfile, selectedTemplate, profile } = get()
+
+    if (currentStep === 'sketch') {
+      set({ sketchPoints: [] })
+      schedulePersist(get)
+      return
+    }
+
+    let nextProfile: FoldedProfile | null = null
+    if (initialProfile) {
+      nextProfile = snapshotProfile(initialProfile)
+    } else if (selectedTemplate) {
+      nextProfile = createTemplateProfile(selectedTemplate)
+    } else if (profile) {
+      nextProfile = snapshotProfile(profile)
+    }
+    if (!nextProfile) return
+
+    set({
+      profile: nextProfile,
+      wizardIndex: 0,
+      activeItemId: syncWizardActive(get(), nextProfile),
       clearWizardInput: true,
       history: [],
     })
@@ -113,8 +198,10 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     if (cleaned.segments.length < 1) return false
 
     const profile = createProfileFromSketch(cleaned.segments, cleaned.bends)
+    const initialProfile = snapshotProfile(profile)
     set({
       profile,
+      initialProfile,
       selectedTemplate: null,
       wizardIndex: 0,
       activeItemId: syncWizardActive(get(), profile),
@@ -127,15 +214,10 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   setSegmentLength: (segmentId, length) => {
-    const { profile } = get()
+    const { profile, selectedTemplate } = get()
     if (!profile) return
     get().pushHistory()
-    const next = updateProfileGeometry({
-      ...profile,
-      segments: profile.segments.map((s) =>
-        s.id === segmentId ? { ...s, length: Math.max(0, length) } : s,
-      ),
-    })
+    const next = withSegmentLength(profile, segmentId, length, selectedTemplate)
     set({ profile: next })
     schedulePersist(get)
   },
@@ -155,14 +237,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   previewSegmentLength: (segmentId, length) => {
-    const { profile } = get()
+    const { profile, selectedTemplate } = get()
     if (!profile) return
-    const next = updateProfileGeometry({
-      ...profile,
-      segments: profile.segments.map((s) =>
-        s.id === segmentId ? { ...s, length: Math.max(0, length) } : s,
-      ),
-    })
+    const next = withSegmentLength(profile, segmentId, length, selectedTemplate)
     set({ profile: next })
   },
 
@@ -215,6 +292,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     set({
       currentStep: null,
       profile: null,
+      initialProfile: null,
       selectedTemplate: null,
       sketchPoints: [],
       wizardIndex: 0,
@@ -252,7 +330,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     if (!profile) return
 
     if (currentStep === 'segment-wizard') {
-      const steps = buildWizardSteps(profile)
+      const steps = buildWizardSteps(profile, get().selectedTemplate)
       if (wizardIndex < steps.length - 1) {
         const newIndex = wizardIndex + 1
         set({
@@ -282,7 +360,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   selectWizardItem: (type, id) => {
     const { profile } = get()
     if (!profile) return
-    const steps = buildWizardSteps(profile)
+    const steps = buildWizardSteps(profile, get().selectedTemplate)
     const index = steps.findIndex((s) => s.type === type && s.id === id)
     if (index < 0) return
     set({
@@ -305,19 +383,63 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     set({ activeItemId: id })
   },
 
+  addCustomSegment: () => {
+    const { profile, selectedTemplate } = get()
+    if (!profile || selectedTemplate !== 'custom') return
+    const next = appendCustomSegment(profile)
+    if (!next) return
+    get().pushHistory()
+    const steps = buildWizardSteps(next, 'custom')
+    const newIndex = steps.length - 1
+    set({
+      profile: next,
+      wizardIndex: newIndex,
+      activeItemId: steps[newIndex]?.id ?? null,
+      clearWizardInput: true,
+    })
+    schedulePersist(get)
+  },
+
+  removeCustomSegment: () => {
+    const { profile, selectedTemplate, wizardIndex } = get()
+    if (!profile || selectedTemplate !== 'custom') return
+    const next = removeCustomSegment(profile)
+    if (!next) return
+    get().pushHistory()
+    const steps = buildWizardSteps(next, 'custom')
+    const newIndex = Math.min(wizardIndex, Math.max(0, steps.length - 1))
+    set({
+      profile: next,
+      wizardIndex: newIndex,
+      activeItemId: steps[newIndex]?.id ?? null,
+      clearWizardInput: false,
+    })
+    schedulePersist(get)
+  },
+
   hydrateFromSession: () => {
     const saved = loadSession()
     if (!saved?.profile || !saved.currentStep) return
-    const profile = migrateProfileBends(saved.profile)
+    const profile = ensureHorizontalLock(
+      migrateProfileBends(saved.profile),
+      saved.selectedTemplate,
+    )
+    const initialProfile = saved.initialProfile
+      ? ensureHorizontalLock(
+          migrateProfileBends(saved.initialProfile),
+          saved.selectedTemplate,
+        )
+      : profile
     set({
       currentStep: saved.currentStep,
       profile,
+      initialProfile,
       wizardIndex: saved.wizardIndex,
       sketchPoints: saved.sketchPoints,
       selectedTemplate: saved.selectedTemplate,
       activeItemId: syncWizardActive(
         { ...get(), wizardIndex: saved.wizardIndex },
-        saved.profile,
+        profile,
       ),
     })
   },
@@ -327,6 +449,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     saveSession({
       currentStep: s.currentStep,
       profile: s.profile,
+      initialProfile: s.initialProfile,
       wizardIndex: s.wizardIndex,
       sketchPoints: s.sketchPoints,
       selectedTemplate: s.selectedTemplate,

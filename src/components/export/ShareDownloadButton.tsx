@@ -4,6 +4,7 @@ import { generateFabricationZip } from '@/export/generateZip'
 import type { FoldedProfile } from '@/geometry/types'
 import { slugify, todayIsoDate } from '@/lib/format'
 import { useProfileMetrics } from '@/hooks/useProfileMetrics'
+import { useProfileStore } from '@/store/profileStore'
 
 interface ShareDownloadButtonProps {
   profile: FoldedProfile
@@ -12,13 +13,14 @@ interface ShareDownloadButtonProps {
 export function ShareDownloadButton({ profile }: ShareDownloadButtonProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const selectedTemplate = useProfileStore((s) => s.selectedTemplate)
   const metrics = useProfileMetrics(profile)
 
   const handleExport = async () => {
     setLoading(true)
     setError(null)
     try {
-      const blob = await generateFabricationZip(profile, metrics)
+      const blob = await generateFabricationZip(profile, metrics, selectedTemplate)
       const partSlug = slugify(profile.fabrication.partName || profile.name)
       const filename = `${partSlug}-${todayIsoDate()}.zip`
       const file = new File([blob], filename, { type: 'application/zip' })

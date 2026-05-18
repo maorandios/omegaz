@@ -24,6 +24,7 @@ export function ProjectsScreen() {
     const steps = buildWizardSteps(record.profile)
     useProfileStore.setState({
       profile: record.profile,
+      initialProfile: JSON.parse(JSON.stringify(record.profile)),
       selectedTemplate: record.selectedTemplate,
       currentStep: 'summary',
       wizardIndex: Math.max(0, steps.length - 1),

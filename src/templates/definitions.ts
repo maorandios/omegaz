@@ -8,11 +8,11 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
   { id: 'omega', name: 'Omega', description: 'Ω-shaped ceiling batten profile' },
   { id: 'channel', name: 'Channel', description: 'C-channel section' },
   { id: 'gutter', name: 'Gutter', description: 'Rain gutter profile' },
-  { id: 'z-profile', name: 'Z Profile', description: 'Z-shaped purlin' },
+  { id: 'z-profile', name: 'Z Profile', description: 'Z purlin with return lips' },
   { id: 'l-angle', name: 'L Angle', description: '90° angle bracket' },
-  { id: 'u-profile', name: 'U Profile', description: 'U-channel section' },
   { id: 'square', name: 'Square', description: 'Square tube outline' },
-  { id: 'custom', name: 'Custom Folded', description: 'Start with two legs' },
+  { id: 'c-profile', name: 'C Profile', description: 'C-channel with return lips' },
+  { id: 'custom', name: 'Custom Folded', description: 'L-shape start, add up to 10 legs' },
 ]
 
 export function getTemplatePreviewPath(id: string): string {
@@ -22,13 +22,13 @@ export function getTemplatePreviewPath(id: string): string {
 /** Uppercase labels shown in the plate-process top bar. */
 const PLATE_SHAPE_LABELS: Record<string, string> = {
   'l-angle': 'ANGLE',
-  'z-profile': 'Z SHAPE',
+  'z-profile': 'Z PROFILE',
   channel: 'CHANNEL',
   square: 'SQUARE',
   omega: 'OMEGA',
   gutter: 'GUTTER',
+  'c-profile': 'C PROFILE',
   custom: 'CUSTOM SHAPE',
-  'u-profile': 'U PROFILE',
 }
 
 export function getPlateShapeLabel(templateId: string | null): string {

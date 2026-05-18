@@ -2,7 +2,8 @@ import { useMemo, useRef, useEffect, useState } from 'react'
 import { Stage, Layer, Line, Circle, Text, Rect, Group } from 'react-konva'
 import { calculateProfileBounds } from '@/geometry/calculateProfileBounds'
 import { getBendVertexPoint } from '@/geometry/calculateProfilePoints'
-import type { FoldedProfile } from '@/geometry/types'
+import { getSquareCornerPairs, isSquareSegmentActive } from '@/geometry/squareProfile'
+import type { FoldedProfile, Segment } from '@/geometry/types'
 import { formatInteriorBendDeg } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -17,7 +18,8 @@ interface ProfileCanvasProps {
 
 const LABEL_FONT_SIZE = 15 // 12 × 1.25
 const SEGMENT_LABEL_OFFSET = 28 // 14 × 2 — gap from segment line
-const BEND_LABEL_OFFSET = 24 // 12 × 2 — gap from bend vertex
+const BEND_LABEL_OFFSET = 28 // gap from bend vertex along interior bisector
+const BEND_LABEL_CHAR_WIDTH = 4.4
 
 function formatSegmentDim(n: number): string {
   const v = Math.round(n * 10) / 10
@@ -25,6 +27,94 @@ function formatSegmentDim(n: number): string {
     maximumFractionDigits: Number.isInteger(v) ? 0 : 1,
     minimumFractionDigits: 0,
   })
+}
+
+function unitVec(x: number, y: number, len: number): { x: number; y: number } {
+  if (len < 1e-6) return { x: 0, y: 0 }
+  return { x: x / len, y: y / len }
+}
+
+function bisectorFromLegs(
+  legA: { x: number; y: number },
+  legB: { x: number; y: number },
+): { x: number; y: number } {
+  const bx = legA.x + legB.x
+  const by = legA.y + legB.y
+  const blen = Math.hypot(bx, by)
+  if (blen < 1e-6) return { x: 0, y: 0 }
+  return { x: bx / blen, y: by / blen }
+}
+
+/** Label offset inside a corner between two segments (vertex = segIn.end). */
+function vertexLabelPosition(
+  segIn: Segment,
+  segOut: Segment,
+  tx: (p: { x: number; y: number }) => { x: number; y: number },
+  labelCentroid: { x: number; y: number },
+  labelText: string,
+): { x: number; y: number } {
+  const v = tx(segIn.endPoint)
+  const inBack = {
+    x: tx(segIn.startPoint).x - v.x,
+    y: tx(segIn.startPoint).y - v.y,
+  }
+  const outFwd = {
+    x: tx(segOut.endPoint).x - v.x,
+    y: tx(segOut.endPoint).y - v.y,
+  }
+  const lenIn = Math.hypot(inBack.x, inBack.y)
+  const lenOut = Math.hypot(outFwd.x, outFwd.y)
+  if (lenIn < 1e-6 || lenOut < 1e-6) {
+    return { x: v.x, y: v.y - BEND_LABEL_OFFSET }
+  }
+
+  const inBackU = unitVec(inBack.x, inBack.y, lenIn)
+  const outFwdU = unitVec(outFwd.x, outFwd.y, lenOut)
+  const outBackU = unitVec(-outFwd.x, -outFwd.y, lenOut)
+
+  // Cross sign picks the interior wedge (works for convex corners including top-right).
+  const cross = inBack.x * outFwd.y - inBack.y * outFwd.x
+  const outLeg = cross > 0 ? outBackU : outFwdU
+  let bis = bisectorFromLegs(inBackU, outLeg)
+
+  if (bis.x === 0 && bis.y === 0) {
+    const toCentroid = { x: labelCentroid.x - v.x, y: labelCentroid.y - v.y }
+    const len = Math.hypot(toCentroid.x, toCentroid.y) || 1
+    bis = { x: toCentroid.x / len, y: toCentroid.y / len }
+  }
+
+  const dist = BEND_LABEL_OFFSET + labelText.length * BEND_LABEL_CHAR_WIDTH * 0.35
+  return { x: v.x + bis.x * dist, y: v.y + bis.y * dist }
+}
+
+/** Square corners: always place the angle label inside, toward the profile center. */
+function squareInteriorLabelPosition(
+  vertex: { x: number; y: number },
+  labelCentroid: { x: number; y: number },
+  labelText: string,
+): { x: number; y: number } {
+  let dx = labelCentroid.x - vertex.x
+  let dy = labelCentroid.y - vertex.y
+  const len = Math.hypot(dx, dy) || 1
+  dx /= len
+  dy /= len
+  const dist = BEND_LABEL_OFFSET + labelText.length * BEND_LABEL_CHAR_WIDTH * 0.35
+  return { x: vertex.x + dx * dist, y: vertex.y + dy * dist }
+}
+
+function bendLabelPosition(
+  segments: FoldedProfile['segments'],
+  bendIndex: number,
+  tx: (p: { x: number; y: number }) => { x: number; y: number },
+  labelCentroid: { x: number; y: number },
+  labelText: string,
+): { x: number; y: number } {
+  const segIn = segments[bendIndex]
+  const segOut = segments[bendIndex + 1]
+  if (!segIn || !segOut) {
+    return { x: labelCentroid.x, y: labelCentroid.y }
+  }
+  return vertexLabelPosition(segIn, segOut, tx, labelCentroid, labelText)
 }
 
 function screenCentroid(
@@ -171,7 +261,7 @@ export function ProfileCanvas({
             })}
 
           {segments.map((seg) => {
-            const isActive = activeItemId === seg.id
+            const isActive = isSquareSegmentActive(profile, activeItemId, seg.id)
             if (!isActive) return null
             const s = layout.tx(seg.startPoint)
             const e = layout.tx(seg.endPoint)
@@ -219,7 +309,7 @@ export function ProfileCanvas({
 
           {showLabels &&
             segments.map((seg) => {
-              const isActive = activeItemId === seg.id
+              const isActive = isSquareSegmentActive(profile, activeItemId, seg.id)
               const start = layout.tx(seg.startPoint)
               const end = layout.tx(seg.endPoint)
               const screenDx = end.x - start.x
@@ -256,37 +346,59 @@ export function ProfileCanvas({
             })}
 
           {showLabels &&
-            bends.map((bend, i) => {
-              const isActive = activeItemId === bend.id
-              const vertex = getBendVertexPoint(segments, i)
-              if (!vertex) return null
-              const p = layout.tx(vertex)
-              const label = formatInteriorBendDeg(bend)
-              let bx = p.x - labelCentroid.x
-              let by = p.y - labelCentroid.y
-              const blen = Math.hypot(bx, by)
-              if (blen < 1) {
-                bx = 0
-                by = BEND_LABEL_OFFSET
-              } else {
-                bx = (bx / blen) * BEND_LABEL_OFFSET
-                by = (by / blen) * BEND_LABEL_OFFSET
-              }
-              return (
-                <Text
-                  key={`lbl-bend-${bend.id}`}
-                  x={p.x + bx}
-                  y={p.y + by}
-                  text={label}
-                  fontSize={LABEL_FONT_SIZE}
-                  fontStyle={isActive ? 'bold' : 'normal'}
-                  fill={isActive ? labelActiveFill : labelFill}
-                  offsetX={label.length * 4.4}
-                  offsetY={7.5}
-                  listening={false}
-                />
-              )
-            })}
+            (profile.plateConstraint === 'square' && segments.length === 4
+              ? getSquareCornerPairs().map(({ segInIndex, segOutIndex, bendIndex }, cornerIdx) => {
+                  const segIn = segments[segInIndex]
+                  const segOut = segments[segOutIndex]
+                  if (!segIn || !segOut) return null
+                  const label = '90°'
+                  const vertex = layout.tx(segIn.endPoint)
+                  const pos = squareInteriorLabelPosition(vertex, labelCentroid, label)
+                  const bendId = bendIndex !== null ? bends[bendIndex]?.id : null
+                  const isActive = bendId !== null && bendId !== undefined && activeItemId === bendId
+                  return (
+                    <Text
+                      key={`lbl-square-corner-${cornerIdx}`}
+                      x={pos.x}
+                      y={pos.y}
+                      text={label}
+                      fontSize={LABEL_FONT_SIZE}
+                      fontStyle={isActive ? 'bold' : 'normal'}
+                      fill={isActive ? labelActiveFill : labelFill}
+                      align="center"
+                      offsetX={label.length * BEND_LABEL_CHAR_WIDTH * 0.5}
+                      offsetY={7.5}
+                      listening={false}
+                    />
+                  )
+                })
+              : bends.map((bend, i) => {
+                  const isActive = activeItemId === bend.id
+                  if (!getBendVertexPoint(segments, i)) return null
+                  const label = formatInteriorBendDeg(bend)
+                  const pos = bendLabelPosition(
+                    segments,
+                    i,
+                    layout.tx,
+                    labelCentroid,
+                    label,
+                  )
+                  return (
+                    <Text
+                      key={`lbl-bend-${bend.id}`}
+                      x={pos.x}
+                      y={pos.y}
+                      text={label}
+                      fontSize={LABEL_FONT_SIZE}
+                      fontStyle={isActive ? 'bold' : 'normal'}
+                      fill={isActive ? labelActiveFill : labelFill}
+                      align="center"
+                      offsetX={label.length * BEND_LABEL_CHAR_WIDTH * 0.5}
+                      offsetY={7.5}
+                      listening={false}
+                    />
+                  )
+                }))}
         </Layer>
       </Stage>
     </div>

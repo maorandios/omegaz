@@ -5,6 +5,7 @@ const STORAGE_KEY = 'omegaz-session'
 export interface PersistedState {
   currentStep: AppStep | null
   profile: FoldedProfile | null
+  initialProfile: FoldedProfile | null
   wizardIndex: number
   sketchPoints: Point2D[]
   selectedTemplate: string | null
@@ -23,6 +24,7 @@ export function loadSession(): PersistedState | null {
     return {
       currentStep,
       profile: (parsed.profile as PersistedState['profile']) ?? null,
+      initialProfile: (parsed.initialProfile as PersistedState['initialProfile']) ?? null,
       wizardIndex: (parsed.wizardIndex as number) ?? 0,
       sketchPoints: (parsed.sketchPoints as PersistedState['sketchPoints']) ?? [],
       selectedTemplate: (parsed.selectedTemplate as string | null) ?? null,

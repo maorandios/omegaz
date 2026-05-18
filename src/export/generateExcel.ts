@@ -9,7 +9,11 @@ interface ProfileMetrics {
   weight: number
 }
 
-export function generateExcel(profile: FoldedProfile, metrics: ProfileMetrics): Blob {
+export function generateExcel(
+  profile: FoldedProfile,
+  metrics: ProfileMetrics,
+  templateId?: string | null,
+): Blob {
   const fab = profile.fabrication
 
   const summaryData = [
@@ -31,7 +35,7 @@ export function generateExcel(profile: FoldedProfile, metrics: ProfileMetrics): 
     ['Order', 'Type', 'Value', 'Unit', 'Notes'],
   ]
 
-  const steps = buildWizardSteps(profile)
+  const steps = buildWizardSteps(profile, templateId)
   let segNum = 0
   let bendNum = 0
 
