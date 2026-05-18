@@ -18,3 +18,20 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
 export function getTemplatePreviewPath(id: string): string {
   return `/templates/${id}.svg`
 }
+
+/** Uppercase labels shown in the plate-process top bar. */
+const PLATE_SHAPE_LABELS: Record<string, string> = {
+  'l-angle': 'ANGLE',
+  'z-profile': 'Z SHAPE',
+  channel: 'CHANNEL',
+  square: 'SQUARE',
+  omega: 'OMEGA',
+  gutter: 'GUTTER',
+  custom: 'CUSTOM SHAPE',
+  'u-profile': 'U PROFILE',
+}
+
+export function getPlateShapeLabel(templateId: string | null): string {
+  if (!templateId) return 'CUSTOM SHAPE'
+  return PLATE_SHAPE_LABELS[templateId] ?? 'CUSTOM SHAPE'
+}

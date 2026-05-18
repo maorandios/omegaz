@@ -3,7 +3,7 @@ import type { AppStep, FoldedProfile, Point2D } from '@/geometry/types'
 const STORAGE_KEY = 'omegaz-session'
 
 export interface PersistedState {
-  currentStep: AppStep
+  currentStep: AppStep | null
   profile: FoldedProfile | null
   wizardIndex: number
   sketchPoints: Point2D[]
@@ -14,7 +14,19 @@ export function loadSession(): PersistedState | null {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY)
     if (!raw) return null
-    return JSON.parse(raw) as PersistedState
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    const step = parsed.currentStep
+    const currentStep =
+      step === 'start' || step === undefined || step === null
+        ? null
+        : (step as PersistedState['currentStep'])
+    return {
+      currentStep,
+      profile: (parsed.profile as PersistedState['profile']) ?? null,
+      wizardIndex: (parsed.wizardIndex as number) ?? 0,
+      sketchPoints: (parsed.sketchPoints as PersistedState['sketchPoints']) ?? [],
+      selectedTemplate: (parsed.selectedTemplate as string | null) ?? null,
+    }
   } catch {
     return null
   }

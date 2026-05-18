@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator'
 import { getTemplatePreviewPath, TEMPLATE_DEFINITIONS } from '@/templates/definitions'
 import { useProfileStore } from '@/store/profileStore'
 
-export function StartScreen() {
+export function CreateScreen() {
   const setStep = useProfileStore((s) => s.setStep)
   const loadTemplate = useProfileStore((s) => s.loadTemplate)
 

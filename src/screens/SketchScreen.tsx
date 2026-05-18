@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { SketchCanvas } from '@/components/canvas/SketchCanvas'
 import { Button } from '@/components/ui/button'
+import { useAppStore } from '@/store/appStore'
 import { useProfileStore } from '@/store/profileStore'
 
 export function SketchScreen() {
   const sketchPoints = useProfileStore((s) => s.sketchPoints)
   const setSketchPoints = useProfileStore((s) => s.setSketchPoints)
   const applyCleanedSketch = useProfileStore((s) => s.applyCleanedSketch)
-  const setStep = useProfileStore((s) => s.setStep)
   const [error, setError] = useState<string | null>(null)
 
   return (
@@ -33,7 +33,15 @@ export function SketchScreen() {
         >
           Clear
         </Button>
-        <Button variant="secondary" onClick={() => setStep('start')}>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            setSketchPoints([])
+            setError(null)
+            useProfileStore.setState({ currentStep: null })
+            useAppStore.getState().setMainTab('create')
+          }}
+        >
           Cancel
         </Button>
       </div>

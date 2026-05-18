@@ -6,10 +6,11 @@ import {
 } from '@/geometry/calculateProfilePoints'
 import { createProfileFromSketch, createTemplateProfile } from '@/geometry/createTemplateProfile'
 import type { AppStep, FabricationDetails, FoldedProfile, Point2D } from '@/geometry/types'
+import { useAppStore } from '@/store/appStore'
 import { clearSession, loadSession, saveSession } from './persist'
 
 interface ProfileState {
-  currentStep: AppStep
+  currentStep: AppStep | null
   profile: FoldedProfile | null
   selectedTemplate: string | null
   sketchPoints: Point2D[]
@@ -72,7 +73,7 @@ function syncWizardActive(get: ProfileState, profile: FoldedProfile): string | n
 }
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
-  currentStep: 'start',
+  currentStep: null,
   profile: null,
   selectedTemplate: null,
   sketchPoints: [],
@@ -209,8 +210,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   restart: () => {
     clearSession()
+    useAppStore.getState().setMainTab('projects')
     set({
-      currentStep: 'start',
+      currentStep: null,
       profile: null,
       selectedTemplate: null,
       sketchPoints: [],
@@ -255,7 +257,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         set({
           wizardIndex: newIndex,
           activeItemId: syncWizardActive({ ...get(), wizardIndex: newIndex }, profile),
-          clearWizardInput: true,
+          clearWizardInput: false,
         })
         schedulePersist(get)
       } else {
@@ -304,7 +306,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   hydrateFromSession: () => {
     const saved = loadSession()
-    if (!saved?.profile) return
+    if (!saved?.profile || !saved.currentStep) return
     set({
       currentStep: saved.currentStep,
       profile: saved.profile,

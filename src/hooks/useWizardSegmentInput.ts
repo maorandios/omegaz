@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
 import type { FoldedProfile } from '@/geometry/types'
 import { useProfileStore } from '@/store/profileStore'
@@ -16,6 +16,8 @@ export function useWizardSegmentInput(profile: FoldedProfile) {
   const stepKey = current ? `${wizardIndex}-${current.type}-${current.id}` : ''
   const historyLength = useProfileStore((s) => s.history.length)
   const [inputValue, setInputValue] = useState('')
+  /** First keypad press replaces the prefilled value instead of appending. */
+  const replaceOnNextKey = useRef(false)
 
   useEffect(() => {
     const step = buildWizardSteps(profile)[wizardIndex]
@@ -24,6 +26,7 @@ export function useWizardSegmentInput(profile: FoldedProfile) {
     const shouldClear = useProfileStore.getState().consumeClearWizardInput()
     if (shouldClear) {
       setInputValue('')
+      replaceOnNextKey.current = false
       return
     }
 
@@ -34,8 +37,15 @@ export function useWizardSegmentInput(profile: FoldedProfile) {
       const bend = profile.bends.find((b) => b.id === step.id)
       setInputValue(bend ? String(bend.angle) : '')
     }
+    replaceOnNextKey.current = true
     // eslint-disable-next-line react-hooks/exhaustive-deps -- stepKey + historyLength are intentional triggers
   }, [stepKey, historyLength])
+
+  const consumeReplaceOnNextKey = () => {
+    if (!replaceOnNextKey.current) return false
+    replaceOnNextKey.current = false
+    return true
+  }
 
   const applyPreview = (raw: string) => {
     if (!current) return
@@ -54,6 +64,10 @@ export function useWizardSegmentInput(profile: FoldedProfile) {
   }
 
   const appendDigit = (digit: string) => {
+    if (consumeReplaceOnNextKey()) {
+      setValue(digit)
+      return
+    }
     const next =
       inputValue === '0' && digit !== '.'
         ? digit
@@ -62,15 +76,21 @@ export function useWizardSegmentInput(profile: FoldedProfile) {
   }
 
   const appendDecimal = () => {
+    if (consumeReplaceOnNextKey()) {
+      setValue('0.')
+      return
+    }
     if (inputValue.includes('.')) return
     setValue(inputValue ? `${inputValue}.` : '0.')
   }
 
   const backspace = () => {
+    replaceOnNextKey.current = false
     setValue(inputValue.slice(0, -1))
   }
 
   const clear = () => {
+    replaceOnNextKey.current = false
     setValue('')
   }
 

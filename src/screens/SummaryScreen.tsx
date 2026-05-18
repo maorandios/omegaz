@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { ProfileCanvas } from '@/components/canvas/ProfileCanvas'
 import { ShareDownloadButton } from '@/components/export/ShareDownloadButton'
 import { SegmentBendTable } from '@/components/summary/SegmentBendTable'
@@ -7,10 +8,17 @@ import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
 import { FLAT_WIDTH_LABEL } from '@/geometry/types'
 import { useProfileMetrics } from '@/hooks/useProfileMetrics'
 import { formatKg, formatMm } from '@/lib/format'
+import { useAppStore } from '@/store/appStore'
 import { useProfileStore } from '@/store/profileStore'
 
 export function SummaryScreen() {
   const profile = useProfileStore((s) => s.profile)!
+  const selectedTemplate = useProfileStore((s) => s.selectedTemplate)
+  const saveProjectFromProfile = useAppStore((s) => s.saveProjectFromProfile)
+
+  useEffect(() => {
+    saveProjectFromProfile(profile, selectedTemplate)
+  }, [profile, selectedTemplate, saveProjectFromProfile])
   const activeItemId = useProfileStore((s) => s.activeItemId)
   const setStep = useProfileStore((s) => s.setStep)
   const setWizardIndex = useProfileStore((s) => s.setWizardIndex)

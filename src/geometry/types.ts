@@ -1,5 +1,4 @@
 export type AppStep =
-  | 'start'
   | 'sketch'
   | 'segment-wizard'
   | 'fabrication'

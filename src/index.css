@@ -39,6 +39,11 @@
     --wizard-header-h: 3rem;
     --wizard-dock-h: 3.5rem;
     --wizard-keypad-h: clamp(11.5rem, 28dvh, 14.5rem);
+    --bottom-dock-h: 4.5rem;
+  }
+
+  .bottom-dock {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   html[data-wizard],
