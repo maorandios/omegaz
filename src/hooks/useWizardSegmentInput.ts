@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
+import { buildWizardSteps, getBendInteriorAngle } from '@/geometry/calculateProfilePoints'
 import type { FoldedProfile } from '@/geometry/types'
 import { useProfileStore } from '@/store/profileStore'
 
@@ -35,7 +35,7 @@ export function useWizardSegmentInput(profile: FoldedProfile) {
       setInputValue(seg ? String(seg.length) : '')
     } else {
       const bend = profile.bends.find((b) => b.id === step.id)
-      setInputValue(bend ? String(bend.angle) : '')
+      setInputValue(bend ? String(getBendInteriorAngle(bend)) : '')
     }
     replaceOnNextKey.current = true
     // eslint-disable-next-line react-hooks/exhaustive-deps -- stepKey + historyLength are intentional triggers

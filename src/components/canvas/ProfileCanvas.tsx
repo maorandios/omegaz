@@ -3,6 +3,7 @@ import { Stage, Layer, Line, Circle, Text, Rect, Group } from 'react-konva'
 import { calculateProfileBounds } from '@/geometry/calculateProfileBounds'
 import { getBendVertexPoint } from '@/geometry/calculateProfilePoints'
 import type { FoldedProfile } from '@/geometry/types'
+import { formatInteriorBendDeg } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 interface ProfileCanvasProps {
@@ -26,9 +27,23 @@ function formatSegmentDim(n: number): string {
   })
 }
 
-function formatAngle(n: number): string {
-  const v = Math.round(n * 10) / 10
-  return Number.isInteger(v) ? `${v}` : `${v}`
+function screenCentroid(
+  segments: FoldedProfile['segments'],
+  tx: (p: { x: number; y: number }) => { x: number; y: number },
+  fallback: { x: number; y: number },
+): { x: number; y: number } {
+  if (segments.length === 0) return fallback
+  let sx = 0
+  let sy = 0
+  let n = 0
+  segments.forEach((seg) => {
+    const s = tx(seg.startPoint)
+    const e = tx(seg.endPoint)
+    sx += s.x + e.x
+    sy += s.y + e.y
+    n += 2
+  })
+  return { x: sx / n, y: sy / n }
 }
 
 export function ProfileCanvas({
@@ -86,6 +101,15 @@ export function ProfileCanvas({
 
     return { scale, tx, bounds }
   }, [segments, size])
+
+  const labelCentroid = useMemo(
+    () =>
+      screenCentroid(segments, layout.tx, {
+        x: size.width / 2,
+        y: size.height / 2,
+      }),
+    [segments, layout, size.width, size.height],
+  )
 
   const flatPoints: number[] = []
   segments.forEach((seg) => {
@@ -203,8 +227,14 @@ export function ProfileCanvas({
               const segLen = Math.hypot(screenDx, screenDy) || 1
               const midX = (start.x + end.x) / 2
               const midY = (start.y + end.y) / 2
-              const nx = (-screenDy / segLen) * SEGMENT_LABEL_OFFSET
-              const ny = (screenDx / segLen) * SEGMENT_LABEL_OFFSET
+              let nx = (-screenDy / segLen) * SEGMENT_LABEL_OFFSET
+              let ny = (screenDx / segLen) * SEGMENT_LABEL_OFFSET
+              const toCentroidX = labelCentroid.x - midX
+              const toCentroidY = labelCentroid.y - midY
+              if (nx * toCentroidX + ny * toCentroidY > 0) {
+                nx = -nx
+                ny = -ny
+              }
               let angleDeg = (Math.atan2(screenDy, screenDx) * 180) / Math.PI
               if (angleDeg > 90 || angleDeg < -90) angleDeg += 180
               const label = formatSegmentDim(seg.length)
@@ -231,12 +261,22 @@ export function ProfileCanvas({
               const vertex = getBendVertexPoint(segments, i)
               if (!vertex) return null
               const p = layout.tx(vertex)
-              const label = `${formatAngle(bend.angle)}°`
+              const label = formatInteriorBendDeg(bend)
+              let bx = p.x - labelCentroid.x
+              let by = p.y - labelCentroid.y
+              const blen = Math.hypot(bx, by)
+              if (blen < 1) {
+                bx = 0
+                by = BEND_LABEL_OFFSET
+              } else {
+                bx = (bx / blen) * BEND_LABEL_OFFSET
+                by = (by / blen) * BEND_LABEL_OFFSET
+              }
               return (
                 <Text
                   key={`lbl-bend-${bend.id}`}
-                  x={p.x}
-                  y={p.y + BEND_LABEL_OFFSET}
+                  x={p.x + bx}
+                  y={p.y + by}
                   text={label}
                   fontSize={LABEL_FONT_SIZE}
                   fontStyle={isActive ? 'bold' : 'normal'}

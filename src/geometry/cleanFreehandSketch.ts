@@ -6,6 +6,10 @@ import {
   SNAP_DIAGONAL_ANGLES,
   SNAP_DIAGONAL_TOLERANCE_DEG,
 } from './constants'
+import {
+  inferBendHandedness,
+  turnDeltaToInteriorAngle,
+} from '@/geometry/calculateProfilePoints'
 import type { Bend, Point2D, Segment } from './types'
 import { createId } from './types'
 
@@ -237,6 +241,8 @@ export function cleanFreehandSketch(
     bends.push({
       id: createId('bend'),
       angle: bendAngle,
+      interiorAngle: turnDeltaToInteriorAngle(bendAngle),
+      handedness: inferBendHandedness(bendAngle),
       betweenSegmentIds: [segments[i].id, segments[i + 1].id],
     })
   }

@@ -43,7 +43,13 @@ export function generateExcel(profile: FoldedProfile, metrics: ProfileMetrics): 
     } else {
       bendNum++
       const bend = profile.bends.find((b) => b.id === step.id)!
-      cutList.push([order + 1, `Bend ${bendNum}`, bend.angle, 'deg', ''])
+      cutList.push([
+        order + 1,
+        `Bend ${bendNum}`,
+        bend.interiorAngle ?? bend.angle,
+        'deg',
+        '',
+      ])
     }
   })
 

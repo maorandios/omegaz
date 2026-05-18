@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { cleanFreehandSketch } from '@/geometry/cleanFreehandSketch'
 import {
   buildWizardSteps,
+  migrateProfileBends,
   updateProfileGeometry,
 } from '@/geometry/calculateProfilePoints'
 import { createProfileFromSketch, createTemplateProfile } from '@/geometry/createTemplateProfile'
@@ -139,14 +140,14 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     schedulePersist(get)
   },
 
-  setBendAngle: (bendId, angle) => {
+  setBendAngle: (bendId, interiorDeg) => {
     const { profile } = get()
     if (!profile) return
     get().pushHistory()
     const next = updateProfileGeometry({
       ...profile,
       bends: profile.bends.map((b) =>
-        b.id === bendId ? { ...b, angle: Math.max(0, angle) } : b,
+        b.id === bendId ? { ...b, interiorAngle: interiorDeg } : b,
       ),
     })
     set({ profile: next })
@@ -165,13 +166,13 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     set({ profile: next })
   },
 
-  previewBendAngle: (bendId, angle) => {
+  previewBendAngle: (bendId, interiorDeg) => {
     const { profile } = get()
     if (!profile) return
     const next = updateProfileGeometry({
       ...profile,
       bends: profile.bends.map((b) =>
-        b.id === bendId ? { ...b, angle: Math.max(0, angle) } : b,
+        b.id === bendId ? { ...b, interiorAngle: interiorDeg } : b,
       ),
     })
     set({ profile: next })
@@ -307,9 +308,10 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   hydrateFromSession: () => {
     const saved = loadSession()
     if (!saved?.profile || !saved.currentStep) return
+    const profile = migrateProfileBends(saved.profile)
     set({
       currentStep: saved.currentStep,
-      profile: saved.profile,
+      profile,
       wizardIndex: saved.wizardIndex,
       sketchPoints: saved.sketchPoints,
       selectedTemplate: saved.selectedTemplate,

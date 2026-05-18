@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ProfileCanvas } from '@/components/canvas/ProfileCanvas'
+import { ThicknessSlider } from '@/components/fabrication/ThicknessSlider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,27 +11,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
 import {
-  FINISH_OPTIONS,
-  MATERIAL_OPTIONS,
-  THICKNESS_OPTIONS,
+  clampThicknessForMaterial,
+  defaultMaterialThickness,
+  FABRICATION_FINISH_OPTIONS,
+  FABRICATION_MATERIAL_OPTIONS,
 } from '@/geometry/constants'
-import { FLAT_WIDTH_DISCLAIMER, FLAT_WIDTH_LABEL } from '@/geometry/types'
-import { useProfileMetrics } from '@/hooks/useProfileMetrics'
-import { formatAreaM2, formatKg, formatMm } from '@/lib/format'
 import { useProfileStore } from '@/store/profileStore'
 
 export function FabricationScreen() {
   const profile = useProfileStore((s) => s.profile)!
+  const activeItemId = useProfileStore((s) => s.activeItemId)
   const setFabricationField = useProfileStore((s) => s.setFabricationField)
   const setStep = useProfileStore((s) => s.setStep)
   const fab = profile.fabrication
-  const metrics = useProfileMetrics(profile)
-
-  const [materialCustom, setMaterialCustom] = useState('')
-  const [thicknessCustom, setThicknessCustom] = useState('')
   const [errors, setErrors] = useState<string[]>([])
+
+  const material =
+    FABRICATION_MATERIAL_OPTIONS.includes(
+      fab.material as (typeof FABRICATION_MATERIAL_OPTIONS)[number],
+    )
+      ? fab.material
+      : FABRICATION_MATERIAL_OPTIONS[0]
+
+  const finish =
+    FABRICATION_FINISH_OPTIONS.includes(
+      fab.finish as (typeof FABRICATION_FINISH_OPTIONS)[number],
+    )
+      ? fab.finish
+      : FABRICATION_FINISH_OPTIONS[0]
+
+  useEffect(() => {
+    if (fab.material !== material) {
+      setFabricationField('material', material)
+    }
+    if (fab.finish !== finish) {
+      setFabricationField('finish', finish)
+    }
+    const clamped = clampThicknessForMaterial(fab.thickness, material)
+    if (fab.thickness !== clamped) {
+      setFabricationField('thickness', clamped)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync invalid persisted values once
+  }, [])
+
+  const handleMaterialChange = (next: string) => {
+    setFabricationField('material', next)
+    const thickness = clampThicknessForMaterial(
+      fab.thickness || defaultMaterialThickness(next),
+      next,
+    )
+    setFabricationField('thickness', thickness)
+  }
 
   const validate = () => {
     const errs: string[] = []
@@ -43,13 +75,17 @@ export function FabricationScreen() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">Fabrication Details</h2>
-        <p className="text-sm text-zinc-400">Material, quantity, and run length for the order.</p>
+    <div className="space-y-5">
+      <div className="fabrication-preview mx-auto w-full max-w-sm">
+        <div className="aspect-square w-full overflow-hidden rounded-lg bg-zinc-950">
+          <ProfileCanvas
+            profile={profile}
+            activeItemId={activeItemId}
+            showLabels
+            className="h-full w-full bg-zinc-950"
+          />
+        </div>
       </div>
-
-      <ProfileCanvas profile={profile} className="h-40" />
 
       <div className="space-y-4">
         <div className="space-y-2">
@@ -63,75 +99,25 @@ export function FabricationScreen() {
 
         <div className="space-y-2">
           <Label>Material *</Label>
-          <Select
-            value={MATERIAL_OPTIONS.includes(fab.material as (typeof MATERIAL_OPTIONS)[number]) ? fab.material : 'Custom'}
-            onValueChange={(v) => {
-              if (v === 'Custom') setFabricationField('material', materialCustom || 'Custom')
-              else setFabricationField('material', v)
-            }}
-          >
+          <Select value={material} onValueChange={handleMaterialChange}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {MATERIAL_OPTIONS.map((m) => (
+              {FABRICATION_MATERIAL_OPTIONS.map((m) => (
                 <SelectItem key={m} value={m}>
                   {m}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {(!MATERIAL_OPTIONS.slice(0, -1).includes(fab.material as (typeof MATERIAL_OPTIONS)[number]) ||
-            fab.material === 'Custom') && (
-            <Input
-              placeholder="Custom material"
-              value={materialCustom || fab.material}
-              onChange={(e) => {
-                setMaterialCustom(e.target.value)
-                setFabricationField('material', e.target.value)
-              }}
-            />
-          )}
         </div>
 
-        <div className="space-y-2">
-          <Label>Thickness *</Label>
-          <Select
-            value={
-              THICKNESS_OPTIONS.includes(fab.thickness as (typeof THICKNESS_OPTIONS)[number])
-                ? String(fab.thickness)
-                : 'custom'
-            }
-            onValueChange={(v) => {
-              if (v === 'custom') return
-              setFabricationField('thickness', parseFloat(v))
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {THICKNESS_OPTIONS.map((t) => (
-                <SelectItem key={t} value={String(t)}>
-                  {t} mm
-                </SelectItem>
-              ))}
-              <SelectItem value="custom">Custom</SelectItem>
-            </SelectContent>
-          </Select>
-          {!THICKNESS_OPTIONS.includes(fab.thickness as (typeof THICKNESS_OPTIONS)[number]) && (
-            <Input
-              type="number"
-              placeholder="Custom thickness (mm)"
-              value={thicknessCustom || fab.thickness}
-              onChange={(e) => {
-                const v = parseFloat(e.target.value)
-                setThicknessCustom(e.target.value)
-                if (Number.isFinite(v)) setFabricationField('thickness', v)
-              }}
-            />
-          )}
-        </div>
+        <ThicknessSlider
+          material={material}
+          value={fab.thickness}
+          onChange={(t) => setFabricationField('thickness', t)}
+        />
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
@@ -155,18 +141,12 @@ export function FabricationScreen() {
 
         <div className="space-y-2">
           <Label>Finish</Label>
-          <Select
-            value={FINISH_OPTIONS.includes(fab.finish as (typeof FINISH_OPTIONS)[number]) ? fab.finish : 'Custom'}
-            onValueChange={(v) => {
-              if (v === 'Custom') setFabricationField('finish', 'Custom')
-              else setFabricationField('finish', v)
-            }}
-          >
+          <Select value={finish} onValueChange={(v) => setFabricationField('finish', v)}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {FINISH_OPTIONS.map((f) => (
+              {FABRICATION_FINISH_OPTIONS.map((f) => (
                 <SelectItem key={f} value={f}>
                   {f}
                 </SelectItem>
@@ -183,27 +163,6 @@ export function FabricationScreen() {
             placeholder="Optional fabrication notes"
           />
         </div>
-      </div>
-
-      <Separator />
-
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-4 text-sm">
-        <h3 className="mb-2 font-medium text-amber-400">Live Estimates</h3>
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-2">
-          <dt className="text-zinc-400">{FLAT_WIDTH_LABEL}</dt>
-          <dd>{formatMm(metrics.flatWidth)}</dd>
-          <dt className="text-zinc-400">Bend Count</dt>
-          <dd>{metrics.bendCount}</dd>
-          <dt className="text-zinc-400">Profile Width</dt>
-          <dd>{formatMm(metrics.bounds.width)}</dd>
-          <dt className="text-zinc-400">Profile Height</dt>
-          <dd>{formatMm(metrics.bounds.height)}</dd>
-          <dt className="text-zinc-400">Estimated Area</dt>
-          <dd>{formatAreaM2(metrics.area)}</dd>
-          <dt className="text-zinc-400">Estimated Weight</dt>
-          <dd>{formatKg(metrics.weight)}</dd>
-        </dl>
-        <p className="mt-3 text-xs text-zinc-500">{FLAT_WIDTH_DISCLAIMER}</p>
       </div>
 
       {errors.length > 0 && (

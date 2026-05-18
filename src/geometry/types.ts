@@ -20,7 +20,12 @@ export interface Segment {
 
 export interface Bend {
   id: string
+  /** Signed polyline turn used for layout (computed = handedness × (180 − interior)). */
   angle: number
+  /** Fabricator interior corner angle — what the user types (0–180, 90° = right angle). */
+  interiorAngle: number
+  /** Bend direction (CW/CCW). Set once from the template / sketch; preserved across edits. */
+  handedness?: 1 | -1
   betweenSegmentIds: [string, string]
 }
 

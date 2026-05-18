@@ -63,7 +63,11 @@ export function generatePdf(profile: FoldedProfile, metrics: ProfileMetrics): Bl
     if (!vertex) return
     const p = tx(vertex)
     doc.setFontSize(7)
-    doc.text(`${bend.angle}°`, p.x + 2, p.y + 2)
+    doc.text(
+      `${bend.interiorAngle ?? bend.angle}°`,
+      p.x + 2,
+      p.y + 2,
+    )
   })
 
   y += drawH + 10

@@ -1,4 +1,4 @@
-import { CircleX } from 'lucide-react'
+import { CircleX, MoveLeft } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { BottomDock } from '@/components/shell/BottomDock'
 import { ExitProcessSheet } from '@/components/shell/ExitProcessSheet'
@@ -16,10 +16,14 @@ const headerIconClass = 'h-[1.4rem] w-[1.4rem] shrink-0 stroke-[1.75px] text-zin
 
 function AppHeader({
   title,
+  showBack,
+  onBack,
   showExit,
   onExit,
 }: {
   title: string
+  showBack: boolean
+  onBack: () => void
   showExit: boolean
   onExit: () => void
 }) {
@@ -29,7 +33,21 @@ function AppHeader({
       className="shrink-0 border-b border-zinc-800 bg-zinc-950"
     >
       <div className="mx-auto grid h-12 max-w-lg grid-cols-[2.75rem_1fr_2.75rem] items-center px-2">
-        <div aria-hidden className="w-[2.75rem]" />
+        {showBack ? (
+          <div className="flex items-center justify-start">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 shrink-0 hover:bg-zinc-800"
+              onClick={onBack}
+              aria-label="Go back"
+            >
+              <MoveLeft className={headerIconClass} />
+            </Button>
+          </div>
+        ) : (
+          <div aria-hidden className="w-[2.75rem]" />
+        )}
 
         <h1 className="truncate text-center text-base font-bold tracking-tight text-amber-400">
           {title}
@@ -65,6 +83,9 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
   const [exitSheetOpen, setExitSheetOpen] = useState(false)
 
   const isWizard = currentStep === 'segment-wizard'
+  const isFabrication = currentStep === 'fabrication'
+  const isSummary = currentStep === 'summary' || currentStep === 'export'
+  const goBack = useProfileStore((s) => s.goBack)
   const headerTitle = isWizard ? getPlateShapeLabel(selectedTemplate) : 'OMEGAZ'
 
   useEffect(() => {
@@ -89,6 +110,8 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
   const header = (
     <AppHeader
       title={headerTitle}
+      showBack={isFabrication || isSummary}
+      onBack={goBack}
       showExit={inWorkflow}
       onExit={() => setExitSheetOpen(true)}
     />

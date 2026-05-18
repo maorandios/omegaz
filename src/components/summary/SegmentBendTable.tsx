@@ -1,6 +1,6 @@
 import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
 import type { FoldedProfile } from '@/geometry/types'
-import { formatDeg, formatMm } from '@/lib/format'
+import { formatInteriorBendDeg, formatMm } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useProfileStore } from '@/store/profileStore'
 
@@ -58,7 +58,7 @@ export function SegmentBendTable({ profile }: SegmentBendTableProps) {
                 onClick={() => setActiveFromTableRow('bend', step.id)}
               >
                 <td className="px-3 py-3 font-medium">Bend {bendNum}</td>
-                <td className="px-3 py-3 text-zinc-300">{formatDeg(bend.angle)}</td>
+                <td className="px-3 py-3 text-zinc-300">{formatInteriorBendDeg(bend)}</td>
               </tr>
             )
           })}

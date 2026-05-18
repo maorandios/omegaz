@@ -1,6 +1,10 @@
 import type { Bend, FoldedProfile, Segment } from './types'
 import { createId, defaultFabrication } from './types'
-import { updateProfileGeometry } from './calculateProfilePoints'
+import {
+  inferBendHandedness,
+  turnDeltaToInteriorAngle,
+  updateProfileGeometry,
+} from './calculateProfilePoints'
 
 type TemplateId =
   | 'omega'
@@ -15,14 +19,18 @@ type TemplateId =
 interface TemplateSpec {
   name: string
   segmentLengths: number[]
+  /** Polyline turn at each bend (seeds interiorAngle + handedness). */
   bendAngles: number[]
+  /** First segment travel direction (degrees). Default 0 = east. */
+  startDirectionDeg?: number
 }
 
 const TEMPLATES: Record<TemplateId, TemplateSpec> = {
   omega: {
     name: 'Omega Profile',
-    segmentLengths: [40, 30, 50, 30, 40],
-    bendAngles: [90, 90, 90, 90],
+    segmentLengths: [40, 40, 40, 40, 40],
+    /** Up at left web, across crown, down right web, out bottom flange. */
+    bendAngles: [90, 270, 270, 90],
   },
   channel: {
     name: 'Channel',
@@ -43,6 +51,8 @@ const TEMPLATES: Record<TemplateId, TemplateSpec> = {
     name: 'L Angle',
     segmentLengths: [50, 50],
     bendAngles: [90],
+    /** Down, then bend right — reads as letter L (not └). */
+    startDirectionDeg: 270,
   },
   'u-profile': {
     name: 'U Profile',
@@ -61,14 +71,18 @@ const TEMPLATES: Record<TemplateId, TemplateSpec> = {
   },
 }
 
-function buildSegmentsAndBends(lengths: number[], bendAngles: number[]): {
+function buildSegmentsAndBends(
+  lengths: number[],
+  bendAngles: number[],
+  startDirectionDeg = 0,
+): {
   segments: Segment[]
   bends: Bend[]
 } {
-  const segments: Segment[] = lengths.map((length) => ({
+  const segments: Segment[] = lengths.map((length, i) => ({
     id: createId('seg'),
     length,
-    angle: 0,
+    angle: i === 0 ? startDirectionDeg : 0,
     startPoint: { x: 0, y: 0 },
     endPoint: { x: 0, y: 0 },
   }))
@@ -76,6 +90,8 @@ function buildSegmentsAndBends(lengths: number[], bendAngles: number[]): {
   const bends: Bend[] = bendAngles.map((angle, i) => ({
     id: createId('bend'),
     angle,
+    interiorAngle: turnDeltaToInteriorAngle(angle),
+    handedness: inferBendHandedness(angle),
     betweenSegmentIds: [segments[i].id, segments[i + 1].id],
   }))
 
@@ -84,7 +100,11 @@ function buildSegmentsAndBends(lengths: number[], bendAngles: number[]): {
 
 export function createTemplateProfile(templateId: string): FoldedProfile {
   const spec = TEMPLATES[templateId as TemplateId] ?? TEMPLATES.custom
-  const { segments, bends } = buildSegmentsAndBends(spec.segmentLengths, spec.bendAngles)
+  const { segments, bends } = buildSegmentsAndBends(
+    spec.segmentLengths,
+    spec.bendAngles,
+    spec.startDirectionDeg ?? 0,
+  )
 
   const profile: FoldedProfile = {
     id: createId('profile'),
@@ -111,7 +131,14 @@ export function createProfileFromSketch(
     name,
     unit: 'mm',
     segments,
-    bends,
+    bends: bends.map((b) => ({
+      ...b,
+      interiorAngle:
+        Number.isFinite(b.interiorAngle) && b.interiorAngle > 0
+          ? b.interiorAngle
+          : turnDeltaToInteriorAngle(b.angle),
+      handedness: b.handedness ?? inferBendHandedness(b.angle),
+    })),
     fabrication: {
       ...defaultFabrication(),
       partName: name,
