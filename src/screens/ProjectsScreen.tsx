@@ -56,7 +56,7 @@ export function ProjectsScreen() {
               <button
                 type="button"
                 onClick={() => setSelectedProject(project.id)}
-                className="flex w-full items-center gap-3 rounded-lg border border-border bg-surface/80 px-4 py-3 text-left transition-colors hover:border-border hover:bg-surface"
+                className="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface/40 px-4 py-4.5 text-left transition-colors hover:border-border hover:bg-surface/55"
               >
                 <div className="min-w-0 flex-1">
                   <p className="flex min-w-0 items-center gap-1.5 truncate font-medium text-foreground">

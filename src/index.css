@@ -75,7 +75,8 @@
     flex-shrink: 0;
     box-sizing: border-box;
     background: var(--color-background);
-    padding-bottom: env(safe-area-inset-bottom);
+    /* Half safe-area inset — tighter to screen edge on mobile */
+    padding-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) / 2));
   }
 
   .bottom-dock__inner {

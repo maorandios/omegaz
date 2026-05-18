@@ -1,6 +1,7 @@
 import { CircleX, MoveLeft, RotateCcw } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { BottomDock } from '@/components/shell/BottomDock'
+import { PullToRefresh } from '@/components/shell/PullToRefresh'
 import { ExitProcessSheet } from '@/components/shell/ExitProcessSheet'
 import { Button } from '@/components/ui/button'
 import { getPlateShapeLabel } from '@/templates/definitions'
@@ -171,9 +172,9 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
     return (
       <div className="app-tab-shell text-foreground">
         {header}
-        <main className="mx-auto flex w-full max-w-lg min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4">
-          {children}
-        </main>
+        <PullToRefresh className="mx-auto w-full max-w-lg">
+          <main className="flex min-h-full flex-col px-4 py-4">{children}</main>
+        </PullToRefresh>
         {exitSheet}
       </div>
     )
@@ -182,9 +183,9 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
   return (
     <div className="app-tab-shell text-foreground">
       {header}
-      <main className="mx-auto flex w-full max-w-lg min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4">
-        {children}
-      </main>
+      <PullToRefresh className="mx-auto w-full max-w-lg">
+        <main className="flex min-h-full flex-col px-4 py-4">{children}</main>
+      </PullToRefresh>
       <BottomDock activeTab={mainTab} onTabChange={setMainTab} />
       {exitSheet}
     </div>
