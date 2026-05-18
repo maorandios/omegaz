@@ -1,6 +1,6 @@
 import { Center, OrbitControls } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
-import { Suspense, useMemo } from 'react'
+import { Canvas, type RootState } from '@react-three/fiber'
+import { Suspense, useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { buildPlate3DGroup } from '@/geometry/buildPlate3DGroup'
 import type { FoldedProfile } from '@/geometry/types'
@@ -13,12 +13,31 @@ function getDeviceDpr(): number {
   return Math.min(window.devicePixelRatio || 1, MAX_DPR)
 }
 
+function disposeGroup(group: THREE.Object3D) {
+  group.traverse((obj) => {
+    if (obj instanceof THREE.Mesh) {
+      obj.geometry.dispose()
+      const mat = obj.material
+      if (Array.isArray(mat)) mat.forEach((m) => m.dispose())
+      else mat.dispose()
+    }
+    if (obj instanceof THREE.Line) {
+      obj.geometry.dispose()
+      const mat = obj.material
+      if (Array.isArray(mat)) mat.forEach((m) => m.dispose())
+      else mat.dispose()
+    }
+  })
+}
+
 interface Plate3DSceneProps {
   profile: FoldedProfile
 }
 
 function Plate3DScene({ profile }: Plate3DSceneProps) {
   const group = useMemo(() => buildPlate3DGroup(profile), [profile])
+
+  useEffect(() => () => disposeGroup(group), [group])
 
   return (
     <>
@@ -51,6 +70,25 @@ interface Plate3DViewerProps {
 
 export function Plate3DViewer({ profile, className }: Plate3DViewerProps) {
   const webgl = useWebGLAvailable()
+  const glRef = useRef<THREE.WebGLRenderer | null>(null)
+
+  useEffect(() => {
+    return () => {
+      const gl = glRef.current
+      if (gl) {
+        gl.dispose()
+        gl.forceContextLoss()
+        glRef.current = null
+      }
+    }
+  }, [])
+
+  const handleCreated = (state: RootState) => {
+    const gl = state.gl
+    glRef.current = gl
+    gl.setPixelRatio(getDeviceDpr())
+    gl.domElement.style.touchAction = 'none'
+  }
 
   if (webgl === false) {
     return (
@@ -84,15 +122,12 @@ export function Plate3DViewer({ profile, className }: Plate3DViewerProps) {
         dpr={getDeviceDpr()}
         frameloop="always"
         gl={{
-          antialias: true,
+          antialias: false,
           alpha: false,
-          powerPreference: 'default',
+          powerPreference: 'low-power',
           failIfMajorPerformanceCaveat: false,
         }}
-        onCreated={({ gl }) => {
-          gl.setPixelRatio(getDeviceDpr())
-          gl.domElement.style.touchAction = 'none'
-        }}
+        onCreated={handleCreated}
       >
         <color attach="background" args={['#09090b']} />
         <Suspense fallback={null}>

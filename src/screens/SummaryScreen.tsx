@@ -1,6 +1,6 @@
 import { ProfileCanvas } from '@/components/canvas/ProfileCanvas'
 import { SaveToProjectButton } from '@/components/export/SaveToProjectButton'
-import { Plate3DPreviewButton } from '@/components/preview/Plate3DPreviewModal'
+import { Plate3DPreviewButton } from '@/components/preview/Plate3DPreviewButton'
 import { FLAT_WIDTH_LABEL } from '@/geometry/types'
 import { useProfileMetrics } from '@/hooks/useProfileMetrics'
 import { formatKg, formatMm } from '@/lib/format'
