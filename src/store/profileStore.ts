@@ -418,30 +418,35 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   hydrateFromSession: () => {
-    const saved = loadSession()
-    if (!saved?.profile || !saved.currentStep) return
-    const profile = ensureHorizontalLock(
-      migrateProfileBends(saved.profile),
-      saved.selectedTemplate,
-    )
-    const initialProfile = saved.initialProfile
-      ? ensureHorizontalLock(
-          migrateProfileBends(saved.initialProfile),
-          saved.selectedTemplate,
-        )
-      : profile
-    set({
-      currentStep: saved.currentStep,
-      profile,
-      initialProfile,
-      wizardIndex: saved.wizardIndex,
-      sketchPoints: saved.sketchPoints,
-      selectedTemplate: saved.selectedTemplate,
-      activeItemId: syncWizardActive(
-        { ...get(), wizardIndex: saved.wizardIndex },
+    try {
+      const saved = loadSession()
+      if (!saved?.profile || !saved.currentStep) return
+      const profile = ensureHorizontalLock(
+        migrateProfileBends(saved.profile),
+        saved.selectedTemplate,
+      )
+      const initialProfile = saved.initialProfile
+        ? ensureHorizontalLock(
+            migrateProfileBends(saved.initialProfile),
+            saved.selectedTemplate,
+          )
+        : profile
+      set({
+        currentStep: saved.currentStep,
         profile,
-      ),
-    })
+        initialProfile,
+        wizardIndex: saved.wizardIndex,
+        sketchPoints: saved.sketchPoints,
+        selectedTemplate: saved.selectedTemplate,
+        activeItemId: syncWizardActive(
+          { ...get(), wizardIndex: saved.wizardIndex },
+          profile,
+        ),
+      })
+    } catch (e) {
+      console.warn('Corrupt session cleared', e)
+      clearSession()
+    }
   },
 
   persistToSession: () => {

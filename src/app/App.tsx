@@ -1,14 +1,35 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { AppShell } from '@/app/AppShell'
-import { CreateScreen } from '@/screens/CreateScreen'
-import { FabricationScreen } from '@/screens/FabricationScreen'
-import { ProfileScreen } from '@/screens/ProfileScreen'
 import { ProjectsScreen } from '@/screens/ProjectsScreen'
-import { SegmentWizardScreen } from '@/screens/SegmentWizardScreen'
-import { SketchScreen } from '@/screens/SketchScreen'
-import { SummaryScreen } from '@/screens/SummaryScreen'
 import { isWorkflowStep, useAppStore } from '@/store/appStore'
 import { useProfileStore } from '@/store/profileStore'
+
+const CreateScreen = lazy(() =>
+  import('@/screens/CreateScreen').then((m) => ({ default: m.CreateScreen })),
+)
+const ProfileScreen = lazy(() =>
+  import('@/screens/ProfileScreen').then((m) => ({ default: m.ProfileScreen })),
+)
+const SketchScreen = lazy(() =>
+  import('@/screens/SketchScreen').then((m) => ({ default: m.SketchScreen })),
+)
+const SegmentWizardScreen = lazy(() =>
+  import('@/screens/SegmentWizardScreen').then((m) => ({ default: m.SegmentWizardScreen })),
+)
+const FabricationScreen = lazy(() =>
+  import('@/screens/FabricationScreen').then((m) => ({ default: m.FabricationScreen })),
+)
+const SummaryScreen = lazy(() =>
+  import('@/screens/SummaryScreen').then((m) => ({ default: m.SummaryScreen })),
+)
+
+function ScreenFallback() {
+  return (
+    <div className="flex flex-1 items-center justify-center py-12 text-sm text-zinc-500">
+      Loading…
+    </div>
+  )
+}
 
 export default function App() {
   const mainTab = useAppStore((s) => s.mainTab)
@@ -52,5 +73,11 @@ export default function App() {
     }
   }
 
-  return <AppShell inWorkflow={inWorkflow}>{inWorkflow ? renderWorkflow() : renderMainTab()}</AppShell>
+  const content = inWorkflow ? renderWorkflow() : renderMainTab()
+
+  return (
+    <AppShell inWorkflow={inWorkflow}>
+      <Suspense fallback={<ScreenFallback />}>{content}</Suspense>
+    </AppShell>
+  )
 }
