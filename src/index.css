@@ -19,10 +19,13 @@
     overflow: hidden;
   }
 
+  html {
+    background: #09090b;
+  }
+
   body {
     @apply bg-zinc-950 text-zinc-100 antialiased;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right)
-      env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0;
   }
 
   input[type='number'] {
@@ -39,11 +42,31 @@
     --wizard-header-h: 3rem;
     --wizard-dock-h: 3.5rem;
     --wizard-keypad-h: clamp(11.5rem, 28dvh, 14.5rem);
-    --bottom-dock-h: 4.5rem;
+    --bottom-dock-h: 3.75rem;
+  }
+
+  /* Main tabs: full viewport with safe areas on shell + bottom dock */
+  .app-tab-shell {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    height: 100dvh;
+    overflow: hidden;
+    background: #09090b;
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-left: env(safe-area-inset-left);
   }
 
   .bottom-dock {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    background: #09090b;
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .bottom-dock__inner {
+    height: var(--bottom-dock-h);
   }
 
   html[data-wizard],

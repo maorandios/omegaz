@@ -108,7 +108,7 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
 
   if (inWorkflow) {
     return (
-      <div className="flex h-dvh flex-col overflow-hidden bg-zinc-950 text-zinc-100">
+      <div className="app-tab-shell text-zinc-100">
         {header}
         <main className="mx-auto flex w-full max-w-lg min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4">
           {children}
@@ -119,7 +119,7 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
   }
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-zinc-950 text-zinc-100">
+    <div className="app-tab-shell text-zinc-100">
       {header}
       <main className="mx-auto flex w-full max-w-lg min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4">
         {children}
