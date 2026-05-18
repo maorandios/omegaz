@@ -56,7 +56,6 @@
     --wizard-header-h: 3rem;
     --wizard-dock-h: 3.5rem;
     --wizard-keypad-h: clamp(11.5rem, 28dvh, 14.5rem);
-    --bottom-dock-h: 3.75rem;
   }
 
   .app-tab-shell {
@@ -70,20 +69,37 @@
     padding-top: env(safe-area-inset-top);
     padding-right: env(safe-area-inset-right);
     padding-left: env(safe-area-inset-left);
+    /* Reserve scroll space for fixed tab bar (49px + home indicator) */
+    --bottom-dock-h: 3.0625rem;
+    --bottom-dock-safe: env(safe-area-inset-bottom, 0px);
+    --bottom-dock-total: calc(var(--bottom-dock-h) + var(--bottom-dock-safe));
+  }
+
+  .app-tab-shell__body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--bottom-dock-total);
   }
 
   .bottom-dock {
-    flex-shrink: 0;
+    position: fixed;
+    z-index: 40;
+    left: 0;
+    right: 0;
+    bottom: 0;
     box-sizing: border-box;
     background: var(--color-background);
-    padding-bottom: 0;
+    padding-bottom: var(--bottom-dock-safe);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
   }
 
   .bottom-dock__inner {
     box-sizing: border-box;
-    min-height: var(--bottom-dock-h);
-    /* Icons sit above home indicator; bar background fills safe area below */
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    height: var(--bottom-dock-h);
+    align-items: center;
   }
 
   html[data-wizard],

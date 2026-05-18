@@ -19,7 +19,7 @@ export function BottomDock({ activeTab, onTabChange }: BottomDockProps) {
       aria-label="Main navigation"
       className="bottom-dock border-t border-border"
     >
-      <div className="bottom-dock__inner mx-auto grid max-w-lg grid-cols-3 px-2">
+      <div className="bottom-dock__inner mx-auto grid max-w-lg grid-cols-3 items-center px-2">
         {tabs.map(({ id, label, Icon }) => {
           const active = activeTab === id
           return (

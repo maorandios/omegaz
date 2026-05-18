@@ -183,9 +183,11 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
   return (
     <div className="app-tab-shell text-foreground">
       {header}
-      <PullToRefresh className="mx-auto w-full max-w-lg">
-        <main className="flex min-h-full flex-col px-4 py-4">{children}</main>
-      </PullToRefresh>
+      <div className="app-tab-shell__body">
+        <PullToRefresh className="mx-auto w-full max-w-lg">
+          <main className="flex min-h-full flex-col px-4 py-4">{children}</main>
+        </PullToRefresh>
+      </div>
       <BottomDock activeTab={mainTab} onTabChange={setMainTab} />
       {exitSheet}
     </div>
