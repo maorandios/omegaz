@@ -1,7 +1,9 @@
 import { Calendar, MoveRight, Square, Weight } from 'lucide-react'
 import { MetaItem } from '@/components/projects/MetaItem'
 import { ProjectDetailView } from '@/components/projects/ProjectDetailView'
+import { ScreenStack } from '@/components/shell/ScreenStack'
 import { formatKg } from '@/lib/format'
+import { projectsStackDirection } from '@/lib/stackNavigation'
 import { useAppStore } from '@/store/appStore'
 
 function formatProjectDate(iso: string): string {
@@ -12,15 +14,10 @@ function formatProjectDate(iso: string): string {
   })
 }
 
-export function ProjectsScreen() {
+function ProjectsListView() {
   const user = useAppStore((s) => s.user)
   const projects = useAppStore((s) => s.projects)
-  const selectedProjectId = useAppStore((s) => s.selectedProjectId)
   const setSelectedProject = useAppStore((s) => s.setSelectedProject)
-
-  if (selectedProjectId) {
-    return <ProjectDetailView />
-  }
 
   return (
     <div className="space-y-6">
@@ -64,5 +61,21 @@ export function ProjectsScreen() {
         </ul>
       )}
     </div>
+  )
+}
+
+export function ProjectsScreen() {
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId)
+
+  return (
+    <ScreenStack
+      activeKey={selectedProjectId ? 'detail' : 'list'}
+      getDirection={projectsStackDirection}
+      className="h-full min-h-full w-full"
+      screens={{
+        list: <ProjectsListView />,
+        detail: <ProjectDetailView />,
+      }}
+    />
   )
 }

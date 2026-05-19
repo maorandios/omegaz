@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { AppShell } from '@/app/AppShell'
+import { ScreenStack } from '@/components/shell/ScreenStack'
 import { ProjectsScreen } from '@/screens/ProjectsScreen'
+import { workflowStackDirection } from '@/lib/stackNavigation'
 import { isWorkflowStep, useAppStore } from '@/store/appStore'
 import { useProfileStore } from '@/store/profileStore'
 
@@ -31,6 +33,27 @@ function ScreenFallback() {
   )
 }
 
+function WorkflowStack() {
+  const currentStep = useProfileStore((s) => s.currentStep)
+
+  if (!currentStep) return null
+
+  return (
+    <ScreenStack
+      activeKey={currentStep}
+      getDirection={workflowStackDirection}
+      className="min-h-full"
+      screens={{
+        sketch: <SketchScreen />,
+        'segment-wizard': <SegmentWizardScreen />,
+        fabrication: <FabricationScreen />,
+        summary: <SummaryScreen />,
+        export: <SummaryScreen />,
+      }}
+    />
+  )
+}
+
 export default function App() {
   const mainTab = useAppStore((s) => s.mainTab)
   const hydrateApp = useAppStore((s) => s.hydrateApp)
@@ -43,22 +66,6 @@ export default function App() {
   }, [hydrateApp, hydrateFromSession])
 
   const inWorkflow = isWorkflowStep(currentStep)
-
-  const renderWorkflow = () => {
-    switch (currentStep) {
-      case 'sketch':
-        return <SketchScreen />
-      case 'segment-wizard':
-        return <SegmentWizardScreen />
-      case 'fabrication':
-        return <FabricationScreen />
-      case 'summary':
-      case 'export':
-        return <SummaryScreen />
-      default:
-        return null
-    }
-  }
 
   const renderMainTab = () => {
     switch (mainTab) {
@@ -73,7 +80,7 @@ export default function App() {
     }
   }
 
-  const content = inWorkflow ? renderWorkflow() : renderMainTab()
+  const content = inWorkflow ? <WorkflowStack /> : renderMainTab()
 
   return (
     <AppShell inWorkflow={inWorkflow}>

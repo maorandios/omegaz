@@ -15,8 +15,19 @@ export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
   { id: 'custom', name: 'Custom Folded', description: 'L-shape start, add up to 10 legs' },
 ]
 
+const TEMPLATE_PREVIEW_PATHS: Record<string, string> = {
+  omega: '/hat-shape.svg',
+  channel: '/channel-shape.svg',
+  gutter: '/gutter-shape.svg',
+  'z-profile': '/z-shape.svg',
+  'l-angle': '/angle-shape.svg',
+  square: '/square-shape.svg',
+  'c-profile': '/c-shape.svg',
+  custom: '/zigzag-shape.svg',
+}
+
 export function getTemplatePreviewPath(id: string): string {
-  return `/templates/${id}.svg`
+  return TEMPLATE_PREVIEW_PATHS[id] ?? `/templates/${id}.svg`
 }
 
 /** Uppercase labels shown in the plate-process top bar. */
