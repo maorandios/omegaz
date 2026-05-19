@@ -33,30 +33,37 @@ export function ThicknessSlider({ material, value, onChange }: ThicknessSliderPr
   }, [steps, value])
 
   const display = steps[index] ?? value
+  const maxIndex = Math.max(1, steps.length - 1)
+  const fillPct = `${(index / maxIndex) * 100}%`
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
+    <div className="form-field">
+      <div className="form-field-row">
         <Label>Thickness *</Label>
         <span className="text-sm font-semibold tabular-nums text-primary">{display} mm</span>
       </div>
-      <input
-        type="range"
-        min={0}
-        max={Math.max(0, steps.length - 1)}
-        step={1}
-        value={index}
-        onChange={(e) => {
-          const i = parseInt(e.target.value, 10)
-          const next = steps[i]
-          if (next !== undefined) onChange(next)
-        }}
-        className="h-2 w-full cursor-pointer accent-primary"
-        aria-valuemin={steps[0]}
-        aria-valuemax={steps[steps.length - 1]}
-        aria-valuenow={display}
-        aria-label="Thickness in millimeters"
-      />
+      <div className="thickness-slider-wrap">
+        <div className="thickness-slider-track" aria-hidden>
+          <div className="thickness-slider-fill" style={{ width: fillPct }} />
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={Math.max(0, steps.length - 1)}
+          step={1}
+          value={index}
+          onChange={(e) => {
+            const i = parseInt(e.target.value, 10)
+            const next = steps[i]
+            if (next !== undefined) onChange(next)
+          }}
+          className="thickness-slider"
+          aria-valuemin={steps[0]}
+          aria-valuemax={steps[steps.length - 1]}
+          aria-valuenow={display}
+          aria-label="Thickness in millimeters"
+        />
+      </div>
       <div className="flex justify-between text-xs text-muted">
         <span>{steps[0]} mm</span>
         <span>up to {maxMm} mm</span>

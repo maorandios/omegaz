@@ -189,7 +189,7 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
       <div className="app-tab-shell text-foreground">
         {header}
         <PullToRefresh className="mx-auto flex min-h-0 w-full max-w-lg flex-1 flex-col">
-          <main className="flex min-h-full flex-1 flex-col px-4 py-4">{children}</main>
+          <main className="w-full px-4 py-4 pb-8">{children}</main>
         </PullToRefresh>
         {exitSheet}
       </div>

@@ -77,6 +77,7 @@ export function generatePdf(profile: FoldedProfile, metrics: ProfileMetrics): Bl
     ['Thickness', formatMm(fab.thickness)],
     ['Part Length', formatMm(fab.partLength)],
     ['Quantity', String(fab.quantity)],
+    ['Hem', fab.hem ? 'Yes' : 'No'],
     ['Finish', fab.finish],
     ['Notes', fab.notes || '—'],
     [FLAT_WIDTH_LABEL, formatMm(flatWidth)],

@@ -11,6 +11,8 @@ interface ProfileCanvasProps {
   profile: FoldedProfile
   activeItemId?: string | null
   showLabels?: boolean
+  /** Summary/fabrication: thin accent strokes and labels, no gray idle styling or bend dots. */
+  accentPreview?: boolean
   interactive?: boolean
   onSelectItem?: (type: 'segment' | 'bend', id: string) => void
   className?: string
@@ -122,10 +124,14 @@ function screenCentroid(
   return { x: sx / n, y: sy / n }
 }
 
+const ACCENT_STROKE = '#00ffd4'
+const ACCENT_PREVIEW_STROKE_WIDTH = 2
+
 export function ProfileCanvas({
   profile,
   activeItemId = null,
   showLabels = false,
+  accentPreview = false,
   interactive = false,
   onSelectItem,
   className,
@@ -281,8 +287,8 @@ export function ProfileCanvas({
 
           <Line
             points={flatPoints}
-            stroke={strokeIdle}
-            strokeWidth={2}
+            stroke={accentPreview ? ACCENT_STROKE : strokeIdle}
+            strokeWidth={accentPreview ? ACCENT_PREVIEW_STROKE_WIDTH : 2}
             lineCap="round"
             lineJoin="round"
             listening={false}
@@ -305,7 +311,8 @@ export function ProfileCanvas({
               )
             })}
 
-          {segments.map((seg) => {
+          {!accentPreview &&
+            segments.map((seg) => {
             const isActive = isSquareSegmentActive(profile, activeItemId, seg.id)
             if (!isActive) return null
             const s = layout.tx(seg.startPoint)
@@ -322,33 +329,34 @@ export function ProfileCanvas({
             )
           })}
 
-          {bends.map((bend, i) => {
-            const vertex = getBendVertexPoint(segments, i)
-            if (!vertex) return null
-            const p = layout.tx(vertex)
-            const isActive = activeItemId === bend.id
-            return (
-              <Group key={bend.id}>
-                {interactive && (
+          {!accentPreview &&
+            bends.map((bend, i) => {
+              const vertex = getBendVertexPoint(segments, i)
+              if (!vertex) return null
+              const p = layout.tx(vertex)
+              const isActive = activeItemId === bend.id
+              return (
+                <Group key={bend.id}>
+                  {interactive && (
+                    <Circle
+                      x={p.x}
+                      y={p.y}
+                      radius={22}
+                      fill="transparent"
+                      onClick={() => handleSelect('bend', bend.id)}
+                      onTap={() => handleSelect('bend', bend.id)}
+                    />
+                  )}
                   <Circle
                     x={p.x}
                     y={p.y}
-                    radius={22}
-                    fill="transparent"
-                    onClick={() => handleSelect('bend', bend.id)}
-                    onTap={() => handleSelect('bend', bend.id)}
+                    radius={isActive ? BEND_DOT_RADIUS_ACTIVE : BEND_DOT_RADIUS}
+                    fill={isActive ? ACCENT_STROKE : '#b7b7b7'}
+                    listening={false}
                   />
-                )}
-                <Circle
-                  x={p.x}
-                  y={p.y}
-                  radius={isActive ? BEND_DOT_RADIUS_ACTIVE : BEND_DOT_RADIUS}
-                  fill={isActive ? '#00ffd4' : '#b7b7b7'}
-                  listening={false}
-                />
-              </Group>
-            )
-          })}
+                </Group>
+              )
+            })}
 
           {showLabels &&
             segments.map((seg) => {
@@ -420,8 +428,8 @@ export function ProfileCanvas({
                   y={cy}
                   text={label}
                   fontSize={LABEL_FONT_SIZE}
-                  fontStyle={isActive ? 'bold' : 'normal'}
-                  fill={isActive ? labelActiveFill : labelFill}
+                  fontStyle={accentPreview ? 'normal' : isActive ? 'bold' : 'normal'}
+                  fill={accentPreview ? labelActiveFill : isActive ? labelActiveFill : labelFill}
                   rotation={angleDeg}
                   offsetX={label.length * 4.4}
                   offsetY={7.5}
@@ -447,8 +455,8 @@ export function ProfileCanvas({
                       y={pos.y}
                       text={label}
                       fontSize={LABEL_FONT_SIZE}
-                      fontStyle={isActive ? 'bold' : 'normal'}
-                      fill={isActive ? labelActiveFill : labelFill}
+                      fontStyle={accentPreview ? 'normal' : isActive ? 'bold' : 'normal'}
+                      fill={accentPreview ? labelActiveFill : isActive ? labelActiveFill : labelFill}
                       align="center"
                       offsetX={label.length * BEND_LABEL_CHAR_WIDTH * 0.5}
                       offsetY={7.5}
@@ -468,8 +476,8 @@ export function ProfileCanvas({
                       y={pos.y}
                       text={label}
                       fontSize={LABEL_FONT_SIZE}
-                      fontStyle={isActive ? 'bold' : 'normal'}
-                      fill={isActive ? labelActiveFill : labelFill}
+                      fontStyle={accentPreview ? 'normal' : isActive ? 'bold' : 'normal'}
+                      fill={accentPreview ? labelActiveFill : isActive ? labelActiveFill : labelFill}
                       align="center"
                       offsetX={label.length * BEND_LABEL_CHAR_WIDTH * 0.5}
                       offsetY={7.5}

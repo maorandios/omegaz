@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { MoveRight } from 'lucide-react'
 import { ProfileCanvas } from '@/components/canvas/ProfileCanvas'
 import { ThicknessSlider } from '@/components/fabrication/ThicknessSlider'
 import { Button } from '@/components/ui/button'
@@ -21,11 +22,30 @@ import { useProfileStore } from '@/store/profileStore'
 
 export function FabricationScreen() {
   const profile = useProfileStore((s) => s.profile)!
-  const activeItemId = useProfileStore((s) => s.activeItemId)
   const setFabricationField = useProfileStore((s) => s.setFabricationField)
   const setStep = useProfileStore((s) => s.setStep)
   const fab = profile.fabrication
   const [errors, setErrors] = useState<string[]>([])
+  const [partLengthDraft, setPartLengthDraft] = useState<string | null>(null)
+  const [quantityDraft, setQuantityDraft] = useState<string | null>(null)
+
+  const commitPartLength = () => {
+    if (partLengthDraft === null) return
+    const trimmed = partLengthDraft.trim()
+    setPartLengthDraft(null)
+    if (trimmed === '') return
+    const v = parseFloat(trimmed)
+    if (Number.isFinite(v) && v > 0) setFabricationField('partLength', v)
+  }
+
+  const commitQuantity = () => {
+    if (quantityDraft === null) return
+    const trimmed = quantityDraft.trim()
+    setQuantityDraft(null)
+    if (trimmed === '') return
+    const v = parseInt(trimmed, 10)
+    if (Number.isFinite(v) && v >= 1) setFabricationField('quantity', v)
+  }
 
   const material =
     FABRICATION_MATERIAL_OPTIONS.includes(
@@ -75,29 +95,30 @@ export function FabricationScreen() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="fabrication-screen">
       <div className="fabrication-preview mx-auto w-full max-w-sm">
-        <div className="aspect-square w-full overflow-hidden rounded-lg bg-background">
+        <div className="aspect-square w-full overflow-hidden rounded-2xl bg-background">
           <ProfileCanvas
             profile={profile}
-            activeItemId={activeItemId}
             showLabels
+            accentPreview
             className="h-full w-full bg-background"
           />
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label>Part Name *</Label>
+      <div className="form-stack">
+        <div className="form-field">
+          <Label htmlFor="part-name">Part Name *</Label>
           <Input
+            id="part-name"
             value={fab.partName}
             onChange={(e) => setFabricationField('partName', e.target.value)}
             placeholder="e.g. Gutter bracket left"
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="form-field">
           <Label>Material *</Label>
           <Select value={material} onValueChange={handleMaterialChange}>
             <SelectTrigger>
@@ -119,27 +140,48 @@ export function FabricationScreen() {
           onChange={(t) => setFabricationField('thickness', t)}
         />
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label>Part Length (mm) *</Label>
+        <div className="form-field-grid">
+          <div className="form-field">
+            <Label htmlFor="part-length">Part Length (mm) *</Label>
             <Input
+              id="part-length"
               type="number"
-              value={fab.partLength}
-              onChange={(e) => setFabricationField('partLength', parseFloat(e.target.value) || 0)}
+              inputMode="decimal"
+              value={partLengthDraft ?? fab.partLength}
+              onFocus={() => setPartLengthDraft('')}
+              onChange={(e) => setPartLengthDraft(e.target.value)}
+              onBlur={commitPartLength}
             />
           </div>
-          <div className="space-y-2">
-            <Label>Quantity *</Label>
+          <div className="form-field">
+            <Label htmlFor="quantity">Quantity *</Label>
             <Input
+              id="quantity"
               type="number"
+              inputMode="numeric"
               min={1}
-              value={fab.quantity}
-              onChange={(e) => setFabricationField('quantity', parseInt(e.target.value, 10) || 1)}
+              value={quantityDraft ?? fab.quantity}
+              onFocus={() => setQuantityDraft('')}
+              onChange={(e) => setQuantityDraft(e.target.value)}
+              onBlur={commitQuantity}
             />
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="form-field">
+          <label htmlFor="hem" className="hem-option">
+            <input
+              id="hem"
+              type="checkbox"
+              checked={fab.hem}
+              onChange={(e) => setFabricationField('hem', e.target.checked)}
+              className="hem-checkbox"
+            />
+            <span className="text-base text-foreground">Request hem</span>
+          </label>
+        </div>
+
+        <div className="form-field">
           <Label>Finish</Label>
           <Select value={finish} onValueChange={(v) => setFabricationField('finish', v)}>
             <SelectTrigger>
@@ -155,9 +197,10 @@ export function FabricationScreen() {
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label>Notes</Label>
+        <div className="form-field">
+          <Label htmlFor="notes">Notes</Label>
           <Input
+            id="notes"
             value={fab.notes}
             onChange={(e) => setFabricationField('notes', e.target.value)}
             placeholder="Optional fabrication notes"
@@ -166,7 +209,7 @@ export function FabricationScreen() {
       </div>
 
       {errors.length > 0 && (
-        <ul className="text-sm text-red-400">
+        <ul className="text-sm text-destructive" role="alert">
           {errors.map((e) => (
             <li key={e}>{e}</li>
           ))}
@@ -174,13 +217,14 @@ export function FabricationScreen() {
       )}
 
       <Button
-        className="w-full"
+        className="h-12 w-full rounded-2xl text-base font-semibold"
         size="lg"
         onClick={() => {
           if (validate()) setStep('summary')
         }}
       >
-        Continue to Review
+        Next
+        <MoveRight className="h-5 w-5" aria-hidden />
       </Button>
     </div>
   )

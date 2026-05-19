@@ -1,4 +1,5 @@
 import { buildSquareWizardSteps, isSquarePlateProfile } from './squareProfile'
+import { normalizeFabrication } from './types'
 import type { Bend, FoldedProfile, Point2D, Segment } from './types'
 
 /** -180..180 */
@@ -253,6 +254,7 @@ export function getBendVertexPoint(segments: Segment[], bendIndex: number): Poin
 export function migrateProfileBends(profile: FoldedProfile): FoldedProfile {
   const migrated: FoldedProfile = {
     ...profile,
+    fabrication: normalizeFabrication(profile.fabrication),
     bends: profile.bends.map((b) => {
       const handedness = b.handedness ?? inferBendHandedness(b.angle)
       const interior = turnDeltaToInteriorAngle(b.angle)

@@ -35,6 +35,8 @@ export interface FabricationDetails {
   thickness: number
   partLength: number
   quantity: number
+  /** Request hem on plate edges. */
+  hem: boolean
   finish: string
   notes: string
 }
@@ -75,8 +77,18 @@ export function defaultFabrication(): FabricationDetails {
     thickness: 1.2,
     partLength: 1000,
     quantity: 1,
+    hem: false,
     finish: 'Raw',
     notes: '',
+  }
+}
+
+export function normalizeFabrication(fab: Partial<FabricationDetails>): FabricationDetails {
+  const defaults = defaultFabrication()
+  return {
+    ...defaults,
+    ...fab,
+    hem: typeof fab.hem === 'boolean' ? fab.hem : defaults.hem,
   }
 }
 

@@ -23,6 +23,7 @@ export function generateExcel(
     ['Thickness (mm)', fab.thickness],
     ['Part Length (mm)', fab.partLength],
     ['Quantity', fab.quantity],
+    ['Hem', fab.hem ? 'Yes' : 'No'],
     ['Finish', fab.finish],
     ['Notes', fab.notes],
     [FLAT_WIDTH_LABEL + ' (mm)', metrics.flatWidth],

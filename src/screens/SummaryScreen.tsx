@@ -8,7 +8,6 @@ import { useProfileStore } from '@/store/profileStore'
 export function SummaryScreen() {
   const profile = useProfileStore((s) => s.profile)!
   const selectedTemplate = useProfileStore((s) => s.selectedTemplate)
-  const activeItemId = useProfileStore((s) => s.activeItemId)
   const fab = profile.fabrication
   const metrics = useProfileMetrics(profile)
 
@@ -18,8 +17,8 @@ export function SummaryScreen() {
         <div className="aspect-square w-full overflow-hidden rounded-lg bg-background">
           <ProfileCanvas
             profile={profile}
-            activeItemId={activeItemId}
             showLabels
+            accentPreview
             className="h-full w-full bg-background"
           />
         </div>
@@ -36,6 +35,8 @@ export function SummaryScreen() {
           <dd>{formatMm(fab.partLength)}</dd>
           <dt className="text-muted">Quantity</dt>
           <dd>{fab.quantity}</dd>
+          <dt className="text-muted">Hem</dt>
+          <dd>{fab.hem ? 'Yes' : 'No'}</dd>
           <dt className="text-muted">Finish</dt>
           <dd>{fab.finish}</dd>
           <dt className="text-muted">{FLAT_WIDTH_LABEL}</dt>
