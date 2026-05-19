@@ -1,16 +1,9 @@
 import JSZip from 'jszip'
 import type { FoldedProfile } from '@/geometry/types'
+import type { ProfileMetrics } from '@/lib/profileMetrics'
 import { generateExcel } from './generateExcel'
 import { generatePdf } from './generatePdf'
 import { generatePreviewPng } from './generatePreviewPng'
-
-interface ProfileMetrics {
-  flatWidth: number
-  bendCount: number
-  bounds: { width: number; height: number }
-  area: number
-  weight: number
-}
 
 export async function generateFabricationZip(
   profile: FoldedProfile,

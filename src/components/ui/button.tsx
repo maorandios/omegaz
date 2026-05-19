@@ -12,7 +12,7 @@ const buttonVariants = cva(
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/90',
         outline: 'border border-border bg-transparent hover:bg-surface-raised',
         ghost: 'hover:bg-surface-raised',
-        destructive: 'bg-red-600 text-white hover:bg-red-500',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
       },
       size: {
         default: 'h-11 px-4 py-2',

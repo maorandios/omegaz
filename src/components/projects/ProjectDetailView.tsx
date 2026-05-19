@@ -1,6 +1,4 @@
-import { Database, Plus, SquareCenterlineDashedHorizontal, Trash2, Weight } from 'lucide-react'
-import { useState } from 'react'
-import { DeleteProjectSheet } from '@/components/projects/DeleteProjectSheet'
+import { Database, SquareCenterlineDashedHorizontal, Weight } from 'lucide-react'
 import { PlateListRow } from '@/components/projects/PlateListRow'
 import { ProjectMetricCard } from '@/components/projects/ProjectMetricCard'
 import {
@@ -9,29 +7,14 @@ import {
   projectTotalQuantity,
   projectWeightNumeric,
 } from '@/components/projects/projectDetailUtils'
-import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/store/appStore'
-import { useProfileStore } from '@/store/profileStore'
 
 export function ProjectDetailView() {
   const project = useAppStore((s) => s.getSelectedProject())
-  const setSelectedProject = useAppStore((s) => s.setSelectedProject)
-  const setActiveProject = useAppStore((s) => s.setActiveProject)
-  const setMainTab = useAppStore((s) => s.setMainTab)
   const openPlateForEdit = useAppStore((s) => s.openPlateForEdit)
-  const deleteProject = useAppStore((s) => s.deleteProject)
-  const restart = useProfileStore((s) => s.restart)
-
-  const [deleteOpen, setDeleteOpen] = useState(false)
 
   if (!project) {
     return <p className="text-sm text-muted">Project not found.</p>
-  }
-
-  const handleAddPlate = () => {
-    restart()
-    setActiveProject(project.id)
-    setMainTab('create', { keepActiveProject: true })
   }
 
   const totalQuantity = projectTotalQuantity(project)
@@ -55,26 +38,9 @@ export function ProjectDetailView() {
         <ProjectMetricCard icon={Database} value={totalQuantity} label="Quantity" />
       </div>
 
-      <div className="flex gap-2">
-        <Button type="button" className="flex-1 gap-2" onClick={handleAddPlate}>
-          <Plus className="h-4 w-4" aria-hidden />
-          Add plate
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="shrink-0 text-red-400 hover:bg-red-950/40 hover:text-red-300"
-          aria-label="Delete project"
-          onClick={() => setDeleteOpen(true)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-
       {project.plates.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted">
-          No plates yet. Tap Add plate to start this batch.
+          No plates yet. Open Actions below to add your first plate.
         </p>
       ) : (
         <ul className="space-y-2">
@@ -88,17 +54,6 @@ export function ProjectDetailView() {
           ))}
         </ul>
       )}
-
-      <DeleteProjectSheet
-        open={deleteOpen}
-        projectName={project.name}
-        onOpenChange={setDeleteOpen}
-        onConfirm={() => {
-          deleteProject(project.id)
-          setSelectedProject(null)
-        }}
-      />
     </div>
   )
 }
-
