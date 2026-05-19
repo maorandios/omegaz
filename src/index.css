@@ -58,10 +58,36 @@
     --wizard-header-h: 3rem;
     --wizard-dock-h: 3.5rem;
     --wizard-keypad-h: clamp(11.5rem, 28dvh, 14.5rem);
-    --wizard-key-size: 4.875rem;
-    --wizard-key-gap: 0.9375rem;
+    --wizard-key-size: 3.9rem;
+    --wizard-key-gap: 0.75rem;
+    --wizard-nav-width: 6.3rem;
+    --wizard-keypad-row-gap: 0.9rem;
+    --wizard-keypad-nav-gap: 1.2rem;
+    --wizard-keypad-max-width: 21rem;
     /* Width of two keypad keys (e.g. 8 + 9) including gap between them. */
     --wizard-value-strip-width: calc(var(--wizard-key-size) * 2 + var(--wizard-key-gap));
+    /* Value strip: current design ÷ 1.25 */
+    --wizard-value-font: 1.2rem;
+    --wizard-value-unit-font: 0.7rem;
+    --wizard-value-icon-wrap: 1.8rem;
+    --wizard-value-icon: 0.9rem;
+    --wizard-value-padding-y: 0.7rem;
+    --wizard-value-padding-x: 0.9rem;
+    --wizard-value-radius: 1.2rem;
+    --wizard-value-gap: 0.5rem;
+    --wizard-value-bar-pt: 1rem;
+    --wizard-value-bar-pb: 0.6rem;
+  }
+
+  @media (max-width: 640px) {
+    html {
+      --wizard-key-size: 3.25rem;
+      --wizard-key-gap: 0.625rem;
+      --wizard-nav-width: 5.25rem;
+      --wizard-keypad-row-gap: 0.75rem;
+      --wizard-keypad-nav-gap: 1rem;
+      --wizard-keypad-max-width: 18.5rem;
+    }
   }
 
   .app-tab-shell {
@@ -178,9 +204,101 @@
   .wizard-keypad {
     flex-shrink: 0;
     width: 100%;
-    max-width: 26.25rem;
+    max-width: var(--wizard-keypad-max-width);
     margin-inline: auto;
     padding-inline: 0.5rem;
+  }
+
+  .wizard-keypad__digits {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wizard-keypad-row-gap);
+  }
+
+  .wizard-keypad__row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--wizard-key-gap);
+  }
+
+  .wizard-keypad__nav-row {
+    margin-top: var(--wizard-keypad-nav-gap);
+  }
+
+  .wizard-key {
+    box-sizing: border-box;
+    display: flex;
+    width: var(--wizard-key-size);
+    height: var(--wizard-key-size);
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in srgb, var(--color-muted) 55%, transparent);
+    background: transparent;
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--color-foreground);
+    touch-action: manipulation;
+    user-select: none;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .wizard-key:enabled:active {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .wizard-key:disabled {
+    opacity: 0.4;
+  }
+
+  .wizard-key--secondary {
+    font-size: 1.25rem;
+  }
+
+  .wizard-key__delete-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    stroke-width: 1.5px;
+  }
+
+  .wizard-nav-key {
+    box-sizing: border-box;
+    display: flex;
+    width: var(--wizard-nav-width);
+    height: var(--wizard-key-size);
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in srgb, var(--color-muted) 55%, transparent);
+    background: transparent;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-foreground);
+    touch-action: manipulation;
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+  }
+
+  .wizard-nav-key:enabled:active {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .wizard-nav-key:disabled {
+    opacity: 0.4;
+  }
+
+  .wizard-nav-key--primary {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+
+  .wizard-nav-key--primary:enabled:active {
+    background: color-mix(in srgb, var(--color-primary) 90%, transparent);
   }
 
   /* Wizard stack: fill main so bottom panel sits on screen bottom (no dead gap). */
@@ -203,7 +321,7 @@
     flex-shrink: 0;
     display: flex;
     justify-content: center;
-    padding: 1.25rem 1rem 0.75rem;
+    padding: var(--wizard-value-bar-pt) 1rem var(--wizard-value-bar-pb);
     background: transparent;
   }
 
@@ -214,10 +332,10 @@
     max-width: calc(100% - 2rem);
     align-items: center;
     justify-content: center;
-    gap: 0.625rem;
+    gap: var(--wizard-value-gap);
     border: 1px solid color-mix(in srgb, var(--color-muted) 55%, transparent);
-    border-radius: 1.5rem;
-    padding: 0.875rem 1.125rem;
+    border-radius: var(--wizard-value-radius);
+    padding: var(--wizard-value-padding-y) var(--wizard-value-padding-x);
     background: color-mix(in srgb, var(--color-surface) 35%, transparent);
   }
 
@@ -226,16 +344,16 @@
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
+    width: var(--wizard-value-icon-wrap);
+    height: var(--wizard-value-icon-wrap);
     border-radius: 9999px;
     border: 1px solid color-mix(in srgb, var(--color-muted) 55%, transparent);
     background: transparent;
   }
 
   .wizard-value-display__icon {
-    width: 1.125rem;
-    height: 1.125rem;
+    width: var(--wizard-value-icon);
+    height: var(--wizard-value-icon);
     stroke-width: 1.5px;
     color: var(--color-primary);
   }
@@ -245,7 +363,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 1.5rem;
+    font-size: var(--wizard-value-font);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     color: var(--color-foreground);
@@ -253,7 +371,7 @@
 
   .wizard-value-display__unit {
     flex-shrink: 0;
-    font-size: 0.875rem;
+    font-size: var(--wizard-value-unit-font);
     font-weight: 500;
     color: var(--color-muted);
   }
