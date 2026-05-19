@@ -14,9 +14,9 @@ interface NumericKeypadProps {
   className?: string
 }
 
-const KEY_SIZE = 'h-[3.25rem] w-[3.25rem]'
-const ROW_GAP = 'gap-2.5'
-const NAV_WIDTH = 'w-[5.25rem]'
+const KEY_SIZE = 'h-[4.875rem] w-[4.875rem]'
+const ROW_GAP = 'gap-[0.9375rem]'
+const NAV_WIDTH = 'w-[7.875rem]'
 
 function Key({
   label,
@@ -39,7 +39,7 @@ function Key({
       className={cn(
         KEY_SIZE,
         'flex shrink-0 items-center justify-center rounded-full border border-muted/55 bg-transparent',
-        'text-2xl font-light text-foreground transition-colors',
+        'text-3xl font-light text-foreground transition-colors',
         'enabled:active:border-primary enabled:active:text-primary',
         'touch-manipulation select-none disabled:opacity-40',
         className,
@@ -79,7 +79,7 @@ function NavKey({
       onClick={onClick}
       className={cn(
         NAV_WIDTH,
-        'flex h-[3.25rem] shrink-0 items-center justify-center rounded-full border text-sm font-medium transition-colors touch-manipulation',
+        'flex h-[4.875rem] shrink-0 items-center justify-center rounded-full border text-base font-medium transition-colors touch-manipulation',
         primary
           ? 'border-primary bg-primary text-primary-foreground enabled:active:bg-primary/90'
           : 'border-muted/55 bg-transparent text-foreground enabled:active:border-primary enabled:active:text-primary',
@@ -109,13 +109,13 @@ export function NumericKeypad({
       role="group"
       aria-label="Numeric keypad"
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-[1.125rem]">
         <KeyRow>
           {(['7', '8', '9'] as const).map((d) => (
             <Key key={d} label={d} onClick={() => onDigit(d)} />
           ))}
           <Key
-            label={<Delete className="h-5 w-5 stroke-[1.5px]" aria-hidden />}
+            label={<Delete className="h-7 w-7 stroke-[1.5px]" aria-hidden />}
             ariaLabel="Delete"
             onClick={onBackspace}
           />
@@ -125,18 +125,18 @@ export function NumericKeypad({
           {(['4', '5', '6'] as const).map((d) => (
             <Key key={d} label={d} onClick={() => onDigit(d)} />
           ))}
-          <Key label="." onClick={onDecimal} ariaLabel="Decimal point" className="text-xl" />
+          <Key label="." onClick={onDecimal} ariaLabel="Decimal point" className="text-2xl" />
         </KeyRow>
 
         <KeyRow>
           {(['1', '2', '3'] as const).map((d) => (
             <Key key={d} label={d} onClick={() => onDigit(d)} />
           ))}
-          <Key label="C" onClick={onClear} ariaLabel="Clear" className="text-xl" />
+          <Key label="C" onClick={onClear} ariaLabel="Clear" className="text-2xl" />
         </KeyRow>
       </div>
 
-      <KeyRow className="mt-4">
+      <KeyRow className="mt-6">
         <NavKey label="Back" onClick={onBack} disabled={!canGoBack} />
         <Key label="0" onClick={() => onDigit('0')} />
         <NavKey label="Next" onClick={onNext} disabled={!canGoNext} primary />
