@@ -64,19 +64,6 @@
     --wizard-keypad-row-gap: 0.9rem;
     --wizard-keypad-nav-gap: 1.2rem;
     --wizard-keypad-max-width: 21rem;
-    /* Width of two keypad keys (e.g. 8 + 9) including gap between them. */
-    --wizard-value-strip-width: calc(var(--wizard-key-size) * 2 + var(--wizard-key-gap));
-    /* Value strip: current design ÷ 1.25 */
-    --wizard-value-font: 1.2rem;
-    --wizard-value-unit-font: 0.7rem;
-    --wizard-value-icon-wrap: 1.8rem;
-    --wizard-value-icon: 0.9rem;
-    --wizard-value-padding-y: 0.7rem;
-    --wizard-value-padding-x: 0.9rem;
-    --wizard-value-radius: 1.2rem;
-    --wizard-value-gap: 0.5rem;
-    --wizard-value-bar-pt: 1rem;
-    --wizard-value-bar-pb: 0.6rem;
   }
 
   @media (max-width: 640px) {
@@ -315,65 +302,6 @@
     flex-direction: column;
     min-height: 0;
     height: auto;
-  }
-
-  .wizard-value-bar {
-    flex-shrink: 0;
-    display: flex;
-    justify-content: center;
-    padding: var(--wizard-value-bar-pt) 1rem var(--wizard-value-bar-pb);
-    background: transparent;
-  }
-
-  .wizard-value-display {
-    box-sizing: border-box;
-    display: flex;
-    width: var(--wizard-value-strip-width);
-    max-width: calc(100% - 2rem);
-    align-items: center;
-    justify-content: center;
-    gap: var(--wizard-value-gap);
-    border: 1px solid color-mix(in srgb, var(--color-muted) 55%, transparent);
-    border-radius: var(--wizard-value-radius);
-    padding: var(--wizard-value-padding-y) var(--wizard-value-padding-x);
-    background: color-mix(in srgb, var(--color-surface) 35%, transparent);
-  }
-
-  .wizard-value-display__icon-wrap {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: var(--wizard-value-icon-wrap);
-    height: var(--wizard-value-icon-wrap);
-    border-radius: 9999px;
-    border: 1px solid color-mix(in srgb, var(--color-muted) 55%, transparent);
-    background: transparent;
-  }
-
-  .wizard-value-display__icon {
-    width: var(--wizard-value-icon);
-    height: var(--wizard-value-icon);
-    stroke-width: 1.5px;
-    color: var(--color-primary);
-  }
-
-  .wizard-value-display__value {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: var(--wizard-value-font);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    color: var(--color-foreground);
-  }
-
-  .wizard-value-display__unit {
-    flex-shrink: 0;
-    font-size: var(--wizard-value-unit-font);
-    font-weight: 500;
-    color: var(--color-muted);
   }
 
   .wizard-nav-bar {

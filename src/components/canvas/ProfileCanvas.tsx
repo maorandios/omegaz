@@ -18,7 +18,9 @@ interface ProfileCanvasProps {
 
 const LABEL_FONT_SIZE = 15 // 12 × 1.25
 const SEGMENT_LABEL_OFFSET = 26 // perpendicular gap from segment line (dim labels)
-const BEND_LABEL_OFFSET = 22 // gap from bend vertex along interior bisector (deg labels)
+const BEND_LABEL_OFFSET = 28 // gap from bend vertex along interior bisector (deg labels)
+const BEND_DOT_RADIUS = 4 // 5 ÷ 1.25
+const BEND_DOT_RADIUS_ACTIVE = 6 // 8 ÷ 1.25 (rounded)
 const BEND_LABEL_CHAR_WIDTH = 4.4
 const LABEL_HALF_HEIGHT = 8 // approx half line height for collision checks
 const LABEL_CLEAR_MARGIN = 4 // extra spacing between label boxes
@@ -340,10 +342,8 @@ export function ProfileCanvas({
                 <Circle
                   x={p.x}
                   y={p.y}
-                  radius={isActive ? 8 : 5}
+                  radius={isActive ? BEND_DOT_RADIUS_ACTIVE : BEND_DOT_RADIUS}
                   fill={isActive ? '#00ffd4' : '#b7b7b7'}
-                  stroke={isActive ? '#b45309' : undefined}
-                  strokeWidth={isActive ? 2 : 0}
                   listening={false}
                 />
               </Group>

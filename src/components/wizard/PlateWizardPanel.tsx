@@ -1,4 +1,4 @@
-import { Minus, Plus, RulerDimensionLine } from 'lucide-react'
+import { Minus, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NumericKeypad } from '@/components/wizard/NumericKeypad'
 import {
@@ -22,8 +22,6 @@ export function PlateWizardPanel({ profile }: PlateWizardPanelProps) {
 
   const {
     current,
-    inputValue,
-    unit,
     canGoBack,
     canGoNext,
     appendDigit,
@@ -71,16 +69,6 @@ export function PlateWizardPanel({ profile }: PlateWizardPanelProps) {
           </Button>
         </div>
       )}
-
-      <div className="wizard-value-bar">
-        <div className="wizard-value-display" aria-live="polite" aria-atomic="true">
-          <span className="wizard-value-display__icon-wrap" aria-hidden>
-            <RulerDimensionLine className="wizard-value-display__icon" />
-          </span>
-          <span className="wizard-value-display__value truncate">{inputValue || '—'}</span>
-          <span className="wizard-value-display__unit">{unit}</span>
-        </div>
-      </div>
 
       <NumericKeypad
         onDigit={appendDigit}
