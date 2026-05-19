@@ -14,11 +14,11 @@ export function ProjectActionsDock() {
             type="button"
             onClick={() => setActionsOpen(true)}
             className={cn(
-              'flex flex-col items-center justify-center gap-0.5 rounded-lg px-6 py-1 text-xs font-medium transition-colors',
+              'flex items-center justify-center gap-2 rounded-lg px-6 py-1 text-sm font-medium transition-colors',
               'text-primary hover:text-primary/90',
             )}
           >
-            <Settings2 className="h-6 w-6 stroke-[1.75px]" aria-hidden />
+            <Settings2 className="h-5 w-5 shrink-0 stroke-[1.75px]" aria-hidden />
             <span>Actions</span>
           </button>
         </div>
