@@ -1,6 +1,7 @@
 import { CircleX, MoveLeft, RotateCcw } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { BottomDock } from '@/components/shell/BottomDock'
+import { ProjectActionsDock } from '@/components/shell/ProjectActionsDock'
 import { PullToRefresh } from '@/components/shell/PullToRefresh'
 import { ExitProcessSheet } from '@/components/shell/ExitProcessSheet'
 import { Button } from '@/components/ui/button'
@@ -13,7 +14,7 @@ interface AppShellProps {
   inWorkflow: boolean
 }
 
-const FOLDS_LOGO_SRC = '/folds-logo.svg'
+const FOLDS_LOGO_SRC = '/folds_logo.svg'
 
 const headerIconClass = 'h-[1.4rem] w-[1.4rem] shrink-0 stroke-[1.75px] text-foreground'
 /** RotateCcw reads larger at 1.4rem — scale down ÷1.25 to match CircleX. */
@@ -116,14 +117,26 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
   const resetPlateShape = useProfileStore((s) => s.resetPlateShape)
   const mainTab = useAppStore((s) => s.mainTab)
   const setMainTab = useAppStore((s) => s.setMainTab)
+  const selectedProjectId = useAppStore((s) => s.selectedProjectId)
+  const setSelectedProject = useAppStore((s) => s.setSelectedProject)
 
   const [exitSheetOpen, setExitSheetOpen] = useState(false)
 
   const isWizard = currentStep === 'segment-wizard'
   const isFabrication = currentStep === 'fabrication'
   const isSummary = currentStep === 'summary' || currentStep === 'export'
+  const isProjectDetail =
+    mainTab === 'projects' && selectedProjectId != null && !inWorkflow && !isWizard
   const goBack = useProfileStore((s) => s.goBack)
   const headerTitle = isWizard ? getPlateShapeLabel(selectedTemplate) : 'FOLDS'
+
+  const handleHeaderBack = () => {
+    if (isProjectDetail) {
+      setSelectedProject(null)
+      return
+    }
+    goBack()
+  }
 
   useEffect(() => {
     if (isWizard) {
@@ -149,8 +162,8 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
       title={headerTitle}
       showReset={isWizard}
       onReset={resetPlateShape}
-      showBack={isFabrication || isSummary}
-      onBack={goBack}
+      showBack={isFabrication || isSummary || isProjectDetail}
+      onBack={handleHeaderBack}
       showExit={inWorkflow}
       onExit={() => setExitSheetOpen(true)}
     />
@@ -188,7 +201,11 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
           <main className="flex min-h-full flex-col px-4 py-4">{children}</main>
         </PullToRefresh>
       </div>
-      <BottomDock activeTab={mainTab} onTabChange={setMainTab} />
+      {isProjectDetail ? (
+        <ProjectActionsDock />
+      ) : (
+        <BottomDock activeTab={mainTab} onTabChange={setMainTab} />
+      )}
       {exitSheet}
     </div>
   )

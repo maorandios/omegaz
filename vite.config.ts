@@ -27,7 +27,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'pwa-192.svg', 'folds-logo.svg'],
+      includeAssets: ['favicon.svg', 'pwa-192.svg', 'folds_logo.svg'],
       manifest: {
         name: 'FOLDS — Fabrication Request',
         short_name: 'FOLDS',

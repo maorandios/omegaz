@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
 import { Calendar, MoveRight, Square, Weight } from 'lucide-react'
+import { MetaItem } from '@/components/projects/MetaItem'
 import { ProjectDetailView } from '@/components/projects/ProjectDetailView'
 import { formatKg } from '@/lib/format'
 import { useAppStore } from '@/store/appStore'
@@ -10,21 +10,6 @@ function formatProjectDate(iso: string): string {
     month: 'short',
     year: 'numeric',
   })
-}
-
-function MetaItem({
-  icon: Icon,
-  children,
-}: {
-  icon: typeof Square
-  children: ReactNode
-}) {
-  return (
-    <span className="inline-flex items-center gap-1">
-      <Icon className="h-3.5 w-3.5 shrink-0 text-muted" aria-hidden />
-      <span>{children}</span>
-    </span>
-  )
 }
 
 export function ProjectsScreen() {
