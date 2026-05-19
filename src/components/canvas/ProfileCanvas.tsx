@@ -158,17 +158,33 @@ export function ProfileCanvas({
     if (!el) return
 
     const minHeight = fillParent ? 1 : 200
+
+    const applySize = (width: number, height: number) => {
+      if (width <= 0 || height <= 0) return
+      setSize({
+        width,
+        height: Math.max(height, minHeight),
+      })
+    }
+
+    const measure = () => {
+      applySize(el.clientWidth, el.clientHeight)
+    }
+
+    measure()
+    const raf = requestAnimationFrame(measure)
+
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0]
       if (entry) {
-        setSize({
-          width: entry.contentRect.width,
-          height: Math.max(entry.contentRect.height, minHeight),
-        })
+        applySize(entry.contentRect.width, entry.contentRect.height)
+      } else {
+        measure()
       }
     })
     observer.observe(el)
     return () => {
+      cancelAnimationFrame(raf)
       observer.disconnect()
     }
   }, [fillParent])

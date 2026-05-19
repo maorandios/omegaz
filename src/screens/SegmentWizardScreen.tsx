@@ -10,7 +10,7 @@ export function SegmentWizardScreen() {
   if (!profile) return null
 
   return (
-    <div className="wizard-workspace">
+    <div className="wizard-workspace flex min-h-0 flex-1 flex-col">
       <div className="wizard-preview-area">
         <div className="wizard-preview">
           <ProfileCanvas

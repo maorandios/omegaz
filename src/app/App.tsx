@@ -39,7 +39,7 @@ function WorkflowStack() {
     <ScreenStack
       activeKey={currentStep}
       getDirection={workflowStackDirection}
-      className="min-h-full"
+      className="min-h-0 flex-1"
       screens={{
         sketch: <SketchScreen />,
         'segment-wizard': <SegmentWizardScreen />,

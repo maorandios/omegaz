@@ -123,6 +123,7 @@
     padding-top: env(safe-area-inset-top);
     padding-right: env(safe-area-inset-right);
     padding-left: env(safe-area-inset-left);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .wizard-shell__main {
@@ -144,7 +145,6 @@
   .wizard-preview-area {
     flex: 1;
     min-height: 0;
-    container-type: size;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -152,29 +152,56 @@
     background: var(--color-background);
   }
 
+  /* Square canvas: fit inside preview area without container-query units (desktop-safe). */
   .wizard-preview {
     box-sizing: border-box;
-    width: min(100cqw, 100cqh);
-    max-width: 100%;
     aspect-ratio: 1 / 1;
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    max-height: 100%;
     overflow: hidden;
     flex-shrink: 0;
   }
 
-  .wizard-dock-bar {
+  .wizard-bottom-panel {
     flex-shrink: 0;
-    height: var(--wizard-dock-h);
-    border-top: 1px solid var(--color-border);
-    background: var(--color-surface);
+    margin-top: auto;
+    background: var(--color-background);
   }
 
-  .wizard-keypad-bar {
+  .wizard-keypad {
     flex-shrink: 0;
-    box-sizing: border-box;
-    height: var(--wizard-keypad-h);
-    border-top: 1px solid var(--color-border);
-    background: var(--color-surface);
-    padding-bottom: env(safe-area-inset-bottom);
+    width: 100%;
+    max-width: 17.5rem;
+    margin-inline: auto;
+    padding-inline: 0.5rem;
+  }
+
+  /* Wizard stack: fill main so bottom panel sits on screen bottom (no dead gap). */
+  .wizard-shell__main .screen-stack {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .wizard-shell__main .screen-stack__pane--active {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    height: auto;
+  }
+
+  .wizard-value-bar {
+    flex-shrink: 0;
+    background: transparent;
+  }
+
+  .wizard-nav-bar {
+    flex-shrink: 0;
+    background: transparent;
   }
 
   @keyframes sheet-overlay-in {

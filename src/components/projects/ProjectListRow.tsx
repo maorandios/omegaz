@@ -1,5 +1,6 @@
-import { Box, Calendar, MoveRight, Square, Weight } from 'lucide-react'
+import { Box, Calendar, MoveRight, SquareCenterlineDashedHorizontal, Weight } from 'lucide-react'
 import { MetaItem } from '@/components/projects/MetaItem'
+import { projectDistinctTypeCount } from '@/components/projects/projectDetailUtils'
 import { formatKg } from '@/lib/format'
 import type { ProjectRecord } from '@/store/projectTypes'
 
@@ -18,6 +19,8 @@ function formatProjectDate(iso: string): string {
 }
 
 export function ProjectListRow({ project, onClick, showDate = false }: ProjectListRowProps) {
+  const typeCount = projectDistinctTypeCount(project)
+
   return (
     <button
       type="button"
@@ -33,8 +36,8 @@ export function ProjectListRow({ project, onClick, showDate = false }: ProjectLi
           <span className="shrink-0 font-mono text-sm text-muted">{project.serial}</span>
         </p>
         <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-          <MetaItem icon={Square}>
-            {project.plates.length} plate{project.plates.length === 1 ? '' : 's'}
+          <MetaItem icon={SquareCenterlineDashedHorizontal}>
+            {typeCount} type
           </MetaItem>
           <MetaItem icon={Weight}>{formatKg(project.weightKg)}</MetaItem>
           {showDate ? (

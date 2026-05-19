@@ -37,12 +37,12 @@ export function PlateWizardPanel({ profile }: PlateWizardPanelProps) {
   if (!current) return null
 
   return (
-    <>
+    <div className="wizard-bottom-panel w-full bg-background">
       {isCustom && (
-        <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-t border-border bg-background px-2">
+        <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-t border-border px-2">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
             className="h-9 flex-1 gap-1.5 text-xs"
             onPointerDown={(e) => e.preventDefault()}
@@ -58,7 +58,7 @@ export function PlateWizardPanel({ profile }: PlateWizardPanelProps) {
           </span>
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
             className="h-9 flex-1 gap-1.5 text-xs"
             onPointerDown={(e) => e.preventDefault()}
@@ -72,48 +72,27 @@ export function PlateWizardPanel({ profile }: PlateWizardPanelProps) {
         </div>
       )}
 
-      <div className="wizard-dock-bar flex h-[var(--wizard-dock-h)] items-center px-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="h-11 w-[4.25rem] shrink-0 px-0 text-sm"
-          onPointerDown={(e) => e.preventDefault()}
-          onClick={handleBack}
-          disabled={!canGoBack}
-        >
-          Back
-        </Button>
-
-        <div
-          className="mx-2 flex h-11 min-w-0 flex-1 items-center justify-center rounded-lg border border-border bg-background px-3"
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          <span className="truncate text-center text-lg font-semibold tabular-nums text-foreground">
-            {inputValue || '—'}
-          </span>
-          <span className="ml-1.5 shrink-0 text-xs font-medium text-muted">{unit}</span>
-        </div>
-
-        <Button
-          type="button"
-          className="h-11 w-[4.25rem] shrink-0 px-0 text-sm"
-          onPointerDown={(e) => e.preventDefault()}
-          onClick={handleNext}
-          disabled={!canGoNext}
-        >
-          Next
-        </Button>
+      <div
+        className="wizard-value-bar flex items-center justify-center px-4 py-3"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <span className="truncate text-center text-2xl font-semibold tabular-nums text-foreground">
+          {inputValue || '—'}
+        </span>
+        <span className="ml-2 shrink-0 text-sm font-medium text-muted">{unit}</span>
       </div>
 
-      <div className="wizard-keypad-bar shrink-0">
-        <NumericKeypad
-          onDigit={appendDigit}
-          onDecimal={appendDecimal}
-          onBackspace={backspace}
-          onClear={clear}
-        />
-      </div>
-    </>
+      <NumericKeypad
+        onDigit={appendDigit}
+        onDecimal={appendDecimal}
+        onBackspace={backspace}
+        onClear={clear}
+        onBack={handleBack}
+        onNext={handleNext}
+        canGoBack={canGoBack}
+        canGoNext={canGoNext}
+      />
+    </div>
   )
 }
