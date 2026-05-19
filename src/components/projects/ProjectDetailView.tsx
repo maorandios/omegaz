@@ -24,7 +24,7 @@ export function ProjectDetailView() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="font-mono text-sm text-primary">
+        <p className="font-mono text-sm text-muted">
           {project.serial}
           <span className="mx-1.5 text-muted/60">·</span>
           <span className="font-sans text-muted">{formatProjectDate(project.updatedAt)}</span>

@@ -1,5 +1,6 @@
 import { CircleX, MoveLeft, RotateCcw } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
+import { CreatePlateSheet } from '@/components/create/CreatePlateSheet'
 import { BottomDock } from '@/components/shell/BottomDock'
 import { ProjectActionsDock } from '@/components/shell/ProjectActionsDock'
 import { PullToRefresh } from '@/components/shell/PullToRefresh'
@@ -117,6 +118,8 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
   const resetPlateShape = useProfileStore((s) => s.resetPlateShape)
   const mainTab = useAppStore((s) => s.mainTab)
   const setMainTab = useAppStore((s) => s.setMainTab)
+  const createPlateSheetOpen = useAppStore((s) => s.createPlateSheetOpen)
+  const openCreatePlateSheet = useAppStore((s) => s.openCreatePlateSheet)
   const selectedProjectId = useAppStore((s) => s.selectedProjectId)
   const setSelectedProject = useAppStore((s) => s.setSelectedProject)
 
@@ -204,8 +207,14 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
       {isProjectDetail ? (
         <ProjectActionsDock />
       ) : (
-        <BottomDock activeTab={mainTab} onTabChange={setMainTab} />
+        <BottomDock
+          activeTab={mainTab}
+          createSheetOpen={createPlateSheetOpen}
+          onTabChange={setMainTab}
+          onCreateClick={() => openCreatePlateSheet('choose')}
+        />
       )}
+      <CreatePlateSheet />
       {exitSheet}
     </div>
   )

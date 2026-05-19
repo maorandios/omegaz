@@ -1,18 +1,18 @@
 export interface TemplateDefinition {
   id: string
   name: string
-  description: string
 }
 
 export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
-  { id: 'omega', name: 'Omega', description: 'Ω-shaped ceiling batten profile' },
-  { id: 'channel', name: 'Channel', description: 'C-channel section' },
-  { id: 'gutter', name: 'Gutter', description: 'Rain gutter profile' },
-  { id: 'z-profile', name: 'Z Profile', description: 'Z purlin with return lips' },
-  { id: 'l-angle', name: 'L Angle', description: '90° angle bracket' },
-  { id: 'square', name: 'Square', description: 'Square tube outline' },
-  { id: 'c-profile', name: 'C Profile', description: 'C-channel with return lips' },
-  { id: 'custom', name: 'Custom Folded', description: 'L-shape start, add up to 10 legs' },
+  { id: 'l-angle', name: 'L - Angel' },
+  { id: 'channel', name: 'C - Channel' },
+  { id: 'zigzag', name: 'Z - ZigZag' },
+  { id: 'omega', name: 'Hat' },
+  { id: 'square', name: 'Square' },
+  { id: 'c-profile', name: 'C - Profile' },
+  { id: 'z-profile', name: 'Z - Profile' },
+  { id: 'gutter', name: 'Gutter' },
+  { id: 'custom', name: 'Custom Folded' },
 ]
 
 const TEMPLATE_PREVIEW_PATHS: Record<string, string> = {
@@ -20,10 +20,11 @@ const TEMPLATE_PREVIEW_PATHS: Record<string, string> = {
   channel: '/channel-shape.svg',
   gutter: '/gutter-shape.svg',
   'z-profile': '/z-shape.svg',
+  zigzag: '/zigzag-shape.svg',
   'l-angle': '/angle-shape.svg',
   square: '/square-shape.svg',
   'c-profile': '/c-shape.svg',
-  custom: '/zigzag-shape.svg',
+  custom: '/custom-shape.svg',
 }
 
 export function getTemplatePreviewPath(id: string): string {
@@ -32,17 +33,18 @@ export function getTemplatePreviewPath(id: string): string {
 
 /** Uppercase labels shown in the plate-process top bar. */
 const PLATE_SHAPE_LABELS: Record<string, string> = {
-  'l-angle': 'ANGLE',
-  'z-profile': 'Z PROFILE',
-  channel: 'CHANNEL',
+  'l-angle': 'L - ANGEL',
+  channel: 'C - CHANNEL',
+  zigzag: 'Z - ZIGZAG',
+  omega: 'HAT',
   square: 'SQUARE',
-  omega: 'OMEGA',
+  'c-profile': 'C - PROFILE',
+  'z-profile': 'Z - PROFILE',
   gutter: 'GUTTER',
-  'c-profile': 'C PROFILE',
-  custom: 'CUSTOM SHAPE',
+  custom: 'CUSTOM FOLDED',
 }
 
 export function getPlateShapeLabel(templateId: string | null): string {
-  if (!templateId) return 'CUSTOM SHAPE'
-  return PLATE_SHAPE_LABELS[templateId] ?? 'CUSTOM SHAPE'
+  if (!templateId) return 'CUSTOM FOLDED'
+  return PLATE_SHAPE_LABELS[templateId] ?? 'CUSTOM FOLDED'
 }

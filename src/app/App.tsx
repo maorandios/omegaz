@@ -6,9 +6,6 @@ import { workflowStackDirection } from '@/lib/stackNavigation'
 import { isWorkflowStep, useAppStore } from '@/store/appStore'
 import { useProfileStore } from '@/store/profileStore'
 
-const CreateScreen = lazy(() =>
-  import('@/screens/CreateScreen').then((m) => ({ default: m.CreateScreen })),
-)
 const ProfileScreen = lazy(() =>
   import('@/screens/ProfileScreen').then((m) => ({ default: m.ProfileScreen })),
 )
@@ -71,8 +68,6 @@ export default function App() {
     switch (mainTab) {
       case 'projects':
         return <ProjectsScreen />
-      case 'create':
-        return <CreateScreen />
       case 'profile':
         return <ProfileScreen />
       default:

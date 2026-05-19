@@ -9,9 +9,9 @@ export function PlateShapeThumb({ templateId }: PlateShapeThumbProps) {
   const src = getTemplatePreviewPath(id)
 
   return (
-    <div className="flex w-[3.75rem] shrink-0 flex-col items-center gap-1.5">
+    <div className="flex w-[calc(3.75rem/1.25)] shrink-0 flex-col items-center gap-1">
       <div
-        className="h-12 w-12 shrink-0 bg-primary"
+        className="h-[calc(3rem/1.25)] w-[calc(3rem/1.25)] shrink-0 bg-primary"
         style={{
           WebkitMaskImage: `url(${src})`,
           maskImage: `url(${src})`,

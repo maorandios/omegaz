@@ -39,7 +39,12 @@ export function SketchScreen() {
             setSketchPoints([])
             setError(null)
             useProfileStore.setState({ currentStep: null })
-            useAppStore.getState().setMainTab('create')
+            const app = useAppStore.getState()
+            if (app.getActiveProject()) {
+              app.openCreatePlateSheet('templates')
+            } else {
+              app.openCreatePlateSheet('choose')
+            }
           }}
         >
           Cancel

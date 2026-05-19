@@ -15,10 +15,14 @@ import {
 } from '@/store/projectTypes'
 import { useProfileStore } from '@/store/profileStore'
 
-export type MainTab = 'projects' | 'create' | 'profile'
+export type MainTab = 'projects' | 'profile'
+
+export type CreatePlateSheetStep = 'choose' | 'new' | 'existing' | 'templates'
 
 interface AppState {
   mainTab: MainTab
+  createPlateSheetOpen: boolean
+  createPlateSheetStep: CreatePlateSheetStep
   user: StoredUser
   subscription: StoredSubscription
   projects: ProjectRecord[]
@@ -27,7 +31,10 @@ interface AppState {
   selectedProjectId: string | null
   hydrated: boolean
 
-  setMainTab: (tab: MainTab, options?: { keepActiveProject?: boolean }) => void
+  setMainTab: (tab: MainTab) => void
+  openCreatePlateSheet: (step?: CreatePlateSheetStep) => void
+  closeCreatePlateSheet: () => void
+  setCreatePlateSheetStep: (step: CreatePlateSheetStep) => void
   setUser: (patch: Partial<StoredUser>) => void
   cancelSubscription: () => void
   logout: () => void
@@ -72,6 +79,8 @@ function loadProfileIntoWorkflow(profile: FoldedProfile, selectedTemplate: strin
 
 export const useAppStore = create<AppState>((set, get) => ({
   mainTab: 'projects',
+  createPlateSheetOpen: false,
+  createPlateSheetStep: 'choose',
   user: { fullName: 'Guest User', email: 'guest@FOLDS.app' },
   subscription: defaultSubscription(),
   projects: [],
@@ -80,13 +89,24 @@ export const useAppStore = create<AppState>((set, get) => ({
   selectedProjectId: null,
   hydrated: false,
 
-  setMainTab: (tab, options) => {
-    if (tab === 'create' && !options?.keepActiveProject) {
-      set({ mainTab: tab, activeProjectId: null, editingPlateId: null })
-      return
+  setMainTab: (tab) => set({ mainTab: tab }),
+
+  openCreatePlateSheet: (step = 'choose') => {
+    const updates: Partial<AppState> = {
+      createPlateSheetOpen: true,
+      createPlateSheetStep: step,
     }
-    set({ mainTab: tab })
+    if (step === 'choose' || step === 'new') {
+      updates.activeProjectId = null
+      updates.editingPlateId = null
+    }
+    set(updates)
   },
+
+  closeCreatePlateSheet: () =>
+    set({ createPlateSheetOpen: false, createPlateSheetStep: 'choose' }),
+
+  setCreatePlateSheetStep: (step) => set({ createPlateSheetStep: step }),
 
   setUser: (patch) => {
     const user = { ...get().user, ...patch }
@@ -108,6 +128,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     useProfileStore.getState().restart()
     set({
       mainTab: 'projects',
+      createPlateSheetOpen: false,
+      createPlateSheetStep: 'choose',
       activeProjectId: null,
       editingPlateId: null,
       selectedProjectId: null,

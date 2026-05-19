@@ -88,6 +88,7 @@ export function horizontalSegmentIndexForTemplate(templateId: string | null): nu
   if (templateId === 'omega') return 2
   if (templateId === 'channel') return 1
   if (templateId === 'z-profile') return 1
+  if (templateId === 'zigzag') return 0
   if (templateId === 'gutter') return 2
   if (templateId === 'square') return 2
   if (templateId === 'c-profile') return 3

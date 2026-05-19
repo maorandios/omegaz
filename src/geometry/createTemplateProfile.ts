@@ -12,6 +12,7 @@ type TemplateId =
   | 'channel'
   | 'gutter'
   | 'z-profile'
+  | 'zigzag'
   | 'l-angle'
   | 'square'
   | 'c-profile'
@@ -28,7 +29,7 @@ interface TemplateSpec {
 
 const TEMPLATES: Record<TemplateId, TemplateSpec> = {
   omega: {
-    name: 'Omega Profile',
+    name: 'Hat',
     segmentLengths: [40, 40, 40, 40, 40],
     /** Up at left web, across crown, down right web, out bottom flange. */
     bendAngles: [90, 270, 270, 90],
@@ -53,6 +54,13 @@ const TEMPLATES: Record<TemplateId, TemplateSpec> = {
     segmentLengths: [20, 50, 100, 50, 20],
     bendAngles: [90, 90, -90, -90],
     startDirectionDeg: 90,
+  },
+  zigzag: {
+    name: 'ZigZag',
+    /** Top flange → diagonal web → bottom flange (matches zigzag icon). */
+    segmentLengths: [57, 52, 57],
+    bendAngles: [135, 45],
+    startDirectionDeg: 0,
   },
   'l-angle': {
     name: 'L Angle',

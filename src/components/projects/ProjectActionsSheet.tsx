@@ -127,7 +127,7 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
   const project = useAppStore((s) => s.getSelectedProject())
   const setActiveProject = useAppStore((s) => s.setActiveProject)
   const setSelectedProject = useAppStore((s) => s.setSelectedProject)
-  const setMainTab = useAppStore((s) => s.setMainTab)
+  const openCreatePlateSheet = useAppStore((s) => s.openCreatePlateSheet)
   const deleteProject = useAppStore((s) => s.deleteProject)
   const restart = useProfileStore((s) => s.restart)
 
@@ -142,8 +142,8 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
   const handleAddPlate = () => {
     restart()
     setActiveProject(project.id)
-    setMainTab('create', { keepActiveProject: true })
     closeActions()
+    openCreatePlateSheet('templates')
   }
 
   const handleDownload = async () => {

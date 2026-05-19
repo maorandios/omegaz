@@ -13,6 +13,7 @@ export function SaveToProjectButton({ profile, selectedTemplate }: SaveToProject
   const activeProject = useAppStore((s) => s.getActiveProject())
   const savePlateToActiveProject = useAppStore((s) => s.savePlateToActiveProject)
   const setMainTab = useAppStore((s) => s.setMainTab)
+  const openCreatePlateSheet = useAppStore((s) => s.openCreatePlateSheet)
   const setSelectedProject = useAppStore((s) => s.setSelectedProject)
   const editingPlateId = useAppStore((s) => s.editingPlateId)
   const restart = useProfileStore((s) => s.restart)
@@ -22,7 +23,7 @@ export function SaveToProjectButton({ profile, selectedTemplate }: SaveToProject
   if (!activeProject) {
     return (
       <p className="text-center text-sm text-primary/90">
-        No active project. Go to Create and start or select a project first.
+        No active project. Open Create and start or select a project first.
       </p>
     )
   }
@@ -42,7 +43,7 @@ export function SaveToProjectButton({ profile, selectedTemplate }: SaveToProject
 
   const handleAddAnother = () => {
     restart()
-    setMainTab('create')
+    openCreatePlateSheet('templates')
   }
 
   if (saved) {
