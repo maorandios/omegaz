@@ -15,7 +15,7 @@ interface AppShellProps {
   inWorkflow: boolean
 }
 
-const FOLDS_LOGO_SRC = '/folds_logo.svg'
+const APP_LOGO_SRC = '/segments-logo.svg'
 
 const headerIconClass = 'h-[1.4rem] w-[1.4rem] shrink-0 stroke-[1.75px] text-foreground'
 /** RotateCcw reads larger at 1.4rem — scale down ÷1.25 to match CircleX. */
@@ -79,11 +79,11 @@ function AppHeader({
 
         {title === 'FOLDS' ? (
           <img
-            src={FOLDS_LOGO_SRC}
+            src={APP_LOGO_SRC}
             alt="FOLDS"
-            className="mx-auto h-7 w-auto max-w-[9.5rem] object-contain object-center"
-            height={28}
-            width={109}
+            className="mx-auto h-[35px] w-auto max-w-[13.75rem] object-contain object-center"
+            height={35}
+            width={133}
           />
         ) : (
           <h1 className="truncate text-center text-base font-bold tracking-tight text-primary">

@@ -30,7 +30,8 @@ export interface ProjectRecord {
   updatedAt: string
 }
 
-export function computePlateWeightKg(profile: FoldedProfile): number {
+/** Estimated mass for a single fabricated part (kg). */
+export function computePlateWeightPerPartKg(profile: FoldedProfile): number {
   const flatWidth = calculateGeometricFlatWidth(profile.segments)
   const area = calculateAreaEstimate(flatWidth, profile.fabrication.partLength)
   return calculateWeightEstimate(
@@ -40,8 +41,14 @@ export function computePlateWeightKg(profile: FoldedProfile): number {
   )
 }
 
+/** Total estimated mass for this plate line (per-part × quantity). */
+export function computePlateWeightKg(profile: FoldedProfile): number {
+  const qty = Math.max(0, profile.fabrication.quantity)
+  return computePlateWeightPerPartKg(profile) * qty
+}
+
 export function computeProjectWeightKg(plates: PlateRecord[]): number {
-  return plates.reduce((sum, p) => sum + p.weightKg, 0)
+  return plates.reduce((sum, plate) => sum + computePlateWeightKg(plate.profile), 0)
 }
 
 export function nextProjectSerial(projects: ProjectRecord[]): string {

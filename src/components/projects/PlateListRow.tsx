@@ -1,16 +1,12 @@
 import { Database, MoveRight, Weight } from 'lucide-react'
 import { MetaItem } from '@/components/projects/MetaItem'
 import { PlateShapeThumb } from '@/components/projects/PlateShapeThumb'
+import { formatKg } from '@/lib/format'
 import { plateDisplayName, type PlateRecord } from '@/store/projectTypes'
 
 interface PlateListRowProps {
   plate: PlateRecord
   onOpen: () => void
-}
-
-function formatPlateWeightKg(value: number): string {
-  if (!Number.isFinite(value) || value <= 0) return '0'
-  return value.toFixed(2)
 }
 
 export function PlateListRow({ plate, onOpen }: PlateListRowProps) {
@@ -27,7 +23,7 @@ export function PlateListRow({ plate, onOpen }: PlateListRowProps) {
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium text-foreground">{plateDisplayName(plate)}</p>
         <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-          <MetaItem icon={Weight}>{formatPlateWeightKg(plate.weightKg)}</MetaItem>
+          <MetaItem icon={Weight}>{formatKg(plate.weightKg)}</MetaItem>
           <MetaItem icon={Database}>{fabrication.quantity}</MetaItem>
         </p>
       </div>

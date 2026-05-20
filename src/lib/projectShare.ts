@@ -1,5 +1,5 @@
 import { formatKg } from '@/lib/format'
-import type { ProjectRecord } from '@/store/projectTypes'
+import { computeProjectWeightKg, type ProjectRecord } from '@/store/projectTypes'
 
 /** Placeholder package URL until projects are hosted in a real backend. */
 export function getProjectPackageUrl(projectId: string): string {
@@ -14,7 +14,7 @@ export function buildProjectShareMessage(project: ProjectRecord): string {
   const platesLine =
     plateCount === 0
       ? 'No plates in this batch yet.'
-      : `${plateCount} plate${plateCount === 1 ? '' : 's'} · ${formatKg(project.weightKg)} total`
+      : `${plateCount} plate${plateCount === 1 ? '' : 's'} · ${formatKg(computeProjectWeightKg(project.plates))} total`
 
   return [
     `FOLDS project: ${project.name} (${project.serial})`,

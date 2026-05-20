@@ -1,4 +1,4 @@
-import type { ProjectRecord } from '@/store/projectTypes'
+import { computeProjectWeightKg, type ProjectRecord } from '@/store/projectTypes'
 
 export function formatProjectDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -21,5 +21,5 @@ export function projectDistinctTypeCount(project: ProjectRecord): number {
 }
 
 export function projectWeightNumeric(project: ProjectRecord): number {
-  return project.weightKg
+  return computeProjectWeightKg(project.plates)
 }

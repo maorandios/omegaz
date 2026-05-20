@@ -9,7 +9,7 @@ export function generateProjectPlatesExcel(project: ProjectRecord): Blob {
     ['Total weight (kg)', project.weightKg],
     ['Plate count', project.plates.length],
     [],
-    ['Plate', 'Shape', 'Weight (kg)', 'Quantity', 'Length (mm)'],
+    ['Plate', 'Shape', 'Total weight (kg)', 'Quantity', 'Length (mm)'],
   ]
 
   for (const plate of project.plates) {

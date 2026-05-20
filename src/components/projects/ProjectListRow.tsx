@@ -2,7 +2,7 @@ import { Box, Calendar, MoveRight, SquareCenterlineDashedHorizontal, Weight } fr
 import { MetaItem } from '@/components/projects/MetaItem'
 import { projectDistinctTypeCount } from '@/components/projects/projectDetailUtils'
 import { formatKg } from '@/lib/format'
-import type { ProjectRecord } from '@/store/projectTypes'
+import { computeProjectWeightKg, type ProjectRecord } from '@/store/projectTypes'
 
 interface ProjectListRowProps {
   project: ProjectRecord
@@ -20,6 +20,7 @@ function formatProjectDate(iso: string): string {
 
 export function ProjectListRow({ project, onClick, showDate = false }: ProjectListRowProps) {
   const typeCount = projectDistinctTypeCount(project)
+  const totalWeightKg = computeProjectWeightKg(project.plates)
 
   return (
     <button
@@ -39,7 +40,7 @@ export function ProjectListRow({ project, onClick, showDate = false }: ProjectLi
           <MetaItem icon={SquareCenterlineDashedHorizontal}>
             {typeCount} type
           </MetaItem>
-          <MetaItem icon={Weight}>{formatKg(project.weightKg)}</MetaItem>
+          <MetaItem icon={Weight}>{formatKg(totalWeightKg)}</MetaItem>
           {showDate ? (
             <MetaItem icon={Calendar}>{formatProjectDate(project.updatedAt)}</MetaItem>
           ) : null}

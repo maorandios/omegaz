@@ -25,6 +25,32 @@
 @layer base {
   * {
     @apply border-border;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-muted) 45%, transparent) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--color-muted) 40%, transparent);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--color-primary) 55%, var(--color-muted));
   }
 
   html,
@@ -160,28 +186,6 @@
   .workflow-stack-host .screen-stack__pane:has(.fabrication-screen),
   .workflow-stack-host .screen-stack__pane:has(.summary-screen) {
     padding: 1rem 1rem 2rem;
-  }
-
-  .app-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--color-muted) 45%, transparent) transparent;
-  }
-
-  .app-scroll::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .app-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .app-scroll::-webkit-scrollbar-thumb {
-    border-radius: 9999px;
-    background: color-mix(in srgb, var(--color-muted) 40%, transparent);
-  }
-
-  .app-scroll::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--color-muted) 65%, transparent);
   }
 
   .form-stack {
@@ -639,6 +643,56 @@
     }
     to {
       transform: translateY(0);
+    }
+  }
+
+  .top-toast {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 3.5rem);
+    left: 50%;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--color-surface) 92%, var(--color-background));
+    padding: 0.5rem 1.125rem;
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--color-background) 55%, transparent);
+    animation: top-toast-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+    pointer-events: none;
+  }
+
+  .top-toast--leave {
+    animation: top-toast-out 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes top-toast-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -120%);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  @keyframes top-toast-out {
+    from {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+    to {
+      opacity: 0;
+      transform: translate(-50%, -120%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .top-toast,
+    .top-toast--leave {
+      animation: none;
     }
   }
 

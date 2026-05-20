@@ -76,7 +76,7 @@ function migrateLegacyProject(raw: Record<string, unknown>): ProjectRecord | nul
       serial: typeof raw.serial === 'string' ? raw.serial : '#000',
       name,
       plates: [plate],
-      weightKg: plate.weightKg,
+      weightKg: computeProjectWeightKg([plate]),
       createdAt,
       updatedAt,
     }
@@ -95,6 +95,18 @@ function renumberProjectSerials(projects: ProjectRecord[]): ProjectRecord[] {
   }))
 }
 
+function normalizeProjectWeights(project: ProjectRecord): ProjectRecord {
+  const plates = project.plates.map((plate) => ({
+    ...plate,
+    weightKg: computePlateWeightKg(plate.profile),
+  }))
+  return {
+    ...project,
+    plates,
+    weightKg: computeProjectWeightKg(plates),
+  }
+}
+
 function normalizeProjects(raw: unknown): ProjectRecord[] {
   if (!Array.isArray(raw)) return []
   const migrated = raw
@@ -102,7 +114,8 @@ function normalizeProjects(raw: unknown): ProjectRecord[] {
     .filter((p): p is ProjectRecord => p !== null)
 
   const needsRenumber = migrated.some((p) => !/^#\d{3}$/.test(p.serial))
-  return needsRenumber ? renumberProjectSerials(migrated) : migrated
+  const ordered = needsRenumber ? renumberProjectSerials(migrated) : migrated
+  return ordered.map(normalizeProjectWeights)
 }
 
 function seedProjects(): ProjectRecord[] {
