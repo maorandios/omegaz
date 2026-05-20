@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx'
 import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
+import { getFabricationMaterialLabel } from '@/geometry/constants'
 import { FLAT_WIDTH_LABEL, type FoldedProfile } from '@/geometry/types'
 
 interface ProfileMetrics {
@@ -19,11 +20,12 @@ export function generateExcel(
   const summaryData = [
     ['Field', 'Value'],
     ['Part Name', fab.partName || profile.name],
-    ['Material', fab.material],
+    ['Material', getFabricationMaterialLabel(fab.material, fab.materialCustom)],
     ['Thickness (mm)', fab.thickness],
     ['Part Length (mm)', fab.partLength],
     ['Quantity', fab.quantity],
     ['Hem', fab.hem ? 'Yes' : 'No'],
+    ['Checker plate', fab.checkerPlate ? 'Yes' : 'No'],
     ['Finish', fab.finish],
     ['Notes', fab.notes],
     [FLAT_WIDTH_LABEL + ' (mm)', metrics.flatWidth],

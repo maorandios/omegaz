@@ -17,6 +17,9 @@ import {
   defaultMaterialThickness,
   FABRICATION_FINISH_OPTIONS,
   FABRICATION_MATERIAL_OPTIONS,
+  isFabricationFinishOption,
+  FABRICATION_MATERIAL_OTHER,
+  isFabricationMaterialOption,
 } from '@/geometry/constants'
 import { useProfileStore } from '@/store/profileStore'
 
@@ -47,19 +50,15 @@ export function FabricationScreen() {
     if (Number.isFinite(v) && v >= 1) setFabricationField('quantity', v)
   }
 
-  const material =
-    FABRICATION_MATERIAL_OPTIONS.includes(
-      fab.material as (typeof FABRICATION_MATERIAL_OPTIONS)[number],
-    )
-      ? fab.material
-      : FABRICATION_MATERIAL_OPTIONS[0]
+  const material = isFabricationMaterialOption(fab.material)
+    ? fab.material
+    : FABRICATION_MATERIAL_OPTIONS[0]
 
-  const finish =
-    FABRICATION_FINISH_OPTIONS.includes(
-      fab.finish as (typeof FABRICATION_FINISH_OPTIONS)[number],
-    )
-      ? fab.finish
-      : FABRICATION_FINISH_OPTIONS[0]
+  const isOtherMaterial = material === FABRICATION_MATERIAL_OTHER
+
+  const finish = isFabricationFinishOption(fab.finish)
+    ? fab.finish
+    : FABRICATION_FINISH_OPTIONS[0]
 
   useEffect(() => {
     if (fab.material !== material) {
@@ -90,6 +89,9 @@ export function FabricationScreen() {
     if (fab.thickness <= 0) errs.push('Thickness is required')
     if (fab.partLength <= 0) errs.push('Part length is required')
     if (fab.quantity < 1) errs.push('Quantity must be at least 1')
+    if (isOtherMaterial && !fab.materialCustom.trim()) {
+      errs.push('Please specify the material')
+    }
     setErrors(errs)
     return errs.length === 0
   }
@@ -132,6 +134,15 @@ export function FabricationScreen() {
               ))}
             </SelectContent>
           </Select>
+          {isOtherMaterial && (
+            <Input
+              id="material-custom"
+              value={fab.materialCustom}
+              onChange={(e) => setFabricationField('materialCustom', e.target.value)}
+              placeholder="Enter material type"
+              aria-label="Custom material"
+            />
+          )}
         </div>
 
         <ThicknessSlider
@@ -168,7 +179,7 @@ export function FabricationScreen() {
           </div>
         </div>
 
-        <div className="form-field">
+        <div className="form-field fabrication-options">
           <label htmlFor="hem" className="hem-option">
             <input
               id="hem"
@@ -178,6 +189,16 @@ export function FabricationScreen() {
               className="hem-checkbox"
             />
             <span className="text-base text-foreground">Request hem</span>
+          </label>
+          <label htmlFor="checker-plate" className="hem-option">
+            <input
+              id="checker-plate"
+              type="checkbox"
+              checked={fab.checkerPlate}
+              onChange={(e) => setFabricationField('checkerPlate', e.target.checked)}
+              className="hem-checkbox"
+            />
+            <span className="text-base text-foreground">Checker plate</span>
           </label>
         </div>
 

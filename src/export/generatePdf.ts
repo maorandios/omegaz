@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf'
 import { calculateGeometricFlatWidth } from '@/geometry/calculateGeometricFlatWidth'
 import { calculateProfileBounds } from '@/geometry/calculateProfileBounds'
+import { getFabricationMaterialLabel } from '@/geometry/constants'
 import {
   FLAT_WIDTH_DISCLAIMER,
   FLAT_WIDTH_LABEL,
@@ -73,11 +74,12 @@ export function generatePdf(profile: FoldedProfile, metrics: ProfileMetrics): Bl
   y += drawH + 10
 
   const lines: [string, string][] = [
-    ['Material', fab.material],
+    ['Material', getFabricationMaterialLabel(fab.material, fab.materialCustom)],
     ['Thickness', formatMm(fab.thickness)],
     ['Part Length', formatMm(fab.partLength)],
     ['Quantity', String(fab.quantity)],
     ['Hem', fab.hem ? 'Yes' : 'No'],
+    ['Checker plate', fab.checkerPlate ? 'Yes' : 'No'],
     ['Finish', fab.finish],
     ['Notes', fab.notes || '—'],
     [FLAT_WIDTH_LABEL, formatMm(flatWidth)],

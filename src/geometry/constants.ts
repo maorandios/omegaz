@@ -19,22 +19,70 @@ export const MATERIAL_OPTIONS = [
   'Custom',
 ] as const
 
-/** Materials shown on the fabrication form (no custom entry). */
+/** Materials shown on the fabrication form. */
 export const FABRICATION_MATERIAL_OPTIONS = [
   'Galvanized Steel',
   'Mild Steel',
   'Stainless Steel',
   'Aluminum',
+  'Zinc',
+  'Copper',
+  'Other',
 ] as const
+
+export const FABRICATION_MATERIAL_OTHER = 'Other' as const
 
 export type FabricationMaterial = (typeof FABRICATION_MATERIAL_OPTIONS)[number]
 
+export function isFabricationMaterialOption(
+  material: string,
+): material is FabricationMaterial {
+  return (FABRICATION_MATERIAL_OPTIONS as readonly string[]).includes(material)
+}
+
+export function getFabricationMaterialLabel(material: string, materialCustom: string): string {
+  if (material === FABRICATION_MATERIAL_OTHER) {
+    const custom = materialCustom.trim()
+    return custom || FABRICATION_MATERIAL_OTHER
+  }
+  return material
+}
+
 export const THICKNESS_OPTIONS = [0.8, 1.0, 1.2, 1.5, 2.0, 3.0] as const
 
-export const FINISH_OPTIONS = ['Raw', 'Painted', 'Powder Coated', 'Galvanized', 'Custom'] as const
+export const FINISH_OPTIONS = [
+  'Mill Finish',
+  'Pre-Painted',
+  'Powder Coated',
+  'Anodized',
+  'Custom',
+] as const
 
-/** Finishes shown on the fabrication form (no custom entry). */
-export const FABRICATION_FINISH_OPTIONS = ['Raw', 'Painted', 'Powder Coated', 'Galvanized'] as const
+/** Finishes shown on the fabrication form. */
+export const FABRICATION_FINISH_OPTIONS = [
+  'Mill Finish',
+  'Pre-Painted',
+  'Powder Coated',
+  'Anodized',
+] as const
+
+export type FabricationFinish = (typeof FABRICATION_FINISH_OPTIONS)[number]
+
+export function isFabricationFinishOption(finish: string): finish is FabricationFinish {
+  return (FABRICATION_FINISH_OPTIONS as readonly string[]).includes(finish)
+}
+
+const LEGACY_FINISH_MAP: Record<string, FabricationFinish> = {
+  Raw: 'Mill Finish',
+  Painted: 'Pre-Painted',
+  Galvanized: 'Mill Finish',
+  'Powder Coated': 'Powder Coated',
+}
+
+export function normalizeFabricationFinish(finish: string): FabricationFinish {
+  if (isFabricationFinishOption(finish)) return finish
+  return LEGACY_FINISH_MAP[finish] ?? FABRICATION_FINISH_OPTIONS[0]
+}
 
 /** Max thickness (mm) for the fabrication slider. */
 export const FABRICATION_THICKNESS_MAX_MM = 30
@@ -45,6 +93,9 @@ export const MATERIAL_THICKNESS_MAX_MM: Record<FabricationMaterial, number> = {
   'Mild Steel': FABRICATION_THICKNESS_MAX_MM,
   'Stainless Steel': FABRICATION_THICKNESS_MAX_MM,
   Aluminum: FABRICATION_THICKNESS_MAX_MM,
+  Zinc: FABRICATION_THICKNESS_MAX_MM,
+  Copper: FABRICATION_THICKNESS_MAX_MM,
+  Other: FABRICATION_THICKNESS_MAX_MM,
 }
 
 /** 0.1–2 mm in 0.1 steps, then 3…max in 1 mm steps. */
@@ -90,6 +141,9 @@ export const MATERIAL_DENSITY_KG_PER_MM3: Record<string, number> = {
   'Mild Steel': 7.85e-6,
   'Stainless Steel': 7.93e-6,
   Aluminum: 2.7e-6,
+  Zinc: 7.14e-6,
+  Copper: 8.96e-6,
+  Other: 7.85e-6,
   Custom: 7.85e-6,
 }
 

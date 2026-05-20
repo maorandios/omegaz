@@ -6,6 +6,18 @@ export function formatMm(value: number, decimals = 1): string {
   return `${value.toFixed(decimals)} mm`
 }
 
+/** Numeric mm value only (unit belongs in the label). */
+export function formatMmValue(value: number, decimals = 1): string {
+  if (!Number.isFinite(value)) return '—'
+  return value.toFixed(decimals)
+}
+
+export function formatWeightParts(kg: number): { value: string; unit: 'g' | 'kg' } {
+  if (!Number.isFinite(kg) || kg <= 0) return { value: '—', unit: 'g' }
+  if (kg < 1) return { value: (kg * 1000).toFixed(0), unit: 'g' }
+  return { value: kg.toFixed(2), unit: 'kg' }
+}
+
 export function formatDeg(value: number): string {
   if (!Number.isFinite(value)) return '—'
   return `${Math.round(value)}°`

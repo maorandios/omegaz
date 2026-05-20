@@ -1,3 +1,9 @@
+import {
+  FABRICATION_MATERIAL_OTHER,
+  isFabricationMaterialOption,
+  normalizeFabricationFinish,
+} from './constants'
+
 export type AppStep =
   | 'sketch'
   | 'segment-wizard'
@@ -32,11 +38,14 @@ export interface Bend {
 export interface FabricationDetails {
   partName: string
   material: string
+  /** Custom material name when material is Other. */
+  materialCustom: string
   thickness: number
   partLength: number
   quantity: number
   /** Request hem on plate edges. */
   hem: boolean
+  checkerPlate: boolean
   finish: string
   notes: string
 }
@@ -74,21 +83,43 @@ export function defaultFabrication(): FabricationDetails {
   return {
     partName: '',
     material: 'Galvanized Steel',
+    materialCustom: '',
     thickness: 1.2,
     partLength: 1000,
     quantity: 1,
     hem: false,
-    finish: 'Raw',
+    checkerPlate: false,
+    finish: 'Mill Finish',
     notes: '',
   }
 }
 
 export function normalizeFabrication(fab: Partial<FabricationDetails>): FabricationDetails {
   const defaults = defaultFabrication()
+  let material = typeof fab.material === 'string' ? fab.material : defaults.material
+  let materialCustom =
+    typeof fab.materialCustom === 'string' ? fab.materialCustom : defaults.materialCustom
+
+  if (!isFabricationMaterialOption(material)) {
+    const legacy = material.trim()
+    if (legacy) materialCustom = materialCustom.trim() || legacy
+    material = FABRICATION_MATERIAL_OTHER
+  }
+
+  const finish =
+    typeof fab.finish === 'string'
+      ? normalizeFabricationFinish(fab.finish)
+      : defaults.finish
+
   return {
     ...defaults,
     ...fab,
+    material,
+    materialCustom,
+    finish,
     hem: typeof fab.hem === 'boolean' ? fab.hem : defaults.hem,
+    checkerPlate:
+      typeof fab.checkerPlate === 'boolean' ? fab.checkerPlate : defaults.checkerPlate,
   }
 }
 
