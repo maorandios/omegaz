@@ -29,10 +29,11 @@ const LABEL_CLEAR_MARGIN = 4 // extra spacing between label boxes
 
 function formatSegmentDim(n: number): string {
   const v = Math.round(n * 10) / 10
-  return v.toLocaleString('en-US', {
-    maximumFractionDigits: Number.isInteger(v) ? 0 : 1,
-    minimumFractionDigits: 0,
-  })
+  const decimals = Number.isInteger(v) ? 0 : 1
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(v)
 }
 
 function unitVec(x: number, y: number, len: number): { x: number; y: number } {

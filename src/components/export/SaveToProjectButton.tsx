@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { TopToast } from '@/components/ui/TopToast'
 import type { FoldedProfile } from '@/geometry/types'
@@ -24,6 +24,17 @@ export function SaveToProjectButton({ profile, selectedTemplate }: SaveToProject
 
   const [saved, setSaved] = useState(false)
   const [showToast, setShowToast] = useState(false)
+  const actionsRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!saved) return
+
+    const frame = window.requestAnimationFrame(() => {
+      actionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [saved])
 
   if (!activeProject) {
     return (
@@ -56,10 +67,13 @@ export function SaveToProjectButton({ profile, selectedTemplate }: SaveToProject
     return (
       <>
         <TopToast show={showToast} />
-        <div className="space-y-2">
+        <div ref={actionsRef} className="summary-save-actions space-y-2 scroll-mt-4">
           <p className="text-center text-sm text-primary">
             Plate saved to {activeProject.name} ({activeProject.serial})
           </p>
+          <Button type="button" className={actionBtnClass} size="lg" onClick={handleViewProject}>
+            View project
+          </Button>
           <Button
             type="button"
             className={cn(actionBtnClass, 'border-border bg-surface/40')}
@@ -68,9 +82,6 @@ export function SaveToProjectButton({ profile, selectedTemplate }: SaveToProject
             onClick={handleAddAnother}
           >
             Add another plate
-          </Button>
-          <Button type="button" className={actionBtnClass} size="lg" onClick={handleViewProject}>
-            View project
           </Button>
         </div>
       </>

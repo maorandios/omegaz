@@ -126,3 +126,8 @@ export function normalizeFabrication(fab: Partial<FabricationDetails>): Fabricat
 export function createId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID().slice(0, 8)}`
 }
+
+/** Deep copy so workflow edits never mutate project plates until explicit save. */
+export function cloneFoldedProfile(profile: FoldedProfile): FoldedProfile {
+  return JSON.parse(JSON.stringify(profile)) as FoldedProfile
+}

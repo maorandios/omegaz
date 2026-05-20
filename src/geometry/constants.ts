@@ -126,13 +126,14 @@ export function clampThicknessForMaterial(
   steps[0])
 }
 
-export function defaultMaterialThickness(material: string): number {
-  const max =
-    MATERIAL_THICKNESS_MAX_MM[material as FabricationMaterial] ??
-    MATERIAL_THICKNESS_MAX_MM['Galvanized Steel']
-  const steps = buildThicknessSteps(max)
-  const preferred = steps.find((s) => s >= 1.2) ?? steps[0]
-  return preferred ?? 1.2
+export function defaultMaterialThickness(_material: string): number {
+  return 1.2
+}
+
+/** Accept any positive thickness (no min/max range). */
+export function normalizeFabricationThickness(thickness: number): number {
+  if (!Number.isFinite(thickness) || thickness <= 0) return defaultMaterialThickness('')
+  return thickness
 }
 
 /** Density in kg/mm³ */

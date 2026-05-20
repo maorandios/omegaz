@@ -2,11 +2,12 @@ import { CircleX, MoveLeft, RotateCcw } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { CreatePlateSheet } from '@/components/create/CreatePlateSheet'
 import { BottomDock } from '@/components/shell/BottomDock'
+import { PlateActionsDock } from '@/components/shell/PlateActionsDock'
 import { ProjectActionsDock } from '@/components/shell/ProjectActionsDock'
-import { PullToRefresh } from '@/components/shell/PullToRefresh'
 import { ExitProcessSheet } from '@/components/shell/ExitProcessSheet'
 import { Button } from '@/components/ui/button'
 import { getPlateShapeLabel } from '@/templates/definitions'
+import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/appStore'
 import { useProfileStore } from '@/store/profileStore'
 
@@ -122,14 +123,21 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
   const openCreatePlateSheet = useAppStore((s) => s.openCreatePlateSheet)
   const selectedProjectId = useAppStore((s) => s.selectedProjectId)
   const setSelectedProject = useAppStore((s) => s.setSelectedProject)
+  const viewingPlateId = useAppStore((s) => s.viewingPlateId)
+  const closePlateView = useAppStore((s) => s.closePlateView)
 
   const [exitSheetOpen, setExitSheetOpen] = useState(false)
 
   const isWizard = currentStep === 'segment-wizard'
   const isFabrication = currentStep === 'fabrication'
   const isSummary = currentStep === 'summary' || currentStep === 'export'
+  const isPlateView = viewingPlateId != null && !inWorkflow
   const isProjectDetail =
-    mainTab === 'projects' && selectedProjectId != null && !inWorkflow && !isWizard
+    mainTab === 'projects' &&
+    selectedProjectId != null &&
+    !inWorkflow &&
+    !isWizard &&
+    !isPlateView
   const goBack = useProfileStore((s) => s.goBack)
   const headerTitle = isWizard ? getPlateShapeLabel(selectedTemplate) : 'FOLDS'
 
@@ -139,6 +147,14 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
       return
     }
     goBack()
+  }
+
+  const handleHeaderExit = () => {
+    if (isPlateView) {
+      closePlateView()
+      return
+    }
+    setExitSheetOpen(true)
   }
 
   useEffect(() => {
@@ -167,45 +183,38 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
       onReset={resetPlateShape}
       showBack={isFabrication || isSummary || isProjectDetail}
       onBack={handleHeaderBack}
-      showExit={inWorkflow}
-      onExit={() => setExitSheetOpen(true)}
+      showExit={inWorkflow || isPlateView}
+      onExit={handleHeaderExit}
     />
   )
 
-  if (inWorkflow) {
-    return (
-      <>
-        <div className="workflow-shell text-foreground">
-          {header}
-          <main className="workflow-shell__main mx-auto w-full max-w-lg">
-            <div className="workflow-stack-host">{children}</div>
-          </main>
-        </div>
-        {exitSheet}
-      </>
-    )
-  }
-
   return (
-    <div className="app-tab-shell text-foreground">
-      {header}
-      <div className="app-tab-shell__body">
-        <PullToRefresh className="mx-auto flex min-h-0 w-full max-w-lg flex-1 flex-col">
-          <main className="flex min-h-full flex-1 flex-col px-4 py-4">{children}</main>
-        </PullToRefresh>
+    <>
+      <div
+        className={cn(
+          'app-shell text-foreground',
+          inWorkflow && 'app-shell--workflow',
+        )}
+        data-plate-view={isPlateView ? '' : undefined}
+      >
+        {header}
+        <div className="app-shell__body mx-auto w-full max-w-lg">{children}</div>
+        {!inWorkflow &&
+          (isPlateView ? (
+            <PlateActionsDock />
+          ) : isProjectDetail ? (
+            <ProjectActionsDock />
+          ) : (
+            <BottomDock
+              activeTab={mainTab}
+              createSheetOpen={createPlateSheetOpen}
+              onTabChange={setMainTab}
+              onCreateClick={() => openCreatePlateSheet('choose')}
+            />
+          ))}
+        {!inWorkflow && <CreatePlateSheet />}
       </div>
-      {isProjectDetail ? (
-        <ProjectActionsDock />
-      ) : (
-        <BottomDock
-          activeTab={mainTab}
-          createSheetOpen={createPlateSheetOpen}
-          onTabChange={setMainTab}
-          onCreateClick={() => openCreatePlateSheet('choose')}
-        />
-      )}
-      <CreatePlateSheet />
       {exitSheet}
-    </div>
+    </>
   )
 }

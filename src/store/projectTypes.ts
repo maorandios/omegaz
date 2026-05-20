@@ -2,7 +2,7 @@ import { calculateAreaEstimate } from '@/geometry/calculateAreaEstimate'
 import { calculateGeometricFlatWidth } from '@/geometry/calculateGeometricFlatWidth'
 import { calculateWeightEstimate } from '@/geometry/calculateWeightEstimate'
 import type { FoldedProfile } from '@/geometry/types'
-import { createId } from '@/geometry/types'
+import { cloneFoldedProfile, createId } from '@/geometry/types'
 
 /** Single plate / profile entry inside a fabrication project batch. */
 export interface PlateRecord {
@@ -71,7 +71,7 @@ export function createPlateRecord(
   const now = new Date().toISOString()
   return {
     id: plateId ?? createId('plate'),
-    profile: JSON.parse(JSON.stringify(profile)) as FoldedProfile,
+    profile: cloneFoldedProfile(profile),
     selectedTemplate,
     weightKg: computePlateWeightKg(profile),
     createdAt: now,

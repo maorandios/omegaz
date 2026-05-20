@@ -45,7 +45,7 @@ export function ProjectsScreen() {
     <ScreenStack
       activeKey={selectedProjectId ? 'detail' : 'list'}
       getDirection={projectsStackDirection}
-      className="h-full min-h-full w-full"
+      className="w-full"
       screens={{
         list: <ProjectsListView />,
         detail: <ProjectDetailView />,

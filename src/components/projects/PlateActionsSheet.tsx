@@ -1,34 +1,32 @@
 import type { LucideIcon } from 'lucide-react'
 import {
   ArrowDownToLine,
-  CirclePlus,
   MessageCircleCheck,
+  PencilLine,
   Send,
   Settings2,
   Trash2,
 } from 'lucide-react'
 import { useState } from 'react'
-import { DeleteProjectSheet } from '@/components/projects/DeleteProjectSheet'
+import { DeletePlateSheet } from '@/components/projects/DeletePlateSheet'
 import { ActionRow } from '@/components/shell/ActionRow'
 import { ActionsSheetLayout } from '@/components/shell/ActionsSheetLayout'
-import { generateProjectZip } from '@/export/generateProjectZip'
+import { generateFabricationZip } from '@/export/generateZip'
 import { downloadBlob } from '@/lib/downloadBlob'
-import {
-  buildProjectMailto,
-  buildProjectShareMessage,
-  openEmailShare,
-  openWhatsAppShare,
-} from '@/lib/projectShare'
+import { buildPlateMailto, buildPlateShareMessage } from '@/lib/plateShare'
+import { openEmailShare, openWhatsAppShare } from '@/lib/projectShare'
 import { slugify } from '@/lib/format'
+import { computeProfileMetrics } from '@/lib/profileMetrics'
+import { useViewingPlate } from '@/hooks/useViewingPlate'
+import { plateDisplayName } from '@/store/projectTypes'
 import { useAppStore } from '@/store/appStore'
-import { useProfileStore } from '@/store/profileStore'
 
-interface ProjectActionsSheetProps {
+interface PlateActionsSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-type ActionId = 'add' | 'download' | 'whatsapp' | 'email' | 'delete'
+type ActionId = 'edit' | 'download' | 'whatsapp' | 'email' | 'delete'
 
 interface ActionRowConfig {
   id: ActionId
@@ -38,69 +36,71 @@ interface ActionRowConfig {
   destructive?: boolean
 }
 
-const PROJECT_ACTIONS: ActionRowConfig[] = [
+const PLATE_ACTIONS: ActionRowConfig[] = [
   {
-    id: 'add',
-    icon: CirclePlus,
-    title: 'Add new plate',
-    description: 'Start another plate in this project.',
+    id: 'edit',
+    icon: PencilLine,
+    title: 'Edit plate',
+    description: 'Change dimensions and fabrication details.',
   },
   {
     id: 'download',
     icon: ArrowDownToLine,
     title: 'Download package',
-    description: 'Export drawings and plates list',
+    description: 'Export drawing, cut list, and preview.',
   },
   {
     id: 'whatsapp',
     icon: MessageCircleCheck,
     title: 'Share via WhatsApp',
-    description: 'Send full package via whatsapp',
+    description: 'Send plate details via WhatsApp.',
   },
   {
     id: 'email',
     icon: Send,
     title: 'Share via Email',
-    description: 'Email the project package from your device.',
+    description: 'Email plate details from your device.',
   },
   {
     id: 'delete',
     icon: Trash2,
-    title: 'Delete project',
-    description: 'Remove this project from your list permanently',
+    title: 'Delete plate',
+    description: 'Remove this plate from the project permanently.',
     destructive: true,
   },
 ]
 
-export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetProps) {
-  const project = useAppStore((s) => s.getSelectedProject())
-  const setActiveProject = useAppStore((s) => s.setActiveProject)
-  const setSelectedProject = useAppStore((s) => s.setSelectedProject)
-  const openCreatePlateSheet = useAppStore((s) => s.openCreatePlateSheet)
-  const deleteProject = useAppStore((s) => s.deleteProject)
-  const restart = useProfileStore((s) => s.restart)
+export function PlateActionsSheet({ open, onOpenChange }: PlateActionsSheetProps) {
+  const ctx = useViewingPlate()
+  const startPlateEdit = useAppStore((s) => s.startPlateEdit)
+  const closePlateView = useAppStore((s) => s.closePlateView)
+  const deletePlate = useAppStore((s) => s.deletePlate)
 
   const [busyAction, setBusyAction] = useState<ActionId | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  if (!project) return null
+  if (!ctx) return null
 
+  const { project, plate } = ctx
   const closeActions = () => onOpenChange(false)
 
-  const handleAddPlate = () => {
-    restart()
-    setActiveProject(project.id)
+  const handleEdit = () => {
     closeActions()
-    openCreatePlateSheet('templates')
+    startPlateEdit()
   }
 
   const handleDownload = async () => {
     setBusyAction('download')
     setError(null)
     try {
-      const blob = await generateProjectZip(project)
-      const filename = `${slugify(`${project.name}-${project.serial}`)}.zip`
+      const metrics = computeProfileMetrics(plate.profile)
+      const blob = await generateFabricationZip(
+        plate.profile,
+        metrics,
+        plate.selectedTemplate,
+      )
+      const filename = `${slugify(plateDisplayName(plate))}.zip`
       downloadBlob(blob, filename)
       closeActions()
     } catch (e) {
@@ -111,12 +111,12 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
   }
 
   const handleWhatsApp = () => {
-    openWhatsAppShare(buildProjectShareMessage(project))
+    openWhatsAppShare(buildPlateShareMessage(project, plate))
     closeActions()
   }
 
   const handleEmail = () => {
-    const { subject, body } = buildProjectMailto(project)
+    const { subject, body } = buildPlateMailto(project, plate)
     openEmailShare(subject, body)
     closeActions()
   }
@@ -128,8 +128,8 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
 
   const runAction = (id: ActionId) => {
     switch (id) {
-      case 'add':
-        handleAddPlate()
+      case 'edit':
+        handleEdit()
         break
       case 'download':
         void handleDownload()
@@ -167,7 +167,7 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
         }
       >
         <ul className="mt-4 space-y-2 px-4 pb-4">
-          {PROJECT_ACTIONS.map((action) => (
+          {PLATE_ACTIONS.map((action) => (
             <li key={action.id}>
               <ActionRow
                 {...action}
@@ -179,13 +179,13 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
         </ul>
       </ActionsSheetLayout>
 
-      <DeleteProjectSheet
+      <DeletePlateSheet
         open={deleteOpen}
-        projectName={project.name}
+        plate={plate}
         onOpenChange={setDeleteOpen}
         onConfirm={() => {
-          deleteProject(project.id)
-          setSelectedProject(null)
+          deletePlate(project.id, plate.id)
+          closePlateView()
         }}
       />
     </>

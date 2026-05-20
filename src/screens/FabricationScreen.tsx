@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { MoveRight } from 'lucide-react'
 import { ProfileCanvas } from '@/components/canvas/ProfileCanvas'
-import { ThicknessSlider } from '@/components/fabrication/ThicknessSlider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,13 +12,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  clampThicknessForMaterial,
   defaultMaterialThickness,
   FABRICATION_FINISH_OPTIONS,
   FABRICATION_MATERIAL_OPTIONS,
   isFabricationFinishOption,
   FABRICATION_MATERIAL_OTHER,
   isFabricationMaterialOption,
+  normalizeFabricationThickness,
 } from '@/geometry/constants'
 import { useProfileStore } from '@/store/profileStore'
 
@@ -31,6 +30,7 @@ export function FabricationScreen() {
   const [errors, setErrors] = useState<string[]>([])
   const [partLengthDraft, setPartLengthDraft] = useState<string | null>(null)
   const [quantityDraft, setQuantityDraft] = useState<string | null>(null)
+  const [thicknessDraft, setThicknessDraft] = useState<string | null>(null)
 
   const commitPartLength = () => {
     if (partLengthDraft === null) return
@@ -54,6 +54,17 @@ export function FabricationScreen() {
     ? fab.material
     : FABRICATION_MATERIAL_OPTIONS[0]
 
+  const commitThickness = () => {
+    if (thicknessDraft === null) return
+    const trimmed = thicknessDraft.trim()
+    setThicknessDraft(null)
+    if (trimmed === '') return
+    const v = parseFloat(trimmed)
+    if (Number.isFinite(v) && v > 0) {
+      setFabricationField('thickness', normalizeFabricationThickness(v))
+    }
+  }
+
   const isOtherMaterial = material === FABRICATION_MATERIAL_OTHER
 
   const finish = isFabricationFinishOption(fab.finish)
@@ -67,20 +78,14 @@ export function FabricationScreen() {
     if (fab.finish !== finish) {
       setFabricationField('finish', finish)
     }
-    const clamped = clampThicknessForMaterial(fab.thickness, material)
-    if (fab.thickness !== clamped) {
-      setFabricationField('thickness', clamped)
+    if (!Number.isFinite(fab.thickness) || fab.thickness <= 0) {
+      setFabricationField('thickness', defaultMaterialThickness(material))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sync invalid persisted values once
   }, [])
 
   const handleMaterialChange = (next: string) => {
     setFabricationField('material', next)
-    const thickness = clampThicknessForMaterial(
-      fab.thickness || defaultMaterialThickness(next),
-      next,
-    )
-    setFabricationField('thickness', thickness)
   }
 
   const validate = () => {
@@ -145,11 +150,20 @@ export function FabricationScreen() {
           )}
         </div>
 
-        <ThicknessSlider
-          material={material}
-          value={fab.thickness}
-          onChange={(t) => setFabricationField('thickness', t)}
-        />
+        <div className="form-field">
+          <Label htmlFor="thickness">Thickness (mm) *</Label>
+          <Input
+            id="thickness"
+            type="number"
+            inputMode="decimal"
+            min={0}
+            step="any"
+            value={thicknessDraft ?? fab.thickness}
+            onFocus={() => setThicknessDraft('')}
+            onChange={(e) => setThicknessDraft(e.target.value)}
+            onBlur={commitThickness}
+          />
+        </div>
 
         <div className="form-field-grid">
           <div className="form-field">

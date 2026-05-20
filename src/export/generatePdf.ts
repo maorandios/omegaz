@@ -7,7 +7,7 @@ import {
   FLAT_WIDTH_LABEL,
   type FoldedProfile,
 } from '@/geometry/types'
-import { formatMm, todayIsoDate } from '@/lib/format'
+import { formatInteger, formatMm, todayIsoDate } from '@/lib/format'
 
 interface ProfileMetrics {
   flatWidth: number
@@ -77,13 +77,13 @@ export function generatePdf(profile: FoldedProfile, metrics: ProfileMetrics): Bl
     ['Material', getFabricationMaterialLabel(fab.material, fab.materialCustom)],
     ['Thickness', formatMm(fab.thickness)],
     ['Part Length', formatMm(fab.partLength)],
-    ['Quantity', String(fab.quantity)],
+    ['Quantity', formatInteger(fab.quantity)],
     ['Hem', fab.hem ? 'Yes' : 'No'],
     ['Checker plate', fab.checkerPlate ? 'Yes' : 'No'],
     ['Finish', fab.finish],
     ['Notes', fab.notes || '—'],
     [FLAT_WIDTH_LABEL, formatMm(flatWidth)],
-    ['Bend Count', String(metrics.bendCount)],
+    ['Bend Count', formatInteger(metrics.bendCount)],
     ['Profile Width', formatMm(metrics.bounds.width)],
     ['Profile Height', formatMm(metrics.bounds.height)],
   ]

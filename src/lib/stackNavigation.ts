@@ -1,6 +1,10 @@
 import type { AppStep } from '@/geometry/types'
 import type { StackDirection } from '@/components/shell/ScreenStack'
 
+export function rootStackDirection(_fromKey: string, toKey: string): StackDirection {
+  return toKey === 'workflow' ? 'forward' : 'back'
+}
+
 export function projectsStackDirection(_fromKey: string, toKey: string): StackDirection {
   return toKey === 'detail' ? 'forward' : 'back'
 }

@@ -11,7 +11,7 @@ import { useAppStore } from '@/store/appStore'
 
 export function ProjectDetailView() {
   const project = useAppStore((s) => s.getSelectedProject())
-  const openPlateForEdit = useAppStore((s) => s.openPlateForEdit)
+  const openPlateView = useAppStore((s) => s.openPlateView)
 
   if (!project) {
     return <p className="text-sm text-muted">Project not found.</p>
@@ -48,7 +48,7 @@ export function ProjectDetailView() {
             <li key={plate.id}>
               <PlateListRow
                 plate={plate}
-                onOpen={() => openPlateForEdit(project.id, plate.id)}
+                onOpen={() => openPlateView(project.id, plate.id)}
               />
             </li>
           ))}

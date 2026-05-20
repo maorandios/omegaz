@@ -103,7 +103,7 @@
     }
   }
 
-  .app-tab-shell {
+  .app-shell {
     position: fixed;
     inset: 0;
     display: flex;
@@ -117,7 +117,7 @@
     --bottom-dock-h: 3.5rem;
   }
 
-  .app-tab-shell__body {
+  .app-shell__body {
     flex: 1;
     min-height: 0;
     display: flex;
@@ -125,48 +125,62 @@
     padding-bottom: var(--bottom-dock-h);
   }
 
-  /* Projects tab: list/detail stack grows with content. */
-  .app-tab-shell .screen-stack {
+  .app-shell--workflow .app-shell__body {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Root stack: tabs ↔ plate workflow (always full-height overlay). */
+  .app-shell-stack {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .app-shell-stack > .screen-stack__pane {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Projects list/detail stack inside tab pane. */
+  .app-shell-tab-pane .screen-stack {
+    width: 100%;
+  }
+
+  .app-shell-tab-pane .screen-stack:not([data-animating='true']) {
     flex: none;
     min-height: auto;
     overflow: visible;
   }
 
-  .app-tab-shell .screen-stack__pane,
-  .app-tab-shell .screen-stack__pane--active {
+  .app-shell-tab-pane .screen-stack:not([data-animating='true']) .screen-stack__pane--active {
     position: relative;
     inset: auto;
     overflow: visible;
-    min-height: auto;
     height: auto;
+    min-height: auto;
+    will-change: auto;
   }
 
-  .workflow-shell {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    overflow: hidden;
-    background: var(--color-background);
-    padding-top: env(safe-area-inset-top);
-    padding-right: env(safe-area-inset-right);
-    padding-left: env(safe-area-inset-left);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-
-  .workflow-shell__main {
-    flex: 1;
+  .app-shell-tab-pane .screen-stack[data-animating='true'] {
+    flex: 1 1 auto;
     min-height: 0;
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
+  }
+
+  .app-shell-tab-pane .screen-stack[data-animating='true'] .screen-stack__pane {
+    position: absolute;
+    inset: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100%;
   }
 
   .workflow-stack-host {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
+    width: 100%;
+    height: 100%;
     min-height: 0;
     overflow: hidden;
   }
@@ -227,6 +241,22 @@
     display: flex;
     flex-direction: column;
     gap: 1.75rem;
+  }
+
+  /* Gap between review card and save / post-save actions (sibling of .summary-screen) */
+  .summary-cta {
+    flex-shrink: 0;
+    margin-top: 1.25rem;
+  }
+
+  .summary-save-actions {
+    flex-shrink: 0;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Plate view: gap below review list card (extends scroll area, clears fixed dock) */
+  .app-shell[data-plate-view] .summary-review {
+    margin-bottom: 1.5rem;
   }
 
   .summary-review {
@@ -303,11 +333,12 @@
   }
 
   .fabrication-options {
-    gap: 0.75rem;
+    gap: 1.25rem;
   }
 
   .hem-option {
     display: flex;
+    min-height: 2.75rem;
     align-items: center;
     gap: 0.75rem;
     cursor: pointer;
@@ -712,6 +743,7 @@
     min-height: 0;
     overflow: hidden;
     isolation: isolate;
+    contain: layout style;
   }
 
   .screen-stack__pane {
@@ -723,36 +755,59 @@
     background: var(--color-background);
     -webkit-overflow-scrolling: touch;
     backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
   }
 
   .screen-stack__pane--active {
     z-index: 0;
+    will-change: auto;
+  }
+
+  .screen-stack__pane--enter-forward-prep {
+    z-index: 2;
+    transform: translate3d(100%, 0, 0);
+  }
+
+  .screen-stack__pane--exit-forward-prep {
+    z-index: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .screen-stack__pane--enter-back-prep {
+    z-index: 1;
+    transform: translate3d(-28%, 0, 0);
+  }
+
+  .screen-stack__pane--exit-back-prep {
+    z-index: 2;
+    transform: translate3d(0, 0, 0);
   }
 
   .screen-stack__pane--enter-forward {
     z-index: 2;
-    box-shadow: -12px 0 32px color-mix(in srgb, var(--color-background) 55%, transparent);
+    box-shadow: -8px 0 24px color-mix(in srgb, var(--color-background) 45%, transparent);
     animation: stack-enter-forward var(--stack-transition-duration, 300ms)
-      cubic-bezier(0.22, 1, 0.36, 1) both;
+      cubic-bezier(0.32, 0.72, 0, 1) both;
   }
 
   .screen-stack__pane--exit-forward {
     z-index: 1;
     animation: stack-exit-forward var(--stack-transition-duration, 300ms)
-      cubic-bezier(0.22, 1, 0.36, 1) both;
+      cubic-bezier(0.32, 0.72, 0, 1) forwards;
   }
 
   .screen-stack__pane--enter-back {
     z-index: 1;
     animation: stack-enter-back var(--stack-transition-duration, 300ms)
-      cubic-bezier(0.22, 1, 0.36, 1) both;
+      cubic-bezier(0.32, 0.72, 0, 1) both;
   }
 
   .screen-stack__pane--exit-back {
     z-index: 2;
-    box-shadow: 12px 0 32px color-mix(in srgb, var(--color-background) 55%, transparent);
+    box-shadow: 8px 0 24px color-mix(in srgb, var(--color-background) 45%, transparent);
     animation: stack-exit-back var(--stack-transition-duration, 300ms)
-      cubic-bezier(0.22, 1, 0.36, 1) both;
+      cubic-bezier(0.32, 0.72, 0, 1) forwards;
   }
 
   @keyframes stack-enter-forward {
@@ -767,15 +822,17 @@
   @keyframes stack-exit-forward {
     from {
       transform: translate3d(0, 0, 0);
+      opacity: 1;
     }
     to {
-      transform: translate3d(-30%, 0, 0);
+      transform: translate3d(-28%, 0, 0);
+      opacity: 0;
     }
   }
 
   @keyframes stack-enter-back {
     from {
-      transform: translate3d(-30%, 0, 0);
+      transform: translate3d(-28%, 0, 0);
     }
     to {
       transform: translate3d(0, 0, 0);
@@ -785,18 +842,26 @@
   @keyframes stack-exit-back {
     from {
       transform: translate3d(0, 0, 0);
+      opacity: 1;
     }
     to {
       transform: translate3d(100%, 0, 0);
+      opacity: 0;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .screen-stack__pane--enter-forward-prep,
+    .screen-stack__pane--exit-forward-prep,
+    .screen-stack__pane--enter-back-prep,
+    .screen-stack__pane--exit-back-prep,
     .screen-stack__pane--enter-forward,
     .screen-stack__pane--exit-forward,
     .screen-stack__pane--enter-back,
     .screen-stack__pane--exit-back {
       animation: none;
+      transform: none;
+      opacity: 1;
     }
   }
 }

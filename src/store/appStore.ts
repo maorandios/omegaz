@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
-import type { FoldedProfile } from '@/geometry/types'
+import { cloneFoldedProfile, type FoldedProfile } from '@/geometry/types'
 import { createId } from '@/geometry/types'
 import { loadAppData, saveAppData, type StoredSubscription, type StoredUser } from '@/store/projectsPersist'
 import { defaultSubscription } from '@/store/userTypes'
@@ -28,6 +28,8 @@ interface AppState {
   projects: ProjectRecord[]
   activeProjectId: string | null
   editingPlateId: string | null
+  /** Browsing an existing plate (read-only) before optional edit. */
+  viewingPlateId: string | null
   selectedProjectId: string | null
   hydrated: boolean
 
@@ -48,7 +50,10 @@ interface AppState {
     profile: FoldedProfile,
     selectedTemplate: string | null,
   ) => boolean
-  openPlateForEdit: (projectId: string, plateId: string) => void
+  openPlateView: (projectId: string, plateId: string) => void
+  closePlateView: () => void
+  startPlateEdit: () => void
+  getViewingPlate: () => { project: ProjectRecord; plate: PlateRecord } | null
   deleteProject: (projectId: string) => void
   deletePlate: (projectId: string, plateId: string) => void
 }
@@ -62,16 +67,17 @@ function persist(state: AppState) {
 }
 
 function loadProfileIntoWorkflow(profile: FoldedProfile, selectedTemplate: string | null) {
-  const steps = buildWizardSteps(profile, selectedTemplate)
+  const draft = cloneFoldedProfile(profile)
+  const steps = buildWizardSteps(draft, selectedTemplate)
   useProfileStore.setState({
-    profile,
-    initialProfile: JSON.parse(JSON.stringify(profile)) as FoldedProfile,
+    profile: draft,
+    initialProfile: cloneFoldedProfile(draft),
     selectedTemplate,
-    currentStep: 'summary',
-    wizardIndex: Math.max(0, steps.length - 1),
-    activeItemId: steps[steps.length - 1]?.id ?? null,
+    currentStep: 'segment-wizard',
+    wizardIndex: 0,
+    activeItemId: steps[0]?.id ?? null,
     sketchPoints: [],
-    clearWizardInput: false,
+    clearWizardInput: true,
     history: [],
   })
   useProfileStore.getState().persistToSession()
@@ -86,6 +92,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   projects: [],
   activeProjectId: null,
   editingPlateId: null,
+  viewingPlateId: null,
   selectedProjectId: null,
   hydrated: false,
 
@@ -99,6 +106,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (step === 'choose' || step === 'new') {
       updates.activeProjectId = null
       updates.editingPlateId = null
+      updates.viewingPlateId = null
     }
     set(updates)
   },
@@ -132,6 +140,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       createPlateSheetStep: 'choose',
       activeProjectId: null,
       editingPlateId: null,
+      viewingPlateId: null,
       selectedProjectId: null,
     })
   },
@@ -143,6 +152,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       subscription: data.subscription,
       projects: data.projects,
       activeProjectId: null,
+      viewingPlateId: null,
       hydrated: true,
     })
   },
@@ -151,7 +161,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ activeProjectId: projectId, editingPlateId: null })
   },
 
-  setSelectedProject: (projectId) => set({ selectedProjectId: projectId }),
+  setSelectedProject: (projectId) =>
+    set({
+      selectedProjectId: projectId,
+      viewingPlateId: projectId == null ? null : get().viewingPlateId,
+    }),
 
   createProject: (name) => {
     const trimmed = name.trim()
@@ -186,12 +200,14 @@ export const useAppStore = create<AppState>((set, get) => ({
     return projects.find((p) => p.id === selectedProjectId) ?? null
   },
 
+  /** Only entry point that adds or updates plates in a project (explicit save button). */
   savePlateToActiveProject: (profile, selectedTemplate) => {
     const { activeProjectId, editingPlateId, projects } = get()
     if (!activeProjectId) return false
 
     const now = new Date().toISOString()
-    const weightKg = computePlateWeightKg(profile)
+    const savedProfile = cloneFoldedProfile(profile)
+    const weightKg = computePlateWeightKg(savedProfile)
 
     const next = projects.map((project) => {
       if (project.id !== activeProjectId) return project
@@ -202,7 +218,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           plate.id === editingPlateId
             ? {
                 ...plate,
-                profile: JSON.parse(JSON.stringify(profile)) as FoldedProfile,
+                profile: savedProfile,
                 selectedTemplate,
                 weightKg,
                 updatedAt: now,
@@ -212,7 +228,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       } else {
         plates = [
           ...project.plates,
-          createPlateRecord(profile, selectedTemplate),
+          createPlateRecord(savedProfile, selectedTemplate),
         ]
       }
 
@@ -229,28 +245,51 @@ export const useAppStore = create<AppState>((set, get) => ({
     return true
   },
 
-  openPlateForEdit: (projectId, plateId) => {
+  openPlateView: (projectId, plateId) => {
     const project = get().projects.find((p) => p.id === projectId)
     const plate = project?.plates.find((pl) => pl.id === plateId)
     if (!project || !plate) return
 
     set({
+      mainTab: 'projects',
       activeProjectId: projectId,
-      editingPlateId: plateId,
       selectedProjectId: projectId,
+      viewingPlateId: plateId,
+      editingPlateId: null,
     })
+  },
 
-    loadProfileIntoWorkflow(plate.profile, plate.selectedTemplate)
+  closePlateView: () => {
+    set({ viewingPlateId: null })
+  },
+
+  startPlateEdit: () => {
+    const ctx = get().getViewingPlate()
+    if (!ctx) return
+
+    set({ viewingPlateId: null, editingPlateId: ctx.plate.id })
+    loadProfileIntoWorkflow(ctx.plate.profile, ctx.plate.selectedTemplate)
+  },
+
+  getViewingPlate: () => {
+    const { viewingPlateId, selectedProjectId, projects } = get()
+    if (!viewingPlateId || !selectedProjectId) return null
+    const project = projects.find((p) => p.id === selectedProjectId)
+    const plate = project?.plates.find((p) => p.id === viewingPlateId)
+    if (!project || !plate) return null
+    return { project, plate }
   },
 
   deleteProject: (projectId) => {
-    const { activeProjectId, selectedProjectId } = get()
+    const { activeProjectId, selectedProjectId, viewingPlateId } = get()
+    const clearsProject = selectedProjectId === projectId
     const next = get().projects.filter((p) => p.id !== projectId)
     set({
       projects: next,
       activeProjectId: activeProjectId === projectId ? null : activeProjectId,
-      selectedProjectId: selectedProjectId === projectId ? null : selectedProjectId,
+      selectedProjectId: clearsProject ? null : selectedProjectId,
       editingPlateId: activeProjectId === projectId ? null : get().editingPlateId,
+      viewingPlateId: clearsProject ? null : viewingPlateId,
     })
     persist({
       ...get(),
@@ -271,13 +310,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         updatedAt: now,
       }
     })
-    const { editingPlateId, activeProjectId } = get()
+    const { editingPlateId, viewingPlateId, activeProjectId } = get()
+    const clearsPlate =
+      activeProjectId === projectId &&
+      (editingPlateId === plateId || viewingPlateId === plateId)
     set({
       projects: next,
-      editingPlateId:
-        activeProjectId === projectId && editingPlateId === plateId
-          ? null
-          : editingPlateId,
+      editingPlateId: clearsPlate ? null : editingPlateId,
+      viewingPlateId: clearsPlate ? null : viewingPlateId,
     })
     persist({ ...get(), projects: next })
   },
