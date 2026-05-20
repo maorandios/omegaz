@@ -1,25 +1,17 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { AppShell } from '@/app/AppShell'
 import { ScreenStack } from '@/components/shell/ScreenStack'
+import { FabricationScreen } from '@/screens/FabricationScreen'
 import { ProjectsScreen } from '@/screens/ProjectsScreen'
+import { SegmentWizardScreen } from '@/screens/SegmentWizardScreen'
+import { SketchScreen } from '@/screens/SketchScreen'
+import { SummaryScreen } from '@/screens/SummaryScreen'
 import { workflowStackDirection } from '@/lib/stackNavigation'
 import { isWorkflowStep, useAppStore } from '@/store/appStore'
 import { useProfileStore } from '@/store/profileStore'
 
 const ProfileScreen = lazy(() =>
   import('@/screens/ProfileScreen').then((m) => ({ default: m.ProfileScreen })),
-)
-const SketchScreen = lazy(() =>
-  import('@/screens/SketchScreen').then((m) => ({ default: m.SketchScreen })),
-)
-const SegmentWizardScreen = lazy(() =>
-  import('@/screens/SegmentWizardScreen').then((m) => ({ default: m.SegmentWizardScreen })),
-)
-const FabricationScreen = lazy(() =>
-  import('@/screens/FabricationScreen').then((m) => ({ default: m.FabricationScreen })),
-)
-const SummaryScreen = lazy(() =>
-  import('@/screens/SummaryScreen').then((m) => ({ default: m.SummaryScreen })),
 )
 
 function ScreenFallback() {
@@ -79,7 +71,7 @@ export default function App() {
 
   return (
     <AppShell inWorkflow={inWorkflow}>
-      <Suspense fallback={<ScreenFallback />}>{content}</Suspense>
+      {inWorkflow ? content : <Suspense fallback={<ScreenFallback />}>{content}</Suspense>}
     </AppShell>
   )
 }

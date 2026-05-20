@@ -172,27 +172,17 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
     />
   )
 
-  if (isWizard) {
+  if (inWorkflow) {
     return (
       <>
-        <div className="wizard-shell">
+        <div className="workflow-shell text-foreground">
           {header}
-          <main className="wizard-shell__main mx-auto w-full max-w-lg">{children}</main>
+          <main className="workflow-shell__main mx-auto w-full max-w-lg">
+            <div className="workflow-stack-host">{children}</div>
+          </main>
         </div>
         {exitSheet}
       </>
-    )
-  }
-
-  if (inWorkflow) {
-    return (
-      <div className="app-tab-shell text-foreground">
-        {header}
-        <PullToRefresh className="mx-auto flex min-h-0 w-full max-w-lg flex-1 flex-col">
-          <main className="w-full px-4 py-4 pb-8">{children}</main>
-        </PullToRefresh>
-        {exitSheet}
-      </div>
     )
   }
 

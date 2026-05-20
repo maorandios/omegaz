@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 export type StackDirection = 'forward' | 'back'
@@ -10,51 +10,54 @@ interface ScreenStackProps {
   className?: string
 }
 
-const TRANSITION_MS = 340
+export const STACK_TRANSITION_MS = 320
 
 export function ScreenStack({ activeKey, screens, getDirection, className }: ScreenStackProps) {
   const prevKeyRef = useRef(activeKey)
   const [direction, setDirection] = useState<StackDirection>('forward')
   const [visibleKeys, setVisibleKeys] = useState<string[]>([activeKey])
+  const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
     if (activeKey === prevKeyRef.current) return
 
     const fromKey = prevKeyRef.current
-    const nextDirection = getDirection?.(fromKey, activeKey) ?? 'forward'
-    setDirection(nextDirection)
+    setDirection(getDirection?.(fromKey, activeKey) ?? 'forward')
+    setIsAnimating(true)
     setVisibleKeys([fromKey, activeKey])
 
     const timer = window.setTimeout(() => {
+      setIsAnimating(false)
       setVisibleKeys([activeKey])
       prevKeyRef.current = activeKey
-    }, TRANSITION_MS)
+    }, STACK_TRANSITION_MS)
 
     return () => window.clearTimeout(timer)
   }, [activeKey, getDirection])
 
-  const isTransitioning = visibleKeys.length > 1
-
   return (
-    <div className={cn('screen-stack', className)}>
+    <div
+      className={cn('screen-stack', className)}
+      style={{ '--stack-transition-duration': `${STACK_TRANSITION_MS}ms` } as CSSProperties}
+    >
       {visibleKeys.map((key) => {
         const isExiting = key !== activeKey
-        const paneClass =
-          isTransitioning && isExiting
+        const paneClass = isAnimating
+          ? isExiting
             ? direction === 'forward'
               ? 'screen-stack__pane--exit-forward'
               : 'screen-stack__pane--exit-back'
-            : isTransitioning && !isExiting
-              ? direction === 'forward'
-                ? 'screen-stack__pane--enter-forward'
-                : 'screen-stack__pane--enter-back'
-              : 'screen-stack__pane--active'
+            : direction === 'forward'
+              ? 'screen-stack__pane--enter-forward'
+              : 'screen-stack__pane--enter-back'
+          : 'screen-stack__pane--active'
 
         return (
           <div
-            key={`${key}-${isExiting ? 'exit' : 'enter'}`}
+            key={key}
             className={cn('screen-stack__pane', paneClass)}
             aria-hidden={isExiting}
+            style={isExiting ? { pointerEvents: 'none' } : undefined}
           >
             {screens[key]}
           </div>
