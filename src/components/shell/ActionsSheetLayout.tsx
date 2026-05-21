@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
+import { MoveLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 import {
   Sheet,
@@ -14,6 +15,7 @@ interface ActionsSheetLayoutProps {
   title: string
   children: ReactNode
   footer?: ReactNode
+  onBack?: () => void
 }
 
 export function ActionsSheetLayout({
@@ -23,6 +25,7 @@ export function ActionsSheetLayout({
   title,
   children,
   footer,
+  onBack,
 }: ActionsSheetLayoutProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -35,7 +38,18 @@ export function ActionsSheetLayout({
           <div className="mx-auto mb-4 h-1 w-10 shrink-0 rounded-full bg-border" aria-hidden />
           <SheetHeader className="text-left">
             <div className="flex items-center gap-2">
-              <TitleIcon className="h-5 w-5 shrink-0 stroke-[1.75px] text-primary" aria-hidden />
+              {onBack ? (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-surface/55"
+                  aria-label="Back"
+                >
+                  <MoveLeft className="h-5 w-5 stroke-[1.75px]" aria-hidden />
+                </button>
+              ) : (
+                <TitleIcon className="h-5 w-5 shrink-0 stroke-[1.75px] text-primary" aria-hidden />
+              )}
               <SheetTitle className="mb-0">{title}</SheetTitle>
             </div>
           </SheetHeader>

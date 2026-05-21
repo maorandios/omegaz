@@ -7,19 +7,17 @@ import {
   Settings2,
   Trash2,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DeleteProjectSheet } from '@/components/projects/DeleteProjectSheet'
 import { ActionRow } from '@/components/shell/ActionRow'
 import { ActionsSheetLayout } from '@/components/shell/ActionsSheetLayout'
+import { PROJECT_PACKAGE_OPTIONS } from '@/components/shell/packagePickerOptions'
+import type { PackageMode } from '@/lib/packageMode'
 import { generateProjectZip } from '@/export/generateProjectZip'
 import { downloadBlob } from '@/lib/downloadBlob'
-import {
-  buildProjectMailto,
-  buildProjectShareMessage,
-  openEmailShare,
-  openWhatsAppShare,
-} from '@/lib/projectShare'
 import { slugify } from '@/lib/format'
+import { buildProjectSharePayload } from '@/lib/projectShare'
+import { sharePackageFile } from '@/lib/sharePackage'
 import { useAppStore } from '@/store/appStore'
 import { useProfileStore } from '@/store/profileStore'
 
@@ -29,6 +27,8 @@ interface ProjectActionsSheetProps {
 }
 
 type ActionId = 'add' | 'download' | 'whatsapp' | 'email' | 'delete'
+type SheetView = 'actions' | 'package-picker'
+type PickerMode = 'download' | 'whatsapp' | 'email'
 
 interface ActionRowConfig {
   id: ActionId
@@ -48,20 +48,20 @@ const PROJECT_ACTIONS: ActionRowConfig[] = [
   {
     id: 'download',
     icon: ArrowDownToLine,
-    title: 'Download package',
-    description: 'Export drawings and plates list',
+    title: 'Downloads',
+    description: 'Drawings only or full project package',
   },
   {
     id: 'whatsapp',
     icon: MessageCircleCheck,
     title: 'Share via WhatsApp',
-    description: 'Send full package via whatsapp',
+    description: 'Drawings only or full package',
   },
   {
     id: 'email',
     icon: Send,
     title: 'Share via Email',
-    description: 'Email the project package from your device.',
+    description: 'Drawings only or full package',
   },
   {
     id: 'delete',
@@ -72,6 +72,27 @@ const PROJECT_ACTIONS: ActionRowConfig[] = [
   },
 ]
 
+const PICKER_META: Record<
+  PickerMode,
+  { title: string; icon: LucideIcon; busyLabel: string }
+> = {
+  download: {
+    title: 'Downloads',
+    icon: ArrowDownToLine,
+    busyLabel: 'Preparing download…',
+  },
+  whatsapp: {
+    title: 'Share via WhatsApp',
+    icon: MessageCircleCheck,
+    busyLabel: 'Preparing to share…',
+  },
+  email: {
+    title: 'Share via Email',
+    icon: Send,
+    busyLabel: 'Preparing to share…',
+  },
+}
+
 export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetProps) {
   const project = useAppStore((s) => s.getSelectedProject())
   const setActiveProject = useAppStore((s) => s.setActiveProject)
@@ -80,13 +101,26 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
   const deleteProject = useAppStore((s) => s.deleteProject)
   const restart = useProfileStore((s) => s.restart)
 
-  const [busyAction, setBusyAction] = useState<ActionId | null>(null)
+  const [sheetView, setSheetView] = useState<SheetView>('actions')
+  const [pickerMode, setPickerMode] = useState<PickerMode | null>(null)
+  const [busyPicker, setBusyPicker] = useState<PackageMode | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
+
+  useEffect(() => {
+    if (!open) {
+      setSheetView('actions')
+      setPickerMode(null)
+      setBusyPicker(null)
+      setError(null)
+    }
+  }, [open])
 
   if (!project) return null
 
   const closeActions = () => onOpenChange(false)
+  const isBusy = busyPicker !== null
+  const picker = pickerMode ? PICKER_META[pickerMode] : null
 
   const handleAddPlate = () => {
     restart()
@@ -95,35 +129,42 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
     openCreatePlateSheet('templates')
   }
 
-  const handleDownload = async () => {
-    setBusyAction('download')
+  const projectFilename = (mode: PackageMode) => {
+    const base = slugify(`${project.name}-${project.serial}`)
+    const suffix = mode === 'drawings' ? 'drawings' : 'package'
+    return `${base}-${suffix}.zip`
+  }
+
+  const handlePackagePick = async (mode: PackageMode) => {
+    if (!pickerMode) return
+    setBusyPicker(mode)
     setError(null)
     try {
-      const blob = await generateProjectZip(project)
-      const filename = `${slugify(`${project.name}-${project.serial}`)}.zip`
-      downloadBlob(blob, filename)
+      const blob = await generateProjectZip(project, mode)
+      const filename = projectFilename(mode)
+
+      if (pickerMode === 'download') {
+        downloadBlob(blob, filename)
+      } else {
+        const payload = buildProjectSharePayload(project, mode)
+        await sharePackageFile(blob, filename, payload, pickerMode)
+      }
       closeActions()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Download failed')
+      setError(e instanceof Error ? e.message : 'Something went wrong')
     } finally {
-      setBusyAction(null)
+      setBusyPicker(null)
     }
-  }
-
-  const handleWhatsApp = () => {
-    openWhatsAppShare(buildProjectShareMessage(project))
-    closeActions()
-  }
-
-  const handleEmail = () => {
-    const { subject, body } = buildProjectMailto(project)
-    openEmailShare(subject, body)
-    closeActions()
   }
 
   const handleDeleteRequest = () => {
     closeActions()
     setDeleteOpen(true)
+  }
+
+  const openPicker = (mode: PickerMode) => {
+    setPickerMode(mode)
+    setSheetView('package-picker')
   }
 
   const runAction = (id: ActionId) => {
@@ -132,13 +173,13 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
         handleAddPlate()
         break
       case 'download':
-        void handleDownload()
+        openPicker('download')
         break
       case 'whatsapp':
-        handleWhatsApp()
+        openPicker('whatsapp')
         break
       case 'email':
-        handleEmail()
+        openPicker('email')
         break
       case 'delete':
         handleDeleteRequest()
@@ -151,8 +192,16 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
       <ActionsSheetLayout
         open={open}
         onOpenChange={onOpenChange}
-        titleIcon={Settings2}
-        title="Actions"
+        titleIcon={picker?.icon ?? Settings2}
+        title={picker?.title ?? 'Actions'}
+        onBack={
+          sheetView === 'package-picker'
+            ? () => {
+                setSheetView('actions')
+                setPickerMode(null)
+              }
+            : undefined
+        }
         footer={
           <>
             {error ? (
@@ -160,23 +209,37 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
                 {error}
               </p>
             ) : null}
-            {busyAction === 'download' ? (
-              <p className="px-4 pb-4 text-center text-sm text-muted">Preparing package…</p>
+            {busyPicker && picker ? (
+              <p className="px-4 pb-4 text-center text-sm text-muted">{picker.busyLabel}</p>
             ) : null}
           </>
         }
       >
-        <ul className="mt-4 space-y-2 px-4 pb-4">
-          {PROJECT_ACTIONS.map((action) => (
-            <li key={action.id}>
-              <ActionRow
-                {...action}
-                disabled={busyAction !== null}
-                onSelect={() => runAction(action.id)}
-              />
-            </li>
-          ))}
-        </ul>
+        {sheetView === 'actions' ? (
+          <ul className="mt-4 space-y-2 px-4 pb-4">
+            {PROJECT_ACTIONS.map((action) => (
+              <li key={action.id}>
+                <ActionRow
+                  {...action}
+                  disabled={isBusy}
+                  onSelect={() => runAction(action.id)}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul className="mt-4 space-y-2 px-4 pb-4">
+            {PROJECT_PACKAGE_OPTIONS.map((option) => (
+              <li key={option.id}>
+                <ActionRow
+                  {...option}
+                  disabled={isBusy}
+                  onSelect={() => void handlePackagePick(option.id)}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
       </ActionsSheetLayout>
 
       <DeleteProjectSheet

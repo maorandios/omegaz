@@ -7,16 +7,18 @@ import {
   Settings2,
   Trash2,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DeletePlateSheet } from '@/components/projects/DeletePlateSheet'
 import { ActionRow } from '@/components/shell/ActionRow'
 import { ActionsSheetLayout } from '@/components/shell/ActionsSheetLayout'
+import { PLATE_PACKAGE_OPTIONS } from '@/components/shell/packagePickerOptions'
+import type { PackageMode } from '@/lib/packageMode'
 import { generateFabricationZip } from '@/export/generateZip'
 import { downloadBlob } from '@/lib/downloadBlob'
-import { buildPlateMailto, buildPlateShareMessage } from '@/lib/plateShare'
-import { openEmailShare, openWhatsAppShare } from '@/lib/projectShare'
 import { slugify } from '@/lib/format'
 import { computeProfileMetrics } from '@/lib/profileMetrics'
+import { buildPlateSharePayload } from '@/lib/plateShare'
+import { sharePackageFile } from '@/lib/sharePackage'
 import { useViewingPlate } from '@/hooks/useViewingPlate'
 import { plateDisplayName } from '@/store/projectTypes'
 import { useAppStore } from '@/store/appStore'
@@ -27,6 +29,8 @@ interface PlateActionsSheetProps {
 }
 
 type ActionId = 'edit' | 'download' | 'whatsapp' | 'email' | 'delete'
+type SheetView = 'actions' | 'package-picker'
+type PickerMode = 'download' | 'whatsapp' | 'email'
 
 interface ActionRowConfig {
   id: ActionId
@@ -46,20 +50,20 @@ const PLATE_ACTIONS: ActionRowConfig[] = [
   {
     id: 'download',
     icon: ArrowDownToLine,
-    title: 'Download package',
-    description: 'Export drawing, cut list, and preview.',
+    title: 'Downloads',
+    description: 'Drawing PDF or full plate package',
   },
   {
     id: 'whatsapp',
     icon: MessageCircleCheck,
     title: 'Share via WhatsApp',
-    description: 'Send plate details via WhatsApp.',
+    description: 'Drawing PDF or full plate package',
   },
   {
     id: 'email',
     icon: Send,
     title: 'Share via Email',
-    description: 'Email plate details from your device.',
+    description: 'Drawing PDF or full plate package',
   },
   {
     id: 'delete',
@@ -70,28 +74,67 @@ const PLATE_ACTIONS: ActionRowConfig[] = [
   },
 ]
 
+const PICKER_META: Record<
+  PickerMode,
+  { title: string; icon: LucideIcon; busyLabel: string }
+> = {
+  download: {
+    title: 'Downloads',
+    icon: ArrowDownToLine,
+    busyLabel: 'Preparing download…',
+  },
+  whatsapp: {
+    title: 'Share via WhatsApp',
+    icon: MessageCircleCheck,
+    busyLabel: 'Preparing to share…',
+  },
+  email: {
+    title: 'Share via Email',
+    icon: Send,
+    busyLabel: 'Preparing to share…',
+  },
+}
+
 export function PlateActionsSheet({ open, onOpenChange }: PlateActionsSheetProps) {
   const ctx = useViewingPlate()
   const startPlateEdit = useAppStore((s) => s.startPlateEdit)
   const closePlateView = useAppStore((s) => s.closePlateView)
   const deletePlate = useAppStore((s) => s.deletePlate)
 
-  const [busyAction, setBusyAction] = useState<ActionId | null>(null)
+  const [sheetView, setSheetView] = useState<SheetView>('actions')
+  const [pickerMode, setPickerMode] = useState<PickerMode | null>(null)
+  const [busyPicker, setBusyPicker] = useState<PackageMode | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
+
+  useEffect(() => {
+    if (!open) {
+      setSheetView('actions')
+      setPickerMode(null)
+      setBusyPicker(null)
+      setError(null)
+    }
+  }, [open])
 
   if (!ctx) return null
 
   const { project, plate } = ctx
   const closeActions = () => onOpenChange(false)
+  const isBusy = busyPicker !== null
+  const picker = pickerMode ? PICKER_META[pickerMode] : null
+  const plateSlug = slugify(plateDisplayName(plate))
+
+  const plateFilename = (mode: PackageMode) =>
+    mode === 'drawings' ? `${plateSlug}-drawing.pdf` : `${plateSlug}-package.zip`
 
   const handleEdit = () => {
     closeActions()
     startPlateEdit()
   }
 
-  const handleDownload = async () => {
-    setBusyAction('download')
+  const handlePackagePick = async (mode: PackageMode) => {
+    if (!pickerMode) return
+    setBusyPicker(mode)
     setError(null)
     try {
       const metrics = computeProfileMetrics(plate.profile)
@@ -99,31 +142,32 @@ export function PlateActionsSheet({ open, onOpenChange }: PlateActionsSheetProps
         plate.profile,
         metrics,
         plate.selectedTemplate,
+        mode,
       )
-      const filename = `${slugify(plateDisplayName(plate))}.zip`
-      downloadBlob(blob, filename)
+      const filename = plateFilename(mode)
+
+      if (pickerMode === 'download') {
+        downloadBlob(blob, filename)
+      } else {
+        const payload = buildPlateSharePayload(project, plate, mode)
+        await sharePackageFile(blob, filename, payload, pickerMode)
+      }
       closeActions()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Download failed')
+      setError(e instanceof Error ? e.message : 'Something went wrong')
     } finally {
-      setBusyAction(null)
+      setBusyPicker(null)
     }
-  }
-
-  const handleWhatsApp = () => {
-    openWhatsAppShare(buildPlateShareMessage(project, plate))
-    closeActions()
-  }
-
-  const handleEmail = () => {
-    const { subject, body } = buildPlateMailto(project, plate)
-    openEmailShare(subject, body)
-    closeActions()
   }
 
   const handleDeleteRequest = () => {
     closeActions()
     setDeleteOpen(true)
+  }
+
+  const openPicker = (mode: PickerMode) => {
+    setPickerMode(mode)
+    setSheetView('package-picker')
   }
 
   const runAction = (id: ActionId) => {
@@ -132,13 +176,13 @@ export function PlateActionsSheet({ open, onOpenChange }: PlateActionsSheetProps
         handleEdit()
         break
       case 'download':
-        void handleDownload()
+        openPicker('download')
         break
       case 'whatsapp':
-        handleWhatsApp()
+        openPicker('whatsapp')
         break
       case 'email':
-        handleEmail()
+        openPicker('email')
         break
       case 'delete':
         handleDeleteRequest()
@@ -151,8 +195,16 @@ export function PlateActionsSheet({ open, onOpenChange }: PlateActionsSheetProps
       <ActionsSheetLayout
         open={open}
         onOpenChange={onOpenChange}
-        titleIcon={Settings2}
-        title="Actions"
+        titleIcon={picker?.icon ?? Settings2}
+        title={picker?.title ?? 'Actions'}
+        onBack={
+          sheetView === 'package-picker'
+            ? () => {
+                setSheetView('actions')
+                setPickerMode(null)
+              }
+            : undefined
+        }
         footer={
           <>
             {error ? (
@@ -160,23 +212,37 @@ export function PlateActionsSheet({ open, onOpenChange }: PlateActionsSheetProps
                 {error}
               </p>
             ) : null}
-            {busyAction === 'download' ? (
-              <p className="px-4 pb-4 text-center text-sm text-muted">Preparing package…</p>
+            {busyPicker && picker ? (
+              <p className="px-4 pb-4 text-center text-sm text-muted">{picker.busyLabel}</p>
             ) : null}
           </>
         }
       >
-        <ul className="mt-4 space-y-2 px-4 pb-4">
-          {PLATE_ACTIONS.map((action) => (
-            <li key={action.id}>
-              <ActionRow
-                {...action}
-                disabled={busyAction !== null}
-                onSelect={() => runAction(action.id)}
-              />
-            </li>
-          ))}
-        </ul>
+        {sheetView === 'actions' ? (
+          <ul className="mt-4 space-y-2 px-4 pb-4">
+            {PLATE_ACTIONS.map((action) => (
+              <li key={action.id}>
+                <ActionRow
+                  {...action}
+                  disabled={isBusy}
+                  onSelect={() => runAction(action.id)}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul className="mt-4 space-y-2 px-4 pb-4">
+            {PLATE_PACKAGE_OPTIONS.map((option) => (
+              <li key={option.id}>
+                <ActionRow
+                  {...option}
+                  disabled={isBusy}
+                  onSelect={() => void handlePackagePick(option.id)}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
       </ActionsSheetLayout>
 
       <DeletePlateSheet

@@ -1,0 +1,42 @@
+import type { LucideIcon } from 'lucide-react'
+import { FileText, Package } from 'lucide-react'
+import type { PackageMode } from '@/lib/packageMode'
+
+export type { PackageMode }
+
+export interface PackageOption {
+  id: PackageMode
+  icon: LucideIcon
+  title: string
+  description: string
+}
+
+export const PROJECT_PACKAGE_OPTIONS: PackageOption[] = [
+  {
+    id: 'drawings',
+    icon: FileText,
+    title: 'Only drawings',
+    description: 'PDF drawing for each plate.',
+  },
+  {
+    id: 'full',
+    icon: Package,
+    title: 'Full package',
+    description: 'Drawings, cut lists, previews, and plates list.',
+  },
+]
+
+export const PLATE_PACKAGE_OPTIONS: PackageOption[] = [
+  {
+    id: 'drawings',
+    icon: FileText,
+    title: 'Only drawing',
+    description: 'PDF drawing for this plate.',
+  },
+  {
+    id: 'full',
+    icon: Package,
+    title: 'Full package',
+    description: 'Drawing, cut list, and preview.',
+  },
+]

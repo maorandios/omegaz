@@ -1,3 +1,4 @@
+import type { PackageMode } from '@/lib/packageMode'
 import { formatKg } from '@/lib/format'
 import { getProjectPackageUrl } from '@/lib/projectShare'
 import {
@@ -7,7 +8,17 @@ import {
   type ProjectRecord,
 } from '@/store/projectTypes'
 
-export function buildPlateShareMessage(project: ProjectRecord, plate: PlateRecord): string {
+function plateAttachmentLine(mode: PackageMode): string {
+  return mode === 'drawings'
+    ? 'Drawing only (PDF).'
+    : 'Full plate package (drawing, cut list, preview).'
+}
+
+export function buildPlateShareMessage(
+  project: ProjectRecord,
+  plate: PlateRecord,
+  mode: PackageMode = 'full',
+): string {
   const url = getProjectPackageUrl(project.id)
   const name = plateDisplayName(plate)
   const weight = formatKg(computePlateWeightKg(plate.profile))
@@ -17,18 +28,32 @@ export function buildPlateShareMessage(project: ProjectRecord, plate: PlateRecor
     `Project: ${project.name} (${project.serial})`,
     `Est. weight (qty × part): ${weight}`,
     '',
-    `View project package:`,
-    url,
+    plateAttachmentLine(mode),
+    `View project: ${url}`,
   ].join('\n')
+}
+
+export function buildPlateSharePayload(
+  project: ProjectRecord,
+  plate: PlateRecord,
+  mode: PackageMode,
+): { title: string; text: string; mailtoSubject: string; mailtoBody: string } {
+  const name = plateDisplayName(plate)
+  const text = buildPlateShareMessage(project, plate, mode)
+  const subject = `FOLDS plate — ${name} (${project.serial})`
+  return {
+    title: name,
+    text,
+    mailtoSubject: subject,
+    mailtoBody: text,
+  }
 }
 
 export function buildPlateMailto(
   project: ProjectRecord,
   plate: PlateRecord,
+  mode: PackageMode = 'full',
 ): { subject: string; body: string } {
-  const name = plateDisplayName(plate)
-  return {
-    subject: `FOLDS plate — ${name} (${project.serial})`,
-    body: buildPlateShareMessage(project, plate),
-  }
+  const payload = buildPlateSharePayload(project, plate, mode)
+  return { subject: payload.mailtoSubject, body: payload.mailtoBody }
 }
