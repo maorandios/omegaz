@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { draftPlateExportBasenameFromProfile } from '@/export/exportFilenames'
 import { generateFabricationZip } from '@/export/generateZip'
 import { pdfClientNameFromUser } from '@/export/pdfExportTypes'
 import type { FoldedProfile } from '@/geometry/types'
-import { slugify, todayIsoDate } from '@/lib/format'
 import { useProfileMetrics } from '@/hooks/useProfileMetrics'
 import { useAppStore } from '@/store/appStore'
 import { useProfileStore } from '@/store/profileStore'
@@ -23,11 +23,16 @@ export function ShareDownloadButton({ profile }: ShareDownloadButtonProps) {
     setLoading(true)
     setError(null)
     try {
-      const blob = await generateFabricationZip(profile, metrics, selectedTemplate, 'full', {
-        clientName: pdfClientNameFromUser(user),
-      })
-      const partSlug = slugify(profile.fabrication.partName || profile.name)
-      const filename = `${partSlug}-${todayIsoDate()}.zip`
+      const archiveBasename = draftPlateExportBasenameFromProfile(profile)
+      const blob = await generateFabricationZip(
+        profile,
+        metrics,
+        selectedTemplate,
+        'full',
+        { clientName: pdfClientNameFromUser(user) },
+        archiveBasename,
+      )
+      const filename = `${archiveBasename}.zip`
       const file = new File([blob], filename, { type: 'application/zip' })
 
       if (navigator.canShare?.({ files: [file] })) {

@@ -21,7 +21,13 @@ export function PlateListRow({ plate, onOpen }: PlateListRowProps) {
       <PlateShapeThumb templateId={plate.selectedTemplate} />
 
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-foreground">{plateDisplayName(plate)}</p>
+        <p className="truncate font-medium text-foreground">
+          {plateDisplayName(plate)}
+          <span className="mx-1.5 text-muted/60" aria-hidden>
+            ·
+          </span>
+          <span className="font-mono font-semibold text-muted">{plate.serial}</span>
+        </p>
         <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
           <MetaItem icon={Weight}>{formatKg(plate.weightKg)}</MetaItem>
           <MetaItem icon={Database}>{formatInteger(fabrication.quantity)}</MetaItem>

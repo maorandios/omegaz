@@ -1,9 +1,11 @@
+import { updateProfileGeometry } from '@/geometry/calculateProfilePoints'
 import { createTemplateProfile } from '@/geometry/createTemplateProfile'
-import type { FoldedProfile } from '@/geometry/types'
+import { normalizeFabrication, type FoldedProfile } from '@/geometry/types'
 import { createId } from '@/geometry/types'
 import {
   computePlateWeightKg,
   computeProjectWeightKg,
+  normalizePlateSerials,
   type PlateRecord,
   type ProjectRecord,
 } from '@/store/projectTypes'
@@ -35,6 +37,7 @@ function plateFromLegacy(
 ): PlateRecord {
   return {
     id: createId('plate'),
+    serial: '',
     profile: JSON.parse(JSON.stringify(profile)) as FoldedProfile,
     selectedTemplate,
     weightKg: computePlateWeightKg(profile),
@@ -95,11 +98,24 @@ function renumberProjectSerials(projects: ProjectRecord[]): ProjectRecord[] {
   }))
 }
 
+function normalizePlateProfile(profile: FoldedProfile): FoldedProfile {
+  return updateProfileGeometry({
+    ...profile,
+    fabrication: normalizeFabrication(profile.fabrication),
+  })
+}
+
 function normalizeProjectWeights(project: ProjectRecord): ProjectRecord {
-  const plates = project.plates.map((plate) => ({
-    ...plate,
-    weightKg: computePlateWeightKg(plate.profile),
-  }))
+  const plates = normalizePlateSerials(
+    project.plates.map((plate) => {
+      const profile = normalizePlateProfile(plate.profile)
+      return {
+        ...plate,
+        profile,
+        weightKg: computePlateWeightKg(profile),
+      }
+    }),
+  )
   return {
     ...project,
     plates,

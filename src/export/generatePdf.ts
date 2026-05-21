@@ -1,20 +1,19 @@
 import { jsPDF } from 'jspdf'
-import { calculateGeometricFlatWidth } from '@/geometry/calculateGeometricFlatWidth'
 import { calculateProfileBounds } from '@/geometry/calculateProfileBounds'
 import {
   computeLabelCentroid,
   computeProfileDrawingLabels,
   labelStyleForPdfDrawing,
 } from '@/geometry/profileDrawingLabels'
-import { getFabricationMaterialLabel } from '@/geometry/constants'
-import type { FoldedProfile, Point2D, Segment } from '@/geometry/types'
+import { normalizeFabrication, type FoldedProfile, type Point2D, type Segment } from '@/geometry/types'
+import { buildPlateInfoFields } from '@/export/plateInfoFields'
 import { drawPdfSegmentDimLabel } from '@/export/pdfSegmentLabel'
 import type { PdfExportOptions } from '@/export/pdfExportTypes'
+import { NAME_SERIAL_SEPARATOR } from '@/lib/format'
 import type { ProfileMetrics } from '@/lib/profileMetrics'
-import { formatInteger, formatMmValue, formatNumber, formatPdfDate } from '@/lib/format'
 
 const MARGIN = 14
-const TITLE_SECTION_H = 16
+const TITLE_SECTION_H = 15
 const DRAWING_PAD = 8
 const LABEL_RESERVE = 11
 const DATA_ROW_H = 15
@@ -233,66 +232,143 @@ function drawNotesStripe(
   return stripeH
 }
 
+const TITLE_COLS = 2
+/** Slightly larger middle dot in PDF title values (mm text is small). */
+const TITLE_SEP_FONT_SIZE = CELL_VALUE_SIZE + 2.5
+
+function pdfTextWidthMm(doc: jsPDF, text: string, fontSizePt: number): number {
+  doc.setFontSize(fontSizePt)
+  const sf = doc.internal.scaleFactor
+  return (doc.getStringUnitWidth(text) * fontSizePt) / sf
+}
+
+function drawTitleValueCell(
+  doc: jsPDF,
+  x: number,
+  y: number,
+  w: number,
+  label: string,
+  name: string | undefined,
+  serial: string | undefined,
+): void {
+  doc.setFontSize(CELL_LABEL_SIZE)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(0)
+  doc.text(label, x + CELL_PAD_X, y + CELL_PAD_TOP)
+
+  const valueY = y + CELL_VALUE_Y
+  const padX = x + CELL_PAD_X
+  const displayName = name?.trim()
+  const displaySerial = serial?.trim()
+
+  doc.setFontSize(CELL_VALUE_SIZE)
+
+  if (!displayName && !displaySerial) {
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(0)
+    doc.text('—', padX, valueY)
+    return
+  }
+
+  if (!displaySerial) {
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(0)
+    doc.text(
+      doc.splitTextToSize(displayName!, w - CELL_PAD_X * 2),
+      padX,
+      valueY,
+    )
+    doc.setTextColor(0)
+    return
+  }
+
+  if (!displayName) {
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(0)
+    doc.text(displaySerial, padX, valueY)
+    return
+  }
+
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(0)
+  doc.text(displayName, padX, valueY)
+
+  const nameW = pdfTextWidthMm(doc, displayName, CELL_VALUE_SIZE)
+  const sepX = padX + nameW
+
+  doc.setFontSize(TITLE_SEP_FONT_SIZE)
+  doc.setFont('helvetica', 'normal')
+  const sepW = pdfTextWidthMm(doc, NAME_SERIAL_SEPARATOR, TITLE_SEP_FONT_SIZE)
+  doc.text(NAME_SERIAL_SEPARATOR, sepX, valueY - 0.15)
+
+  doc.setFontSize(CELL_VALUE_SIZE)
+  doc.text(displaySerial, sepX + sepW, valueY)
+  doc.setTextColor(0)
+}
+
+function drawTitleBar(
+  doc: jsPDF,
+  x: number,
+  y: number,
+  w: number,
+  profile: FoldedProfile,
+  options?: PdfExportOptions,
+): void {
+  const colW = w / TITLE_COLS
+  doc.setLineWidth(SECTION_STROKE)
+  doc.setDrawColor(0)
+  doc.line(x + colW, y, x + colW, y + TITLE_SECTION_H)
+
+  const fab = normalizeFabrication(profile.fabrication)
+
+  drawTitleValueCell(
+    doc,
+    x,
+    y,
+    colW,
+    'Project name',
+    options?.projectName,
+    options?.projectSerial,
+  )
+  drawTitleValueCell(
+    doc,
+    x + colW,
+    y,
+    colW,
+    'Plate name',
+    options?.plateName ?? fab.partName ?? profile.name,
+    options?.plateSerial,
+  )
+}
+
 function buildPlateInfoColumns(
   profile: FoldedProfile,
   metrics: ProfileMetrics,
   options?: PdfExportOptions,
 ): [DataCell[], DataCell[], DataCell[]] {
-  const fab = profile.fabrication
-  const flatWidth = calculateGeometricFlatWidth(profile.segments)
-  const qty = Math.max(0, fab.quantity)
-  const weightPerUnit = metrics.weight
-  const totalWeight = weightPerUnit * qty
-  const sqmPerUnit = metrics.area / 1_000_000
-  const totalSqm = sqmPerUnit * qty
-  const client =
-    options?.clientName?.trim() ||
-    '—'
-
-  const left: DataCell[] = [
-    { label: 'Material', value: getFabricationMaterialLabel(fab.material, fab.materialCustom) },
-    { label: 'Grade', value: '—' },
-    { label: 'Thickness', value: `${formatMmValue(fab.thickness)} mm` },
-    { label: 'Quantity', value: formatInteger(qty) },
-    { label: 'Finish', value: fab.finish || '—' },
-  ]
-
-  const center: DataCell[] = [
-    { label: 'Est. flat width (mm)', value: `${formatMmValue(flatWidth)} mm` },
-    { label: 'Est. weight per unit (kg)', value: `${formatNumber(weightPerUnit, 2)} kg` },
-    { label: 'Est. sqm per unit (m²)', value: `${formatNumber(sqmPerUnit, 3)} m²` },
-    { label: 'Est. total weight (kg)', value: `${formatNumber(totalWeight, 2)} kg` },
-    { label: 'Est. total sqm (m²)', value: `${formatNumber(totalSqm, 3)} m²` },
-  ]
-
-  const right: DataCell[] = [
-    { label: 'Client name', value: client },
-    { label: 'Date', value: formatPdfDate() },
-    { label: 'Hem', value: fab.hem ? 'Yes' : 'No' },
-    { label: 'Checker Plate', value: fab.checkerPlate ? 'Yes' : 'No' },
-    { label: 'Bend counts', value: formatInteger(metrics.bendCount) },
-  ]
-
-  return [left, center, right]
+  const fields = buildPlateInfoFields(profile, metrics, options).map((f) => ({
+    label: f.label,
+    value: String(f.value),
+  }))
+  return [fields.slice(0, 5), fields.slice(5, 10), fields.slice(10, 15)]
 }
 
-export function generatePdf(
+/** Renders one A4 plate drawing page onto an existing jsPDF document. */
+export function appendPlateDrawingPage(
+  doc: jsPDF,
   profile: FoldedProfile,
   metrics: ProfileMetrics,
   options?: PdfExportOptions,
-): Blob {
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+): void {
   const pageW = doc.internal.pageSize.getWidth()
   const pageH = doc.internal.pageSize.getHeight()
   const contentW = pageW - MARGIN * 2
-  const fab = profile.fabrication
+  const fab = normalizeFabrication(profile.fabrication)
 
   const titleY = MARGIN
   drawSectionRect(doc, MARGIN, titleY, contentW, TITLE_SECTION_H)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(16)
   doc.setTextColor(0)
-  doc.text(fab.partName || profile.name, MARGIN + 5, titleY + 11)
+  drawTitleBar(doc, MARGIN, titleY, contentW, profile, options)
 
   doc.setFontSize(FOOTER_FONT_SIZE)
   const footerCenterX = MARGIN + contentW / 2
@@ -351,17 +427,25 @@ export function generatePdf(
   let footerTextY = footerY + (footerH - footerTextBlockH) / 2 + FOOTER_LINE_H / 2
 
   doc.setFont('helvetica', 'bold')
-  headlineLines.forEach((line) => {
+  headlineLines.forEach((line: string) => {
     doc.text(line, footerCenterX, footerTextY, { align: 'center', baseline: 'middle' })
     footerTextY += FOOTER_LINE_H
   })
 
   doc.setFont('helvetica', 'normal')
-  bodyLines.forEach((line) => {
+  bodyLines.forEach((line: string) => {
     doc.text(line, footerCenterX, footerTextY, { align: 'center', baseline: 'middle' })
     footerTextY += FOOTER_LINE_H
   })
   doc.setTextColor(0)
+}
 
+export function generatePdf(
+  profile: FoldedProfile,
+  metrics: ProfileMetrics,
+  options?: PdfExportOptions,
+): Blob {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  appendPlateDrawingPage(doc, profile, metrics, options)
   return doc.output('blob')
 }

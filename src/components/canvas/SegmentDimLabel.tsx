@@ -1,7 +1,7 @@
-import { useLayoutEffect, useRef } from 'react'
-import { Text } from 'react-konva'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { Group, Text } from 'react-konva'
 import type Konva from 'konva'
-import type { SegmentLabelLayout } from '@/geometry/profileDrawingLabels'
+import { estimateLabelTextBox, type SegmentLabelLayout } from '@/geometry/profileDrawingLabels'
 
 interface SegmentDimLabelProps {
   layout: SegmentLabelLayout
@@ -10,28 +10,47 @@ interface SegmentDimLabelProps {
   fontStyle: 'normal' | 'bold'
 }
 
-/** Centers rotated dim text on (x,y) using measured Konva text bounds. */
+/**
+ * Center dim text on (layout.x, layout.y), then rotate the group.
+ * Rotating Konva Text in place skews the anchor for ~90° labels onto the segment.
+ */
 export function SegmentDimLabel({ layout, fontSize, fill, fontStyle }: SegmentDimLabelProps) {
   const textRef = useRef<Konva.Text>(null)
+  const estimated = estimateLabelTextBox(layout.text, fontSize)
+  const [size, setSize] = useState(estimated)
 
   useLayoutEffect(() => {
     const node = textRef.current
     if (!node) return
-    node.offsetX(node.width() / 2)
-    node.offsetY(node.height() / 2)
+    const w = node.width()
+    const h = node.height()
+    if (w > 0 && h > 0) setSize({ width: w, height: h })
   }, [layout.text, layout.rotationDeg, fontSize, fontStyle])
 
+  const halfW = size.width / 2
+  const halfH = size.height / 2
+
   return (
-    <Text
-      ref={textRef}
+    <Group
       x={layout.x}
       y={layout.y}
-      text={layout.text}
-      fontSize={fontSize}
-      fontStyle={fontStyle}
-      fill={fill}
       rotation={layout.rotationDeg}
       listening={false}
-    />
+    >
+      <Text
+        ref={textRef}
+        x={-halfW}
+        y={-halfH}
+        width={size.width}
+        height={size.height}
+        text={layout.text}
+        fontSize={fontSize}
+        fontStyle={fontStyle}
+        fill={fill}
+        align="center"
+        verticalAlign="middle"
+        listening={false}
+      />
+    </Group>
   )
 }

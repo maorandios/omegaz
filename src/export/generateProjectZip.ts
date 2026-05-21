@@ -2,10 +2,15 @@ import JSZip from 'jszip'
 import { generateExcel } from '@/export/generateExcel'
 import { generateProjectPlatesExcel } from '@/export/generateProjectPlatesExcel'
 import { generatePdf } from '@/export/generatePdf'
-import type { PdfExportOptions } from '@/export/pdfExportTypes'
+import { pdfExportOptionsForPlate, type PdfExportOptions } from '@/export/pdfExportTypes'
 import { generatePreviewPng } from '@/export/generatePreviewPng'
 import { buildProjectShareMessage } from '@/lib/projectShare'
 import { computeProfileMetrics } from '@/lib/profileMetrics'
+import {
+  plateCutListExcelFilename,
+  platePdfFilename,
+  platesListExcelFilename,
+} from '@/export/exportFilenames'
 import { slugify } from '@/lib/format'
 import { plateDisplayName, type ProjectRecord } from '@/store/projectTypes'
 
@@ -25,11 +30,20 @@ export async function generateProjectZip(
     const folder = root.folder(plateSlug) ?? root
     const metrics = computeProfileMetrics(plate.profile)
 
-    folder.file('drawing.pdf', generatePdf(plate.profile, metrics, options))
+    folder.file(
+      platePdfFilename(project, plate),
+      generatePdf(plate.profile, metrics, {
+        clientName: options?.clientName,
+        ...pdfExportOptionsForPlate(project, plate),
+      }),
+    )
 
     if (mode === 'drawings') continue
 
-    folder.file('cut-list.xlsx', generateExcel(plate.profile, metrics, plate.selectedTemplate))
+    folder.file(
+      plateCutListExcelFilename(project, plate),
+      generateExcel(plate.profile, metrics, plate.selectedTemplate, options),
+    )
 
     const preview = await generatePreviewPng(plate.profile)
     if (preview) {
@@ -39,7 +53,7 @@ export async function generateProjectZip(
 
   if (mode === 'full') {
     root.file('README.txt', `${buildProjectShareMessage(project)}\n`)
-    root.file('plates-list.xlsx', generateProjectPlatesExcel(project))
+    root.file(platesListExcelFilename(), generateProjectPlatesExcel(project))
   }
 
   return zip.generateAsync({ type: 'blob' })

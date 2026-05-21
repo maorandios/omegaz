@@ -1,4 +1,5 @@
 import {
+  defaultMaterialGrade,
   FABRICATION_MATERIAL_OTHER,
   isFabricationMaterialOption,
   normalizeFabricationFinish,
@@ -40,6 +41,8 @@ export interface FabricationDetails {
   material: string
   /** Custom material name when material is Other. */
   materialCustom: string
+  /** Alloy / grade designation (defaults from material; user may override). */
+  grade: string
   thickness: number
   partLength: number
   quantity: number
@@ -84,6 +87,7 @@ export function defaultFabrication(): FabricationDetails {
     partName: '',
     material: 'Galvanized Steel',
     materialCustom: '',
+    grade: 'DX51D',
     thickness: 1.2,
     partLength: 1000,
     quantity: 1,
@@ -111,16 +115,30 @@ export function normalizeFabrication(fab: Partial<FabricationDetails>): Fabricat
       ? normalizeFabricationFinish(fab.finish)
       : defaults.finish
 
+  let grade = typeof fab.grade === 'string' ? fab.grade : ''
+  if (!grade.trim()) {
+    grade = defaultMaterialGrade(material)
+  }
+
+  const notes = typeof fab.notes === 'string' ? fab.notes : defaults.notes
+
   return {
     ...defaults,
     ...fab,
     material,
     materialCustom,
+    grade,
     finish,
+    notes,
     hem: typeof fab.hem === 'boolean' ? fab.hem : defaults.hem,
     checkerPlate:
       typeof fab.checkerPlate === 'boolean' ? fab.checkerPlate : defaults.checkerPlate,
   }
+}
+
+export function getFabricationGrade(fab: Partial<FabricationDetails>): string {
+  const normalized = normalizeFabrication(fab)
+  return normalized.grade.trim() || '—'
 }
 
 export function createId(prefix: string): string {

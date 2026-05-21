@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
+  defaultMaterialGrade,
   defaultMaterialThickness,
   FABRICATION_FINISH_OPTIONS,
   FABRICATION_MATERIAL_OPTIONS,
@@ -81,11 +82,15 @@ export function FabricationScreen() {
     if (!Number.isFinite(fab.thickness) || fab.thickness <= 0) {
       setFabricationField('thickness', defaultMaterialThickness(material))
     }
+    if (!fab.grade?.trim()) {
+      setFabricationField('grade', defaultMaterialGrade(material))
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sync invalid persisted values once
   }, [])
 
   const handleMaterialChange = (next: string) => {
     setFabricationField('material', next)
+    setFabricationField('grade', defaultMaterialGrade(next))
   }
 
   const validate = () => {
@@ -148,6 +153,18 @@ export function FabricationScreen() {
               aria-label="Custom material"
             />
           )}
+        </div>
+
+        <div className="form-field">
+          <Label htmlFor="grade">Grade</Label>
+          <Input
+            id="grade"
+            value={fab.grade ?? ''}
+            onChange={(e) => setFabricationField('grade', e.target.value)}
+            placeholder={
+              isOtherMaterial ? 'Enter grade' : defaultMaterialGrade(material) || 'Enter grade'
+            }
+          />
         </div>
 
         <div className="form-field">

@@ -78,6 +78,25 @@ function unitVec(x: number, y: number, len: number): { x: number; y: number } {
   return { x: x / len, y: y / len }
 }
 
+/** Perpendicular unit normal on the side farther from the profile centroid (exterior). */
+function outwardSegmentNormal(
+  txu: number,
+  tyu: number,
+  midX: number,
+  midY: number,
+  centroid: Point2D,
+): { nx: number; ny: number } {
+  const n1x = -tyu
+  const n1y = txu
+  const n2x = tyu
+  const n2y = -txu
+  const d1 =
+    (midX + n1x - centroid.x) ** 2 + (midY + n1y - centroid.y) ** 2
+  const d2 =
+    (midX + n2x - centroid.x) ** 2 + (midY + n2y - centroid.y) ** 2
+  return d1 >= d2 ? { nx: n1x, ny: n1y } : { nx: n2x, ny: n2y }
+}
+
 function interiorAngleBisector(
   segIn: Segment,
   segOut: Segment,
@@ -161,14 +180,7 @@ export function computeProfileDrawingLabels(
     const midX = (start.x + end.x) / 2
     const midY = (start.y + end.y) / 2
 
-    let nx = -tyu
-    let ny = txu
-    const toCentroidX = labelCentroid.x - midX
-    const toCentroidY = labelCentroid.y - midY
-    if (nx * toCentroidX + ny * toCentroidY > 0) {
-      nx = -nx
-      ny = -ny
-    }
+    const { nx, ny } = outwardSegmentNormal(txu, tyu, midX, midY, labelCentroid)
 
     const label = formatSegmentDim(seg.length)
 

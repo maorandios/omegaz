@@ -9,6 +9,7 @@ import {
   computePlateWeightKg,
   computeProjectWeightKg,
   createPlateRecord,
+  nextPlateSerial,
   nextProjectSerial,
   type PlateRecord,
   type ProjectRecord,
@@ -228,7 +229,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       } else {
         plates = [
           ...project.plates,
-          createPlateRecord(savedProfile, selectedTemplate),
+          createPlateRecord(
+            savedProfile,
+            selectedTemplate,
+            nextPlateSerial(project.plates),
+          ),
         ]
       }
 

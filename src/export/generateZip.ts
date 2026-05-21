@@ -14,18 +14,21 @@ export async function generateFabricationZip(
   templateId?: string | null,
   mode: PlateZipMode = 'full',
   options?: PdfExportOptions,
+  /** File stem inside the zip (no extension), e.g. segments_proj_plate_p01_… */
+  archiveBasename?: string,
 ): Promise<Blob> {
   if (mode === 'drawings') {
     return generatePdf(profile, metrics, options)
   }
 
   const zip = new JSZip()
+  const stem = archiveBasename ?? 'segments_plate'
 
   const pdfBlob = generatePdf(profile, metrics, options)
-  const xlsxBlob = generateExcel(profile, metrics, templateId)
+  const xlsxBlob = generateExcel(profile, metrics, templateId, options)
 
-  zip.file('drawing.pdf', pdfBlob)
-  zip.file('cut-list.xlsx', xlsxBlob)
+  zip.file(`${stem}.pdf`, pdfBlob)
+  zip.file(`${stem}_cutlist.xlsx`, xlsxBlob)
 
   const preview = await generatePreviewPng(profile)
   if (preview) {

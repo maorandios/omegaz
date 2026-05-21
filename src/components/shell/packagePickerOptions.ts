@@ -16,7 +16,7 @@ export const PROJECT_PACKAGE_OPTIONS: PackageOption[] = [
     id: 'drawings',
     icon: FileText,
     title: 'Only drawings',
-    description: 'PDF drawing for each plate.',
+    description: 'One combined PDF with every plate drawing.',
   },
   {
     id: 'full',

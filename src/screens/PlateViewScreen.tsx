@@ -14,6 +14,7 @@ export function PlateViewScreen() {
     <PlateSummaryContent
       profile={ctx.plate.profile}
       selectedTemplate={ctx.plate.selectedTemplate}
+      plateSerial={ctx.plate.serial}
     />
   )
 }

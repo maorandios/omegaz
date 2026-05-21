@@ -48,6 +48,23 @@ export function getFabricationMaterialLabel(material: string, materialCustom: st
   return material
 }
 
+/** Default steel/alloy grade shown when a standard material is selected. */
+export const MATERIAL_DEFAULT_GRADES: Partial<Record<FabricationMaterial, string>> = {
+  'Galvanized Steel': 'DX51D',
+  'Mild Steel': 'S235JR',
+  'Stainless Steel': 'Grade 304 (1.4301)',
+  Aluminum: '1050',
+  Zinc: 'Titanium-Zinc (Z1)',
+  Copper: 'Cu-DHP',
+}
+
+export function defaultMaterialGrade(material: string): string {
+  if (isFabricationMaterialOption(material)) {
+    return MATERIAL_DEFAULT_GRADES[material] ?? ''
+  }
+  return ''
+}
+
 export const THICKNESS_OPTIONS = [0.8, 1.0, 1.2, 1.5, 2.0, 3.0] as const
 
 export const FINISH_OPTIONS = [
@@ -136,13 +153,16 @@ export function normalizeFabricationThickness(thickness: number): number {
   return thickness
 }
 
-/** Density in kg/mm³ */
+/**
+ * Density in kg/mm³ (g/cm³ × 10⁻⁶).
+ * Reference kg/m³: Mild/Galv 7850, Stainless 8000, Al 1050 2710, Zinc 7180, Cu 8960.
+ */
 export const MATERIAL_DENSITY_KG_PER_MM3: Record<string, number> = {
   'Galvanized Steel': 7.85e-6,
   'Mild Steel': 7.85e-6,
-  'Stainless Steel': 7.93e-6,
-  Aluminum: 2.7e-6,
-  Zinc: 7.14e-6,
+  'Stainless Steel': 8.0e-6,
+  Aluminum: 2.71e-6,
+  Zinc: 7.18e-6,
   Copper: 8.96e-6,
   Other: 7.85e-6,
   Custom: 7.85e-6,

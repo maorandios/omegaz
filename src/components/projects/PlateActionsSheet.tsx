@@ -14,14 +14,16 @@ import { ActionsSheetLayout } from '@/components/shell/ActionsSheetLayout'
 import { PLATE_PACKAGE_OPTIONS } from '@/components/shell/packagePickerOptions'
 import type { PackageMode } from '@/lib/packageMode'
 import { generateFabricationZip } from '@/export/generateZip'
-import { pdfClientNameFromUser } from '@/export/pdfExportTypes'
+import { pdfExportOptionsForPlate } from '@/export/pdfExportTypes'
+import {
+  plateExportBasename,
+  platePdfFilename,
+} from '@/export/exportFilenames'
 import { downloadBlob } from '@/lib/downloadBlob'
-import { slugify } from '@/lib/format'
 import { computeProfileMetrics } from '@/lib/profileMetrics'
 import { buildPlateSharePayload } from '@/lib/plateShare'
 import { sharePackageFile } from '@/lib/sharePackage'
 import { useViewingPlate } from '@/hooks/useViewingPlate'
-import { plateDisplayName } from '@/store/projectTypes'
 import { useAppStore } from '@/store/appStore'
 
 interface PlateActionsSheetProps {
@@ -124,10 +126,10 @@ export function PlateActionsSheet({ open, onOpenChange }: PlateActionsSheetProps
   const closeActions = () => onOpenChange(false)
   const isBusy = busyPicker !== null
   const picker = pickerMode ? PICKER_META[pickerMode] : null
-  const plateSlug = slugify(plateDisplayName(plate))
-
   const plateFilename = (mode: PackageMode) =>
-    mode === 'drawings' ? `${plateSlug}-drawing.pdf` : `${plateSlug}-package.zip`
+    mode === 'drawings'
+      ? platePdfFilename(project, plate)
+      : `${plateExportBasename(project, plate)}.zip`
 
   const handleEdit = () => {
     closeActions()
@@ -145,7 +147,8 @@ export function PlateActionsSheet({ open, onOpenChange }: PlateActionsSheetProps
         metrics,
         plate.selectedTemplate,
         mode,
-        { clientName: pdfClientNameFromUser(user) },
+        pdfExportOptionsForPlate(project, plate, user),
+        plateExportBasename(project, plate),
       )
       const filename = plateFilename(mode)
 

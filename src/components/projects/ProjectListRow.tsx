@@ -34,7 +34,9 @@ export function ProjectListRow({ project, onClick, showDate = false }: ProjectLi
         <p className="flex min-w-0 items-center gap-1.5 truncate font-medium text-foreground">
           <span className="truncate">{project.name}</span>
           <span className="shrink-0 text-muted/60">·</span>
-          <span className="shrink-0 font-mono text-sm text-muted">{project.serial}</span>
+          <span className="shrink-0 font-mono text-sm font-semibold text-muted">
+            {project.serial}
+          </span>
         </p>
         <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
           <MetaItem icon={SquareCenterlineDashedHorizontal}>

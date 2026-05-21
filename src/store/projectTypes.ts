@@ -7,6 +7,8 @@ import { cloneFoldedProfile, createId } from '@/geometry/types'
 /** Single plate / profile entry inside a fabrication project batch. */
 export interface PlateRecord {
   id: string
+  /** Display serial within the project: p01, p02, … */
+  serial: string
   profile: FoldedProfile
   selectedTemplate: string | null
   weightKg: number
@@ -59,6 +61,30 @@ export function nextProjectSerial(projects: ProjectRecord[]): string {
   return `#${String(max + 1).padStart(3, '0')}`
 }
 
+const PLATE_SERIAL_RE = /^p(\d{2})$/i
+
+export function nextPlateSerial(plates: PlateRecord[]): string {
+  const max = plates.reduce((n, plate) => {
+    const m = plate.serial?.match(PLATE_SERIAL_RE)
+    return m ? Math.max(n, parseInt(m[1], 10)) : n
+  }, 0)
+  return `p${String(max + 1).padStart(2, '0')}`
+}
+
+/** Assign p01…pNN by createdAt when any plate is missing a valid serial. */
+export function normalizePlateSerials(plates: PlateRecord[]): PlateRecord[] {
+  const allValid = plates.every((p) => PLATE_SERIAL_RE.test(p.serial ?? ''))
+  if (allValid) return plates
+
+  const sorted = [...plates].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  )
+  return sorted.map((plate, index) => ({
+    ...plate,
+    serial: `p${String(index + 1).padStart(2, '0')}`,
+  }))
+}
+
 export function plateDisplayName(plate: PlateRecord): string {
   return plate.profile.fabrication.partName.trim() || plate.profile.name
 }
@@ -66,11 +92,13 @@ export function plateDisplayName(plate: PlateRecord): string {
 export function createPlateRecord(
   profile: FoldedProfile,
   selectedTemplate: string | null,
+  serial: string,
   plateId?: string,
 ): PlateRecord {
   const now = new Date().toISOString()
   return {
     id: plateId ?? createId('plate'),
+    serial,
     profile: cloneFoldedProfile(profile),
     selectedTemplate,
     weightKg: computePlateWeightKg(profile),

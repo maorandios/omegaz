@@ -1,38 +1,18 @@
 import * as XLSX from 'xlsx'
 import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
-import { getFabricationMaterialLabel } from '@/geometry/constants'
-import { FLAT_WIDTH_LABEL, type FoldedProfile } from '@/geometry/types'
-
-interface ProfileMetrics {
-  flatWidth: number
-  bendCount: number
-  area: number
-  weight: number
-}
+import type { FoldedProfile } from '@/geometry/types'
+import { buildPlateInfoFields } from '@/export/plateInfoFields'
+import type { PdfExportOptions } from '@/export/pdfExportTypes'
+import type { ProfileMetrics } from '@/lib/profileMetrics'
 
 export function generateExcel(
   profile: FoldedProfile,
   metrics: ProfileMetrics,
   templateId?: string | null,
+  options?: PdfExportOptions,
 ): Blob {
-  const fab = profile.fabrication
-
-  const summaryData = [
-    ['Field', 'Value'],
-    ['Part Name', fab.partName || profile.name],
-    ['Material', getFabricationMaterialLabel(fab.material, fab.materialCustom)],
-    ['Thickness (mm)', fab.thickness],
-    ['Part Length (mm)', fab.partLength],
-    ['Quantity', fab.quantity],
-    ['Hem', fab.hem ? 'Yes' : 'No'],
-    ['Checker plate', fab.checkerPlate ? 'Yes' : 'No'],
-    ['Finish', fab.finish],
-    ['Notes', fab.notes],
-    [FLAT_WIDTH_LABEL + ' (mm)', metrics.flatWidth],
-    ['Bend Count', metrics.bendCount],
-    ['Estimated Area (mm²)', metrics.area],
-    ['Estimated Weight (kg)', metrics.weight],
-  ]
+  const fields = buildPlateInfoFields(profile, metrics, options)
+  const summaryData = [fields.map((f) => f.label), fields.map((f) => f.value)]
 
   const cutList: (string | number)[][] = [
     ['Order', 'Type', 'Value', 'Unit', 'Notes'],

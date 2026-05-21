@@ -1,9 +1,9 @@
 import { ProfileCanvas } from '@/components/canvas/ProfileCanvas'
 import { PlateShapeThumb } from '@/components/projects/PlateShapeThumb'
 import { getFabricationMaterialLabel } from '@/geometry/constants'
-import type { FoldedProfile } from '@/geometry/types'
+import { getFabricationGrade, type FoldedProfile } from '@/geometry/types'
 import { useProfileMetrics } from '@/hooks/useProfileMetrics'
-import { formatInteger, formatMmValue, formatWeightParts } from '@/lib/format'
+import { formatInteger, formatMmValue, formatNumber, formatWeightParts } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 function ReviewRow({
@@ -30,13 +30,22 @@ function yesNo(value: boolean): string {
 interface PlateSummaryContentProps {
   profile: FoldedProfile
   selectedTemplate: string | null
+  /** Plate serial within the project (e.g. p01); shown in the title when set. */
+  plateSerial?: string
 }
 
-export function PlateSummaryContent({ profile, selectedTemplate }: PlateSummaryContentProps) {
+export function PlateSummaryContent({
+  profile,
+  selectedTemplate,
+  plateSerial,
+}: PlateSummaryContentProps) {
   const fab = profile.fabrication
   const metrics = useProfileMetrics(profile)
+  const qty = Math.max(0, fab.quantity)
   const weightPerPart = formatWeightParts(metrics.weight)
-  const weightTotal = formatWeightParts(metrics.weight * fab.quantity)
+  const weightTotal = formatWeightParts(metrics.weight * qty)
+  const sqmPerUnit = metrics.area / 1_000_000
+  const totalSqm = sqmPerUnit * qty
 
   return (
     <div className="summary-screen">
@@ -54,8 +63,21 @@ export function PlateSummaryContent({ profile, selectedTemplate }: PlateSummaryC
       <section className="summary-review" aria-labelledby="summary-review-title">
         <header className="summary-review__header">
           <PlateShapeThumb templateId={selectedTemplate} size="sm" />
-          <h2 id="summary-review-title" className="summary-review__title">
-            {fab.partName || profile.name}
+          <h2
+            id="summary-review-title"
+            className="summary-review__title flex min-w-0 flex-wrap items-baseline gap-x-1.5"
+          >
+            <span className="truncate">{fab.partName || profile.name}</span>
+            {plateSerial?.trim() ? (
+              <>
+                <span className="shrink-0 text-muted/60" aria-hidden>
+                  ·
+                </span>
+                <span className="shrink-0 font-mono font-semibold text-muted">
+                  {plateSerial.trim()}
+                </span>
+              </>
+            ) : null}
           </h2>
         </header>
 
@@ -64,6 +86,7 @@ export function PlateSummaryContent({ profile, selectedTemplate }: PlateSummaryC
             label="Material"
             value={getFabricationMaterialLabel(fab.material, fab.materialCustom)}
           />
+          <ReviewRow label="Grade" value={getFabricationGrade(fab)} />
           <ReviewRow label="Thickness (mm)" value={formatMmValue(fab.thickness)} />
           <ReviewRow label="Part length (mm)" value={formatMmValue(fab.partLength)} />
           <ReviewRow label="Quantity" value={formatInteger(fab.quantity)} />
@@ -81,8 +104,18 @@ export function PlateSummaryContent({ profile, selectedTemplate }: PlateSummaryC
             highlight
           />
           <ReviewRow
+            label="Est. sqm per unit (m²)"
+            value={formatNumber(sqmPerUnit, 3)}
+            highlight
+          />
+          <ReviewRow
             label={`Est. weight total (${weightTotal.unit})`}
             value={weightTotal.value}
+            highlight
+          />
+          <ReviewRow
+            label="Est. total sqm (m²)"
+            value={formatNumber(totalSqm, 3)}
             highlight
           />
         </div>

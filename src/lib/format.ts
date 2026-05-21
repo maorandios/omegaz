@@ -82,6 +82,27 @@ export function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+/** Middle dot between name and serial (matches project/plate list UI). */
+export const NAME_SERIAL_SEPARATOR = ' · '
+
+/** Join display name and serial with a dot; order matches list rows when serialFirst. */
+export function formatNameWithSerial(
+  name: string | undefined,
+  serial: string | undefined,
+  serialFirst = false,
+): string {
+  const label = name?.trim()
+  const code = serial?.trim()
+  if (label && code) {
+    return serialFirst
+      ? `${code}${NAME_SERIAL_SEPARATOR}${label}`
+      : `${label}${NAME_SERIAL_SEPARATOR}${code}`
+  }
+  if (label) return label
+  if (code) return code
+  return '—'
+}
+
 /** Display date for PDF title blocks: DD/MM/YYYY */
 export function formatPdfDate(date: Date = new Date()): string {
   const day = String(date.getDate()).padStart(2, '0')

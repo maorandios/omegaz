@@ -13,10 +13,14 @@ import { ActionRow } from '@/components/shell/ActionRow'
 import { ActionsSheetLayout } from '@/components/shell/ActionsSheetLayout'
 import { PROJECT_PACKAGE_OPTIONS } from '@/components/shell/packagePickerOptions'
 import type { PackageMode } from '@/lib/packageMode'
+import { generateProjectDrawingsPdf } from '@/export/generateProjectDrawingsPdf'
 import { generateProjectZip } from '@/export/generateProjectZip'
 import { pdfClientNameFromUser } from '@/export/pdfExportTypes'
+import {
+  projectDrawingsPdfFilename,
+  projectPackageZipFilename,
+} from '@/export/exportFilenames'
 import { downloadBlob } from '@/lib/downloadBlob'
-import { slugify } from '@/lib/format'
 import { buildProjectSharePayload } from '@/lib/projectShare'
 import { sharePackageFile } from '@/lib/sharePackage'
 import { useAppStore } from '@/store/appStore'
@@ -131,20 +135,21 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
     openCreatePlateSheet('templates')
   }
 
-  const projectFilename = (mode: PackageMode) => {
-    const base = slugify(`${project.name}-${project.serial}`)
-    const suffix = mode === 'drawings' ? 'drawings' : 'package'
-    return `${base}-${suffix}.zip`
-  }
+  const projectFilename = (mode: PackageMode) =>
+    mode === 'drawings'
+      ? projectDrawingsPdfFilename(project, user)
+      : projectPackageZipFilename(project, user)
 
   const handlePackagePick = async (mode: PackageMode) => {
     if (!pickerMode) return
     setBusyPicker(mode)
     setError(null)
     try {
-      const blob = await generateProjectZip(project, mode, {
-        clientName: pdfClientNameFromUser(user),
-      })
+      const exportOptions = { clientName: pdfClientNameFromUser(user) }
+      const blob =
+        mode === 'drawings'
+          ? generateProjectDrawingsPdf(project, exportOptions)
+          : await generateProjectZip(project, 'full', exportOptions)
       const filename = projectFilename(mode)
 
       if (pickerMode === 'download') {
