@@ -1,16 +1,24 @@
-import { LogOut } from 'lucide-react'
+import { LogOut, MessageCircleCheck } from 'lucide-react'
 import { useState } from 'react'
 import { CancelSubscriptionSheet } from '@/components/profile/CancelSubscriptionSheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
+import { openAppInviteWhatsApp } from '@/lib/appInvite'
+import { isLocalAuthBypass } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/appStore'
+import { useAuthStore } from '@/store/authStore'
 import { formatSubscriptionPeriodEnd } from '@/store/userTypes'
 
 const readOnlyInputClass =
-  'cursor-not-allowed border-border bg-background/80 text-muted opacity-100'
+  'cursor-default border-border bg-surface/25 text-muted focus-visible:ring-0'
+
+const profileCardClass =
+  'rounded-2xl border border-border bg-surface/40 px-4 py-4.5'
+
+const profileActionButtonClass =
+  'h-12 w-full rounded-2xl border-border text-base font-semibold text-foreground/90'
 
 export function ProfileScreen() {
   const user = useAppStore((s) => s.user)
@@ -18,6 +26,7 @@ export function ProfileScreen() {
   const setUser = useAppStore((s) => s.setUser)
   const cancelSubscription = useAppStore((s) => s.cancelSubscription)
   const logout = useAppStore((s) => s.logout)
+  const showSignInScreen = useAuthStore((s) => s.showSignInScreen)
 
   const [cancelOpen, setCancelOpen] = useState(false)
 
@@ -25,82 +34,94 @@ export function ProfileScreen() {
     subscription.status === 'cancelled' || subscription.cancelAtPeriodEnd
 
   return (
-    <div className="space-y-6 pb-4">
-      <div>
-        <h2 className="text-xl font-semibold text-foreground">Profile</h2>
-        <p className="mt-1 text-sm text-muted">Account, subscription, and sign out</p>
-      </div>
+    <div className="space-y-3 pb-2">
+      <section className={cn(profileCardClass, 'space-y-4')}>
+        <h3 className="text-sm font-semibold text-foreground">Personal details</h3>
 
-      <section className="space-y-4 rounded-lg border border-border bg-surface/80 p-4">
-        <h3 className="text-sm font-medium text-foreground/90">Personal details</h3>
+        <div className="form-stack">
+          <div className="form-field">
+            <Label htmlFor="full-name">Full name</Label>
+            <Input
+              id="full-name"
+              value={user.fullName}
+              onChange={(e) => setUser({ fullName: e.target.value })}
+              onBlur={(e) => {
+                const trimmed = e.target.value.trim()
+                if (trimmed !== user.fullName) setUser({ fullName: trimmed || 'Guest User' })
+              }}
+              autoComplete="name"
+            />
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="full-name">Full name</Label>
-          <Input
-            id="full-name"
-            value={user.fullName}
-            onChange={(e) => setUser({ fullName: e.target.value })}
-            onBlur={(e) => {
-              const trimmed = e.target.value.trim()
-              if (trimmed !== user.fullName) setUser({ fullName: trimmed || 'Guest User' })
-            }}
-            autoComplete="name"
-          />
-        </div>
+          <div className="form-field">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={user.email}
+              readOnly
+              className={readOnlyInputClass}
+              aria-readonly="true"
+            />
+            <p className="text-xs leading-relaxed text-muted">
+              Email is managed by your account and cannot be changed here.
+            </p>
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={user.email}
-            readOnly
-            disabled
-            className={readOnlyInputClass}
-            aria-readonly="true"
-          />
-          <p className="text-xs text-muted">
-            Email is managed by your account and cannot be changed here.
-          </p>
-        </div>
+          <div className="form-field">
+            <Label htmlFor="phone">Phone (optional)</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={user.phone ?? ''}
+              onChange={(e) => setUser({ phone: e.target.value || undefined })}
+              onBlur={(e) => {
+                const trimmed = e.target.value.trim()
+                setUser({ phone: trimmed || undefined })
+              }}
+              autoComplete="tel"
+              placeholder="+1 555 000 0000"
+            />
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone (optional)</Label>
-          <Input
-            id="phone"
-            type="tel"
-            value={user.phone ?? ''}
-            onChange={(e) => setUser({ phone: e.target.value || undefined })}
-            onBlur={(e) => {
-              const trimmed = e.target.value.trim()
-              setUser({ phone: trimmed || undefined })
-            }}
-            autoComplete="tel"
-            placeholder="+1 555 000 0000"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="business-name">Business name (optional)</Label>
-          <Input
-            id="business-name"
-            value={user.businessName ?? ''}
-            onChange={(e) => setUser({ businessName: e.target.value || undefined })}
-            onBlur={(e) => {
-              const trimmed = e.target.value.trim()
-              setUser({ businessName: trimmed || undefined })
-            }}
-            autoComplete="organization"
-            placeholder="Your company"
-          />
+          <div className="form-field">
+            <Label htmlFor="business-name">Business name (optional)</Label>
+            <Input
+              id="business-name"
+              value={user.businessName ?? ''}
+              onChange={(e) => setUser({ businessName: e.target.value || undefined })}
+              onBlur={(e) => {
+                const trimmed = e.target.value.trim()
+                setUser({ businessName: trimmed || undefined })
+              }}
+              autoComplete="organization"
+              placeholder="Your company"
+            />
+          </div>
         </div>
       </section>
 
-      <section className="space-y-3 rounded-lg border border-border bg-surface/80 p-4">
-        <h3 className="text-sm font-medium text-foreground/90">Subscription</h3>
+      <section className={cn(profileCardClass, 'space-y-4')}>
+        <h3 className="text-sm font-semibold text-foreground">Invite</h3>
+        <p className="text-sm leading-relaxed text-muted">
+          Share Segments with colleagues so they can start their own fabrication projects.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(profileActionButtonClass, 'gap-2')}
+          onClick={openAppInviteWhatsApp}
+        >
+          <MessageCircleCheck className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+          Share via WhatsApp
+        </Button>
+      </section>
+
+      <section className={cn(profileCardClass, 'space-y-4')}>
+        <h3 className="text-sm font-semibold text-foreground">Subscription</h3>
 
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <p className="text-lg font-semibold text-foreground">{subscription.planName} plan</p>
             <p className="mt-1 text-sm text-muted">
               {subscription.status === 'cancelled' ? (
@@ -138,7 +159,7 @@ export function ProfileScreen() {
             <Button
               type="button"
               variant="outline"
-              className="w-full border-border text-foreground/90"
+              className={profileActionButtonClass}
               onClick={() => setCancelOpen(true)}
             >
               Cancel subscription
@@ -146,23 +167,33 @@ export function ProfileScreen() {
           )}
 
         {isCancelled && subscription.status !== 'cancelled' && (
-          <p className="text-xs text-muted">
+          <p className="text-xs leading-relaxed text-muted">
             Pro features remain available until the end of your billing period.
           </p>
         )}
       </section>
 
-      <Separator className="bg-border" />
-
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full gap-2 border-border text-foreground/90"
-        onClick={logout}
-      >
-        <LogOut className="h-4 w-4" aria-hidden />
-        Log out
-      </Button>
+      <section className={cn(profileCardClass, 'space-y-3')}>
+        {isLocalAuthBypass ? (
+          <Button
+            type="button"
+            variant="outline"
+            className={profileActionButtonClass}
+            onClick={showSignInScreen}
+          >
+            View sign-in screen
+          </Button>
+        ) : null}
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(profileActionButtonClass, 'gap-2')}
+          onClick={logout}
+        >
+          <LogOut className="h-4 w-4 shrink-0" aria-hidden />
+          Log out
+        </Button>
+      </section>
 
       <CancelSubscriptionSheet
         open={cancelOpen}

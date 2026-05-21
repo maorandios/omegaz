@@ -1,7 +1,7 @@
-import { Box, Calendar, MoveRight, SquareCenterlineDashedHorizontal, Weight } from 'lucide-react'
+import { Box, Calendar, Database, MoveRight, Weight } from 'lucide-react'
 import { MetaItem } from '@/components/projects/MetaItem'
-import { projectDistinctTypeCount } from '@/components/projects/projectDetailUtils'
-import { formatKg } from '@/lib/format'
+import { projectTotalQuantity } from '@/components/projects/projectDetailUtils'
+import { formatInteger, formatKg } from '@/lib/format'
 import { computeProjectWeightKg, type ProjectRecord } from '@/store/projectTypes'
 
 interface ProjectListRowProps {
@@ -19,7 +19,7 @@ function formatProjectDate(iso: string): string {
 }
 
 export function ProjectListRow({ project, onClick, showDate = false }: ProjectListRowProps) {
-  const typeCount = projectDistinctTypeCount(project)
+  const totalQuantity = projectTotalQuantity(project)
   const totalWeightKg = computeProjectWeightKg(project.plates)
 
   return (
@@ -39,9 +39,7 @@ export function ProjectListRow({ project, onClick, showDate = false }: ProjectLi
           </span>
         </p>
         <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-          <MetaItem icon={SquareCenterlineDashedHorizontal}>
-            {typeCount} type
-          </MetaItem>
+          <MetaItem icon={Database}>{formatInteger(totalQuantity)}</MetaItem>
           <MetaItem icon={Weight}>{formatKg(totalWeightKg)}</MetaItem>
           {showDate ? (
             <MetaItem icon={Calendar}>{formatProjectDate(project.updatedAt)}</MetaItem>

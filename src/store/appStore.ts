@@ -3,6 +3,7 @@ import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
 import { cloneFoldedProfile, type FoldedProfile } from '@/geometry/types'
 import { createId } from '@/geometry/types'
 import { loadAppData, saveAppData, type StoredSubscription, type StoredUser } from '@/store/projectsPersist'
+import { useAuthStore } from '@/store/authStore'
 import { defaultSubscription } from '@/store/userTypes'
 import { clearSession } from '@/store/persist'
 import {
@@ -133,17 +134,21 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   logout: () => {
+    void useAuthStore.getState().signOut()
     clearSession()
     useProfileStore.getState().restart()
-    set({
-      mainTab: 'projects',
+    const next = {
+      mainTab: 'projects' as const,
       createPlateSheetOpen: false,
-      createPlateSheetStep: 'choose',
+      createPlateSheetStep: 'choose' as const,
       activeProjectId: null,
       editingPlateId: null,
       viewingPlateId: null,
       selectedProjectId: null,
-    })
+      user: { fullName: 'Guest User', email: 'guest@FOLDS.app' },
+    }
+    set(next)
+    persist({ ...get(), ...next })
   },
 
   hydrateApp: () => {

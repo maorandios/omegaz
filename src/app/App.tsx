@@ -8,8 +8,10 @@ import { SegmentWizardScreen } from '@/screens/SegmentWizardScreen'
 import { SketchScreen } from '@/screens/SketchScreen'
 import { PlateViewScreen } from '@/screens/PlateViewScreen'
 import { SummaryScreen } from '@/screens/SummaryScreen'
+import { AuthScreen } from '@/screens/AuthScreen'
 import { rootStackDirection, workflowStackDirection } from '@/lib/stackNavigation'
 import { isWorkflowStep, useAppStore } from '@/store/appStore'
+import { isAuthenticatedSession, useAuthStore } from '@/store/authStore'
 import { useProfileStore } from '@/store/profileStore'
 
 const ProfileScreen = lazy(() =>
@@ -47,17 +49,38 @@ function WorkflowStack() {
 
 export default function App() {
   const mainTab = useAppStore((s) => s.mainTab)
+  const hydrated = useAppStore((s) => s.hydrated)
   const hydrateApp = useAppStore((s) => s.hydrateApp)
   const currentStep = useProfileStore((s) => s.currentStep)
   const hydrateFromSession = useProfileStore((s) => s.hydrateFromSession)
+  const authReady = useAuthStore((s) => s.ready)
+  const session = useAuthStore((s) => s.session)
+  const localDevSignedOut = useAuthStore((s) => s.localDevSignedOut)
+  const initAuth = useAuthStore((s) => s.initAuth)
 
   useEffect(() => {
     hydrateApp()
     hydrateFromSession()
-  }, [hydrateApp, hydrateFromSession])
+    return initAuth()
+  }, [hydrateApp, hydrateFromSession, initAuth])
 
   const inWorkflow = isWorkflowStep(currentStep)
   const viewingPlateId = useAppStore((s) => s.viewingPlateId)
+  const signedIn = isAuthenticatedSession(session, localDevSignedOut)
+
+  if (!hydrated || !authReady) {
+    return <ScreenFallback />
+  }
+
+  if (!signedIn) {
+    return (
+      <div className="app-shell text-foreground">
+        <div className="app-shell__body mx-auto flex h-full min-h-0 w-full max-w-lg flex-1 flex-col px-4 py-4">
+          <AuthScreen />
+        </div>
+      </div>
+    )
+  }
 
   const renderMainTab = () => {
     switch (mainTab) {
