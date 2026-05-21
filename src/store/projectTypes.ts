@@ -22,7 +22,7 @@ export interface PlateRecord {
  */
 export interface ProjectRecord {
   id: string
-  /** Display serial: #001, #002, … */
+  /** Display serial: PRJ01, PRJ02, … */
   serial: string
   name: string
   plates: PlateRecord[]
@@ -53,12 +53,30 @@ export function computeProjectWeightKg(plates: PlateRecord[]): number {
   return plates.reduce((sum, plate) => sum + computePlateWeightKg(plate.profile), 0)
 }
 
+export const PROJECT_SERIAL_RE = /^PRJ\d{2,}$/i
+
+export function formatProjectSerial(sequence: number): string {
+  return `PRJ${String(Math.max(1, sequence)).padStart(2, '0')}`
+}
+
+export function isValidProjectSerial(serial: string): boolean {
+  return PROJECT_SERIAL_RE.test(serial.trim())
+}
+
+function parseProjectSerialNumber(serial: string): number | null {
+  const prj = serial.trim().match(/^PRJ(\d+)$/i)
+  if (prj) return parseInt(prj[1], 10)
+  const legacy = serial.trim().match(/^#(\d+)$/)
+  if (legacy) return parseInt(legacy[1], 10)
+  return null
+}
+
 export function nextProjectSerial(projects: ProjectRecord[]): string {
   const max = projects.reduce((n, p) => {
-    const m = p.serial.match(/^#(\d+)$/)
-    return m ? Math.max(n, parseInt(m[1], 10)) : n
+    const num = parseProjectSerialNumber(p.serial)
+    return num != null ? Math.max(n, num) : n
   }, 0)
-  return `#${String(max + 1).padStart(3, '0')}`
+  return formatProjectSerial(max + 1)
 }
 
 const PLATE_SERIAL_RE = /^p(\d{2})$/i

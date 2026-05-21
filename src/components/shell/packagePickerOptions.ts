@@ -22,7 +22,7 @@ export const PROJECT_PACKAGE_OPTIONS: PackageOption[] = [
     id: 'full',
     icon: Package,
     title: 'Full package',
-    description: 'Drawings, cut lists, previews, and plates list.',
+    description: 'Plates list, combined PDF, and one PDF per plate.',
   },
 ]
 

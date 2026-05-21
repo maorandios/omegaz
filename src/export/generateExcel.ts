@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx'
 import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
 import type { FoldedProfile } from '@/geometry/types'
-import { buildPlateInfoFields } from '@/export/plateInfoFields'
+import { buildPlateInfoFieldsForExcel } from '@/export/plateInfoFields'
 import type { PdfExportOptions } from '@/export/pdfExportTypes'
 import type { ProfileMetrics } from '@/lib/profileMetrics'
 
@@ -11,7 +11,7 @@ export function generateExcel(
   templateId?: string | null,
   options?: PdfExportOptions,
 ): Blob {
-  const fields = buildPlateInfoFields(profile, metrics, options)
+  const fields = buildPlateInfoFieldsForExcel(profile, metrics, options)
   const summaryData = [fields.map((f) => f.label), fields.map((f) => f.value)]
 
   const cutList: (string | number)[][] = [

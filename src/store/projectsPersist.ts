@@ -5,6 +5,8 @@ import { createId } from '@/geometry/types'
 import {
   computePlateWeightKg,
   computeProjectWeightKg,
+  formatProjectSerial,
+  isValidProjectSerial,
   normalizePlateSerials,
   type PlateRecord,
   type ProjectRecord,
@@ -58,7 +60,7 @@ function migrateLegacyProject(raw: Record<string, unknown>): ProjectRecord | nul
     const plates = (raw.plates as PlateRecord[]).filter((p) => p?.profile)
     return {
       id,
-      serial: typeof raw.serial === 'string' ? raw.serial : '#000',
+      serial: typeof raw.serial === 'string' ? raw.serial : 'PRJ01',
       name,
       plates,
       weightKg: computeProjectWeightKg(plates),
@@ -76,7 +78,7 @@ function migrateLegacyProject(raw: Record<string, unknown>): ProjectRecord | nul
     )
     return {
       id,
-      serial: typeof raw.serial === 'string' ? raw.serial : '#000',
+      serial: typeof raw.serial === 'string' ? raw.serial : 'PRJ01',
       name,
       plates: [plate],
       weightKg: computeProjectWeightKg([plate]),
@@ -94,7 +96,7 @@ function renumberProjectSerials(projects: ProjectRecord[]): ProjectRecord[] {
   )
   return sorted.map((p, i) => ({
     ...p,
-    serial: `#${String(i + 1).padStart(3, '0')}`,
+    serial: formatProjectSerial(i + 1),
   }))
 }
 
@@ -129,7 +131,7 @@ function normalizeProjects(raw: unknown): ProjectRecord[] {
     .map((item) => migrateLegacyProject(item as Record<string, unknown>))
     .filter((p): p is ProjectRecord => p !== null)
 
-  const needsRenumber = migrated.some((p) => !/^#\d{3}$/.test(p.serial))
+  const needsRenumber = migrated.some((p) => !isValidProjectSerial(p.serial))
   const ordered = needsRenumber ? renumberProjectSerials(migrated) : migrated
   return ordered.map(normalizeProjectWeights)
 }
@@ -166,7 +168,7 @@ function seedProjects(): ProjectRecord[] {
   return [
     {
       id: 'proj-seed-1',
-      serial: '#001',
+      serial: 'PRJ01',
       name: 'Warehouse Purlin Batch',
       plates: batch1Plates,
       weightKg: computeProjectWeightKg(batch1Plates),
@@ -175,7 +177,7 @@ function seedProjects(): ProjectRecord[] {
     },
     {
       id: 'proj-seed-2',
-      serial: '#002',
+      serial: 'PRJ02',
       name: 'Facade Gutters',
       plates: batch2Plates,
       weightKg: computeProjectWeightKg(batch2Plates),

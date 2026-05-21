@@ -12,7 +12,7 @@ export function getProjectPackageUrl(projectId: string): string {
 function projectAttachmentLine(mode: PackageMode): string {
   return mode === 'drawings'
     ? 'Drawings only (one combined PDF).'
-    : 'Full package (drawings, cut lists, previews, plates list).'
+    : 'Full package (plates list, combined PDF, and one PDF per plate).'
 }
 
 export function buildProjectShareMessage(

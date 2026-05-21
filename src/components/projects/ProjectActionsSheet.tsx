@@ -149,7 +149,7 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
       const blob =
         mode === 'drawings'
           ? generateProjectDrawingsPdf(project, exportOptions)
-          : await generateProjectZip(project, 'full', exportOptions)
+          : await generateProjectZip(project, 'full', exportOptions, user)
       const filename = projectFilename(mode)
 
       if (pickerMode === 'download') {
