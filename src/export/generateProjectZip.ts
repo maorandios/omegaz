@@ -2,6 +2,7 @@ import JSZip from 'jszip'
 import { generateExcel } from '@/export/generateExcel'
 import { generateProjectPlatesExcel } from '@/export/generateProjectPlatesExcel'
 import { generatePdf } from '@/export/generatePdf'
+import type { PdfExportOptions } from '@/export/pdfExportTypes'
 import { generatePreviewPng } from '@/export/generatePreviewPng'
 import { buildProjectShareMessage } from '@/lib/projectShare'
 import { computeProfileMetrics } from '@/lib/profileMetrics'
@@ -13,6 +14,7 @@ export type ProjectZipMode = 'drawings' | 'full'
 export async function generateProjectZip(
   project: ProjectRecord,
   mode: ProjectZipMode = 'full',
+  options?: PdfExportOptions,
 ): Promise<Blob> {
   const zip = new JSZip()
   const rootName = slugify(`${project.name}-${project.serial}`)
@@ -23,7 +25,7 @@ export async function generateProjectZip(
     const folder = root.folder(plateSlug) ?? root
     const metrics = computeProfileMetrics(plate.profile)
 
-    folder.file('drawing.pdf', generatePdf(plate.profile, metrics))
+    folder.file('drawing.pdf', generatePdf(plate.profile, metrics, options))
 
     if (mode === 'drawings') continue
 

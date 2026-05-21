@@ -82,6 +82,14 @@ export function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+/** Display date for PDF title blocks: DD/MM/YYYY */
+export function formatPdfDate(date: Date = new Date()): string {
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
 /** Smaller display size for dense metric cards when the formatted string is long. */
 export function metricCardValueClass(formatted: string): string {
   const len = formatted.length

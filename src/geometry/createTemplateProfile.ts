@@ -57,9 +57,9 @@ const TEMPLATES: Record<TemplateId, TemplateSpec> = {
   },
   zigzag: {
     name: 'ZigZag',
-    /** Top flange → diagonal web → bottom flange (matches zigzag icon). */
-    segmentLengths: [57, 52, 57],
-    bendAngles: [135, 45],
+    /** Top horizontal → vertical down → bottom horizontal (stepped Z). */
+    segmentLengths: [100, 100, 100],
+    bendAngles: [-90, 90],
     startDirectionDeg: 0,
   },
   'l-angle': {

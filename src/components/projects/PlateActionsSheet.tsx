@@ -14,6 +14,7 @@ import { ActionsSheetLayout } from '@/components/shell/ActionsSheetLayout'
 import { PLATE_PACKAGE_OPTIONS } from '@/components/shell/packagePickerOptions'
 import type { PackageMode } from '@/lib/packageMode'
 import { generateFabricationZip } from '@/export/generateZip'
+import { pdfClientNameFromUser } from '@/export/pdfExportTypes'
 import { downloadBlob } from '@/lib/downloadBlob'
 import { slugify } from '@/lib/format'
 import { computeProfileMetrics } from '@/lib/profileMetrics'
@@ -100,6 +101,7 @@ export function PlateActionsSheet({ open, onOpenChange }: PlateActionsSheetProps
   const startPlateEdit = useAppStore((s) => s.startPlateEdit)
   const closePlateView = useAppStore((s) => s.closePlateView)
   const deletePlate = useAppStore((s) => s.deletePlate)
+  const user = useAppStore((s) => s.user)
 
   const [sheetView, setSheetView] = useState<SheetView>('actions')
   const [pickerMode, setPickerMode] = useState<PickerMode | null>(null)
@@ -143,6 +145,7 @@ export function PlateActionsSheet({ open, onOpenChange }: PlateActionsSheetProps
         metrics,
         plate.selectedTemplate,
         mode,
+        { clientName: pdfClientNameFromUser(user) },
       )
       const filename = plateFilename(mode)
 

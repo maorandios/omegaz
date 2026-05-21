@@ -14,6 +14,7 @@ import { ActionsSheetLayout } from '@/components/shell/ActionsSheetLayout'
 import { PROJECT_PACKAGE_OPTIONS } from '@/components/shell/packagePickerOptions'
 import type { PackageMode } from '@/lib/packageMode'
 import { generateProjectZip } from '@/export/generateProjectZip'
+import { pdfClientNameFromUser } from '@/export/pdfExportTypes'
 import { downloadBlob } from '@/lib/downloadBlob'
 import { slugify } from '@/lib/format'
 import { buildProjectSharePayload } from '@/lib/projectShare'
@@ -100,6 +101,7 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
   const openCreatePlateSheet = useAppStore((s) => s.openCreatePlateSheet)
   const deleteProject = useAppStore((s) => s.deleteProject)
   const restart = useProfileStore((s) => s.restart)
+  const user = useAppStore((s) => s.user)
 
   const [sheetView, setSheetView] = useState<SheetView>('actions')
   const [pickerMode, setPickerMode] = useState<PickerMode | null>(null)
@@ -140,7 +142,9 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
     setBusyPicker(mode)
     setError(null)
     try {
-      const blob = await generateProjectZip(project, mode)
+      const blob = await generateProjectZip(project, mode, {
+        clientName: pdfClientNameFromUser(user),
+      })
       const filename = projectFilename(mode)
 
       if (pickerMode === 'download') {
