@@ -35,7 +35,7 @@ const PROFILE_STROKE = 0.5 * 1.25
 const PDF_DIM_FONT = 10 * 1.25
 const PDF_DEG_FONT = 11 * 1.25
 
-const PDF_FOOTER_HEADLINE = 'Generated via Segments App (www.segments.pro)'
+const PDF_FOOTER_HEADLINE = 'Generated via Segments (www.getsegments.co)'
 const PDF_FOOTER_BODY =
   'All dimensions are nominal outside dimensions. Fabricator: Please apply your shop\'s specific bend deductions, thickness allowances, and tooling configurations before production. The user assumes responsibility for final fitment verification.'
 

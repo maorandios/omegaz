@@ -89,7 +89,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   mainTab: 'projects',
   createPlateSheetOpen: false,
   createPlateSheetStep: 'choose',
-  user: { fullName: 'Guest User', email: 'guest@FOLDS.app' },
+  user: { fullName: 'Guest User', email: 'guest@getsegments.co' },
   subscription: defaultSubscription(),
   projects: [],
   activeProjectId: null,
@@ -145,7 +145,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       editingPlateId: null,
       viewingPlateId: null,
       selectedProjectId: null,
-      user: { fullName: 'Guest User', email: 'guest@FOLDS.app' },
+      user: { fullName: 'Guest User', email: 'guest@getsegments.co' },
     }
     set(next)
     persist({ ...get(), ...next })

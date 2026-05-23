@@ -5,7 +5,7 @@ import { computeProjectWeightKg, type ProjectRecord } from '@/store/projectTypes
 /** Placeholder package URL until projects are hosted in a real backend. */
 export function getProjectPackageUrl(projectId: string): string {
   const origin =
-    typeof window !== 'undefined' ? window.location.origin : 'https://folds.app'
+    typeof window !== 'undefined' ? window.location.origin : 'https://app.getsegments.co'
   return `${origin}/p/${projectId}`
 }
 
@@ -27,7 +27,7 @@ export function buildProjectShareMessage(
       : `${plateCount} plate${plateCount === 1 ? '' : 's'} · ${formatKg(computeProjectWeightKg(project.plates))} total`
 
   return [
-    `FOLDS project: ${project.name} (${project.serial})`,
+    `Segments project: ${project.name} (${project.serial})`,
     platesLine,
     '',
     projectAttachmentLine(mode),
@@ -40,7 +40,7 @@ export function buildProjectSharePayload(
   mode: PackageMode,
 ): { title: string; text: string; mailtoSubject: string; mailtoBody: string } {
   const text = buildProjectShareMessage(project, mode)
-  const subject = `FOLDS project — ${project.name} (${project.serial})`
+  const subject = `Segments project — ${project.name} (${project.serial})`
   return {
     title: `${project.name} (${project.serial})`,
     text,

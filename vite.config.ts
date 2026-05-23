@@ -27,18 +27,18 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'pwa-192.svg', 'segments-logo.svg'],
+      includeAssets: ['fav.png', 'segments-logo.svg'],
       manifest: {
-        name: 'FOLDS — Fabrication Request',
-        short_name: 'FOLDS',
+        name: 'Segments — Fabrication Request',
+        short_name: 'Segments',
         description: 'Fast guided fabrication request generator for folded metal profiles',
         theme_color: '#0D0D0D',
         background_color: '#0D0D0D',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
-          { src: 'pwa-192.svg', sizes: '192x192', type: 'image/svg+xml' },
-          { src: 'pwa-192.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          { src: 'fav.png', sizes: '192x192', type: 'image/png' },
+          { src: 'fav.png', sizes: 'any', type: 'image/png', purpose: 'any' },
         ],
       },
       workbox: {

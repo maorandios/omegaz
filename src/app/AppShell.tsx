@@ -78,10 +78,10 @@ function AppHeader({
           {!showReset && !showBack && <span aria-hidden className="block w-[2.75rem]" />}
         </div>
 
-        {title === 'FOLDS' ? (
+        {title === 'Segments' ? (
           <img
             src={APP_LOGO_SRC}
-            alt="FOLDS"
+            alt="Segments"
             className="mx-auto h-[35px] w-auto max-w-[13.75rem] object-contain object-center"
             height={35}
             width={133}
@@ -139,7 +139,7 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
     !isWizard &&
     !isPlateView
   const goBack = useProfileStore((s) => s.goBack)
-  const headerTitle = isWizard ? getPlateShapeLabel(selectedTemplate) : 'FOLDS'
+  const headerTitle = isWizard ? getPlateShapeLabel(selectedTemplate) : 'Segments'
 
   const handleHeaderBack = () => {
     if (isProjectDetail) {

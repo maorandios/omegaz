@@ -1,6 +1,6 @@
 import type { AppStep, FoldedProfile, Point2D } from '@/geometry/types'
 
-const STORAGE_KEY = 'FOLDS-session'
+const STORAGE_KEY = 'segments-session'
 
 export interface PersistedState {
   currentStep: AppStep | null

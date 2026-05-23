@@ -1,13 +1,13 @@
 import { openWhatsAppShare } from '@/lib/projectShare'
 
 export function getAppUrl(): string {
-  return typeof window !== 'undefined' ? window.location.origin : 'https://folds.app'
+  return typeof window !== 'undefined' ? window.location.origin : 'https://app.getsegments.co'
 }
 
 export function buildAppInviteMessage(): string {
   const url = getAppUrl()
   return [
-    'Try FOLDS — guided fabrication requests for folded metal profiles.',
+    'Try Segments — guided fabrication requests for folded metal profiles.',
     '',
     url,
   ].join('\n')

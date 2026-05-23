@@ -12,7 +12,7 @@ interface State {
 async function resetAppStorage() {
   try {
     clearSession()
-    localStorage.removeItem('FOLDS-app')
+    localStorage.removeItem('segments-app')
   } catch {
     // ignore
   }
@@ -46,7 +46,7 @@ export class AppErrorBoundary extends Component<Props, State> {
     if (this.state.error) {
       return (
         <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background p-6 text-center text-foreground">
-          <h1 className="text-lg font-semibold text-primary">FOLDS could not start</h1>
+          <h1 className="text-lg font-semibold text-primary">Segments could not start</h1>
           <p className="max-w-sm text-sm text-muted">
             Something went wrong loading the app. Reset stored data and reload — your saved
             projects on this device will be cleared.

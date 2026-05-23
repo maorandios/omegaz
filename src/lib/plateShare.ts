@@ -24,7 +24,7 @@ export function buildPlateShareMessage(
   const weight = formatKg(computePlateWeightKg(plate.profile))
 
   return [
-    `FOLDS plate: ${name}`,
+    `Segments plate: ${name}`,
     `Project: ${project.name} (${project.serial})`,
     `Est. weight (qty × part): ${weight}`,
     '',
@@ -40,7 +40,7 @@ export function buildPlateSharePayload(
 ): { title: string; text: string; mailtoSubject: string; mailtoBody: string } {
   const name = plateDisplayName(plate)
   const text = buildPlateShareMessage(project, plate, mode)
-  const subject = `FOLDS plate — ${name} (${project.serial})`
+  const subject = `Segments plate — ${name} (${project.serial})`
   return {
     title: name,
     text,
