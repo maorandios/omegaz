@@ -120,9 +120,10 @@ export function AuthScreen() {
           {isDevPreview ? (
             <>
               <p className="rounded-xl border border-primary/25 bg-primary/10 px-3 py-2 text-center text-xs leading-relaxed text-muted">
-                Local preview — connect Supabase in{' '}
-                <span className="font-mono text-foreground/80">.env.local</span> to enable Google
-                and magic-link sign-in.
+                Local preview — add your Supabase URL and anon key to{' '}
+                <span className="font-mono text-foreground/80">.env.local</span> (same as Vercel),
+                restart <span className="font-mono text-foreground/80">npm run dev</span>, then
+                Google and magic-link sign-in work here too.
               </p>
               {signInForm}
               <Button type="button" className={authButtonClass} onClick={continueLocalDev}>
