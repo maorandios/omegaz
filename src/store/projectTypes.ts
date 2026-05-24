@@ -18,7 +18,7 @@ export interface PlateRecord {
 
 /**
  * Fabrication project — a named batch holding one or more plates.
- * Future: add `userId` when syncing to Supabase so each user sees only their projects.
+ * `userId` is set when loaded from Supabase (RLS scopes rows per user).
  */
 export interface ProjectRecord {
   id: string
@@ -30,6 +30,7 @@ export interface ProjectRecord {
   weightKg: number
   createdAt: string
   updatedAt: string
+  userId?: string
 }
 
 /** Estimated mass for a single fabricated part (kg). */

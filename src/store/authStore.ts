@@ -1,6 +1,6 @@
 import type { Session } from '@supabase/supabase-js'
 import { create } from 'zustand'
-import { userFromAuthUser } from '@/lib/authUser'
+import { upsertProfileFromSession } from '@/lib/db/profilesRepository'
 import {
   authRedirectUrl,
   isLocalAuthBypass,
@@ -27,17 +27,17 @@ interface AuthState {
   showSignInScreen: () => void
 }
 
-function syncAppUserFromSession(session: Session | null): void {
-  if (!session?.user) return
+async function syncAppUserFromSession(session: Session | null): Promise<void> {
+  if (!session?.user || !isSupabaseConfigured) return
 
-  const mapped = userFromAuthUser(session.user)
   const current = useAppStore.getState().user
 
-  useAppStore.getState().setUser({
-    ...mapped,
-    phone: current.phone ?? mapped.phone,
-    businessName: current.businessName ?? mapped.businessName,
-  })
+  try {
+    const bundle = await upsertProfileFromSession(session, current)
+    useAppStore.getState().setProfileBundle(bundle.user, bundle.subscription)
+  } catch (err) {
+    console.error('Failed to sync profile from session', err)
+  }
 }
 
 function wantsAuthPreviewOnLoad(): boolean {
@@ -72,14 +72,14 @@ export const useAuthStore = create<AuthState>((set) => ({
         return
       }
       set({ ready: true, session })
-      syncAppUserFromSession(session)
+      void syncAppUserFromSession(session)
     })
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       set({ session, authError: null })
-      if (session) syncAppUserFromSession(session)
+      void syncAppUserFromSession(session)
     })
 
     return () => {

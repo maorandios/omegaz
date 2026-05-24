@@ -50,6 +50,7 @@ function WorkflowStack() {
 export default function App() {
   const mainTab = useAppStore((s) => s.mainTab)
   const hydrated = useAppStore((s) => s.hydrated)
+  const projectsLoading = useAppStore((s) => s.projectsLoading)
   const hydrateApp = useAppStore((s) => s.hydrateApp)
   const currentStep = useProfileStore((s) => s.currentStep)
   const hydrateFromSession = useProfileStore((s) => s.hydrateFromSession)
@@ -59,16 +60,20 @@ export default function App() {
   const initAuth = useAuthStore((s) => s.initAuth)
 
   useEffect(() => {
-    hydrateApp()
     hydrateFromSession()
     return initAuth()
-  }, [hydrateApp, hydrateFromSession, initAuth])
+  }, [hydrateFromSession, initAuth])
+
+  useEffect(() => {
+    if (!authReady) return
+    void hydrateApp()
+  }, [authReady, hydrateApp, session?.user?.id, localDevSignedOut])
 
   const inWorkflow = isWorkflowStep(currentStep)
   const viewingPlateId = useAppStore((s) => s.viewingPlateId)
   const signedIn = isAuthenticatedSession(session, localDevSignedOut)
 
-  if (!hydrated || !authReady) {
+  if (!hydrated || !authReady || (signedIn && projectsLoading)) {
     return <ScreenFallback />
   }
 

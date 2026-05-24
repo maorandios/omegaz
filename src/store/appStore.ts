@@ -2,6 +2,17 @@ import { create } from 'zustand'
 import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
 import { cloneFoldedProfile, type FoldedProfile } from '@/geometry/types'
 import { createId } from '@/geometry/types'
+import {
+  fetchProfile,
+  fetchProjectsForUser,
+  migrateLocalProjectsIfNeeded,
+  registerSyncErrorHandler,
+  scheduleProjectUpsert,
+  syncProjectDelete,
+  upsertProfile,
+} from '@/lib/db'
+import { userFromAuthUser } from '@/lib/authUser'
+import { isLocalAuthBypass, isSupabaseConfigured } from '@/lib/supabase'
 import { loadAppData, saveAppData, type StoredSubscription, type StoredUser } from '@/store/projectsPersist'
 import { useAuthStore } from '@/store/authStore'
 import { defaultSubscription } from '@/store/userTypes'
@@ -34,15 +45,19 @@ interface AppState {
   viewingPlateId: string | null
   selectedProjectId: string | null
   hydrated: boolean
+  projectsLoading: boolean
+  syncError: string | null
 
   setMainTab: (tab: MainTab) => void
   openCreatePlateSheet: (step?: CreatePlateSheetStep) => void
   closeCreatePlateSheet: () => void
   setCreatePlateSheetStep: (step: CreatePlateSheetStep) => void
   setUser: (patch: Partial<StoredUser>) => void
+  setProfileBundle: (user: StoredUser, subscription: StoredSubscription) => void
   cancelSubscription: () => void
   logout: () => void
-  hydrateApp: () => void
+  hydrateApp: () => Promise<void>
+  clearSyncError: () => void
   setActiveProject: (projectId: string | null) => void
   setSelectedProject: (projectId: string | null) => void
   createProject: (name: string) => string | null
@@ -60,12 +75,38 @@ interface AppState {
   deletePlate: (projectId: string, plateId: string) => void
 }
 
-function persist(state: AppState) {
+function getCloudUserId(): string | null {
+  if (!isSupabaseConfigured) return null
+  return useAuthStore.getState().session?.user?.id ?? null
+}
+
+function persistLocal(state: AppState) {
   saveAppData({
     user: state.user,
     subscription: state.subscription,
     projects: state.projects,
   })
+}
+
+function syncProfile(state: AppState) {
+  const userId = getCloudUserId()
+  if (!userId) {
+    persistLocal(state)
+    return
+  }
+
+  void upsertProfile(userId, state.user, state.subscription).catch((err) => {
+    console.error('Failed to sync profile', err)
+    useAppStore.setState({
+      syncError: err instanceof Error ? err.message : 'Failed to save profile',
+    })
+  })
+}
+
+function syncProject(project: ProjectRecord) {
+  const userId = getCloudUserId()
+  if (!userId) return
+  scheduleProjectUpsert(project, userId)
 }
 
 function loadProfileIntoWorkflow(profile: FoldedProfile, selectedTemplate: string | null) {
@@ -97,6 +138,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   viewingPlateId: null,
   selectedProjectId: null,
   hydrated: false,
+  projectsLoading: false,
+  syncError: null,
 
   setMainTab: (tab) => set({ mainTab: tab }),
 
@@ -121,7 +164,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   setUser: (patch) => {
     const user = { ...get().user, ...patch }
     set({ user })
-    persist({ ...get(), user })
+    syncProfile({ ...get(), user })
+  },
+
+  setProfileBundle: (user, subscription) => {
+    set({ user, subscription })
   },
 
   cancelSubscription: () => {
@@ -130,38 +177,119 @@ export const useAppStore = create<AppState>((set, get) => ({
       cancelAtPeriodEnd: true,
     }
     set({ subscription })
-    persist({ ...get(), subscription })
+    syncProfile({ ...get(), subscription })
   },
 
   logout: () => {
     void useAuthStore.getState().signOut()
     clearSession()
     useProfileStore.getState().restart()
-    const next = {
-      mainTab: 'projects' as const,
+    set({
+      mainTab: 'projects',
       createPlateSheetOpen: false,
-      createPlateSheetStep: 'choose' as const,
+      createPlateSheetStep: 'choose',
       activeProjectId: null,
       editingPlateId: null,
       viewingPlateId: null,
       selectedProjectId: null,
+      projects: [],
       user: { fullName: 'Guest User', email: 'guest@getsegments.co' },
+      subscription: defaultSubscription(),
+      syncError: null,
+      projectsLoading: false,
+      hydrated: true,
+    })
+    if (!isSupabaseConfigured) {
+      persistLocal({
+        ...get(),
+        projects: [],
+        user: { fullName: 'Guest User', email: 'guest@getsegments.co' },
+        subscription: defaultSubscription(),
+      })
     }
-    set(next)
-    persist({ ...get(), ...next })
   },
 
-  hydrateApp: () => {
-    const data = loadAppData()
+  hydrateApp: async () => {
+    registerSyncErrorHandler((message) => set({ syncError: message }))
+
+    const session = useAuthStore.getState().session
+    const localDevSignedOut = useAuthStore.getState().localDevSignedOut
+    const userId = session?.user?.id
+
+    if (isSupabaseConfigured && userId) {
+      set({ projectsLoading: true, syncError: null })
+      try {
+        const [profileBundle, remoteProjects] = await Promise.all([
+          fetchProfile(userId),
+          fetchProjectsForUser(userId),
+        ])
+
+        const projects = await migrateLocalProjectsIfNeeded(userId, remoteProjects)
+        const user =
+          profileBundle?.user ??
+          userFromAuthUser(session.user)
+        const subscription = profileBundle?.subscription ?? defaultSubscription()
+
+        set({
+          user,
+          subscription,
+          projects,
+          activeProjectId: null,
+          viewingPlateId: null,
+          hydrated: true,
+          projectsLoading: false,
+        })
+      } catch (err) {
+        console.error('Failed to hydrate from Supabase', err)
+        set({
+          hydrated: true,
+          projectsLoading: false,
+          syncError:
+            err instanceof Error ? err.message : 'Failed to load your projects',
+          projects: [],
+        })
+      }
+      return
+    }
+
+    if (isLocalAuthBypass && !localDevSignedOut) {
+      const data = loadAppData({ skipSeeds: false })
+      set({
+        user: data.user,
+        subscription: data.subscription,
+        projects: data.projects,
+        activeProjectId: null,
+        viewingPlateId: null,
+        hydrated: true,
+        projectsLoading: false,
+      })
+      return
+    }
+
+    if (!isSupabaseConfigured) {
+      const data = loadAppData({ skipSeeds: false })
+      set({
+        user: data.user,
+        subscription: data.subscription,
+        projects: data.projects,
+        activeProjectId: null,
+        viewingPlateId: null,
+        hydrated: true,
+        projectsLoading: false,
+      })
+      return
+    }
+
     set({
-      user: data.user,
-      subscription: data.subscription,
-      projects: data.projects,
+      projects: [],
       activeProjectId: null,
       viewingPlateId: null,
       hydrated: true,
+      projectsLoading: false,
     })
   },
+
+  clearSyncError: () => set({ syncError: null }),
 
   setActiveProject: (projectId) => {
     set({ activeProjectId: projectId, editingPlateId: null })
@@ -187,10 +315,15 @@ export const useAppStore = create<AppState>((set, get) => ({
       weightKg: 0,
       createdAt: now,
       updatedAt: now,
+      userId: getCloudUserId() ?? undefined,
     }
     const next = [record, ...projects]
     set({ projects: next, activeProjectId: record.id, editingPlateId: null })
-    persist({ ...get(), projects: next })
+
+    const userId = getCloudUserId()
+    if (userId) syncProject(record)
+    else persistLocal({ ...get(), projects: next })
+
     return record.id
   },
 
@@ -206,7 +339,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     return projects.find((p) => p.id === selectedProjectId) ?? null
   },
 
-  /** Only entry point that adds or updates plates in a project (explicit save button). */
   savePlateToActiveProject: (profile, selectedTemplate) => {
     const { activeProjectId, editingPlateId, projects } = get()
     if (!activeProjectId) return false
@@ -214,6 +346,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     const now = new Date().toISOString()
     const savedProfile = cloneFoldedProfile(profile)
     const weightKg = computePlateWeightKg(savedProfile)
+
+    let changedProject: ProjectRecord | null = null
 
     const next = projects.map((project) => {
       if (project.id !== activeProjectId) return project
@@ -242,16 +376,23 @@ export const useAppStore = create<AppState>((set, get) => ({
         ]
       }
 
-      return {
+      changedProject = {
         ...project,
         plates,
         weightKg: computeProjectWeightKg(plates),
         updatedAt: now,
       }
+      return changedProject
     })
 
     set({ projects: next, editingPlateId: null })
-    persist({ ...get(), projects: next, editingPlateId: null })
+
+    if (changedProject) {
+      const userId = getCloudUserId()
+      if (userId) syncProject(changedProject)
+      else persistLocal({ ...get(), projects: next, editingPlateId: null })
+    }
+
     return true
   },
 
@@ -301,25 +442,34 @@ export const useAppStore = create<AppState>((set, get) => ({
       editingPlateId: activeProjectId === projectId ? null : get().editingPlateId,
       viewingPlateId: clearsProject ? null : viewingPlateId,
     })
-    persist({
-      ...get(),
-      projects: next,
-      activeProjectId: activeProjectId === projectId ? null : activeProjectId,
-    })
+
+    const userId = getCloudUserId()
+    if (userId) void syncProjectDelete(projectId)
+    else {
+      persistLocal({
+        ...get(),
+        projects: next,
+        activeProjectId: activeProjectId === projectId ? null : activeProjectId,
+      })
+    }
   },
 
   deletePlate: (projectId, plateId) => {
     const now = new Date().toISOString()
+    let changedProject: ProjectRecord | null = null
+
     const next = get().projects.map((project) => {
       if (project.id !== projectId) return project
       const plates = project.plates.filter((p) => p.id !== plateId)
-      return {
+      changedProject = {
         ...project,
         plates,
         weightKg: computeProjectWeightKg(plates),
         updatedAt: now,
       }
+      return changedProject
     })
+
     const { editingPlateId, viewingPlateId, activeProjectId } = get()
     const clearsPlate =
       activeProjectId === projectId &&
@@ -329,7 +479,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       editingPlateId: clearsPlate ? null : editingPlateId,
       viewingPlateId: clearsPlate ? null : viewingPlateId,
     })
-    persist({ ...get(), projects: next })
+
+    if (changedProject) {
+      const userId = getCloudUserId()
+      if (userId) syncProject(changedProject)
+      else persistLocal({ ...get(), projects: next })
+    }
   },
 }))
 

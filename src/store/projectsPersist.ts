@@ -22,7 +22,46 @@ import {
 export type { StoredSubscription, StoredUser }
 
 const STORAGE_KEY = 'segments-app'
+const MIGRATED_STORAGE_KEY = 'segments-app-migrated'
 const DATA_VERSION = 3
+
+export const SEED_PROJECT_IDS = new Set(['proj-seed-1', 'proj-seed-2'])
+
+export function isSeedProject(project: ProjectRecord): boolean {
+  return SEED_PROJECT_IDS.has(project.id)
+}
+
+export function hasOnlySeedProjects(projects: ProjectRecord[]): boolean {
+  return projects.length > 0 && projects.every(isSeedProject)
+}
+
+export function markLocalStorageMigrated(): void {
+  try {
+    localStorage.setItem(MIGRATED_STORAGE_KEY, '1')
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // ignore
+  }
+}
+
+export function loadLegacyLocalAppData(): StoredAppData | null {
+  try {
+    if (localStorage.getItem(MIGRATED_STORAGE_KEY)) return null
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as StoredAppData & { projects?: unknown }
+    if (!parsed.user) return null
+    const projects = normalizeProjects(parsed.projects)
+    return {
+      version: DATA_VERSION,
+      user: normalizeUser(parsed.user),
+      subscription: normalizeSubscription(parsed.subscription),
+      projects,
+    }
+  } catch {
+    return null
+  }
+}
 
 export interface StoredAppData {
   version?: number
@@ -125,7 +164,7 @@ function normalizeProjectWeights(project: ProjectRecord): ProjectRecord {
   }
 }
 
-function normalizeProjects(raw: unknown): ProjectRecord[] {
+export function normalizeProjects(raw: unknown): ProjectRecord[] {
   if (!Array.isArray(raw)) return []
   const migrated = raw
     .map((item) => migrateLegacyProject(item as Record<string, unknown>))
@@ -187,18 +226,19 @@ function seedProjects(): ProjectRecord[] {
   ]
 }
 
-export function loadAppData(): StoredAppData {
+export function loadAppData(options?: { skipSeeds?: boolean }): StoredAppData {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as StoredAppData & { projects?: unknown }
       if (parsed.user) {
         const projects = normalizeProjects(parsed.projects)
+        const fallback = options?.skipSeeds ? [] : seedProjects()
         return {
           version: DATA_VERSION,
           user: normalizeUser(parsed.user),
           subscription: normalizeSubscription(parsed.subscription),
-          projects: projects.length > 0 ? projects : seedProjects(),
+          projects: projects.length > 0 ? projects : fallback,
         }
       }
     }
@@ -213,7 +253,7 @@ export function loadAppData(): StoredAppData {
       email: 'guest@getsegments.co',
     }),
     subscription: defaultSubscription(),
-    projects: seedProjects(),
+    projects: options?.skipSeeds ? [] : seedProjects(),
   }
 }
 
