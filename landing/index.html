@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0D0D0D" />
+    <meta
+      name="description"
+      content="Segments — fast guided fabrication requests for folded metal profiles. Build profiles, export packages, and share with your fabricator."
+    />
+    <title>Segments — Fabrication requests for folded metal profiles</title>
+    <link rel="icon" type="image/png" href="/fav.png" />
+    <link rel="apple-touch-icon" href="/fav.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Funnel+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="header">
+        <a class="logo-link" href="/" aria-label="Segments home">
+          <img class="logo" src="/segments-logo.svg" alt="Segments" width="168" height="44" />
+        </a>
+        <a class="btn btn--ghost header-cta" href="https://app.getsegments.co">Open app</a>
+      </header>
+
+      <main class="hero">
+        <div class="hero__glow" aria-hidden="true"></div>
+        <p class="eyebrow">Fabrication workflow</p>
+        <h1 class="hero__title">
+          Guided fabrication requests for <span class="text-primary">folded metal profiles</span>
+        </h1>
+        <p class="hero__lead">
+          Draw or template a profile, enter segments and bends, then export PDF, Excel, and share
+          packages your shop can use — without CAD.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="https://app.getsegments.co">Get started</a>
+          <a class="btn btn--outline" href="https://app.getsegments.co">Sign in</a>
+        </div>
+      </main>
+
+      <section class="features" aria-label="Features">
+        <article class="feature">
+          <h2 class="feature__title">Profile wizard</h2>
+          <p class="feature__text">
+            Square, custom sketch, or template — define segments, angles, and thickness step by step.
+          </p>
+        </article>
+        <article class="feature">
+          <h2 class="feature__title">Project packages</h2>
+          <p class="feature__text">
+            Organize plates by project, export drawings and lists, and share via link or download.
+          </p>
+        </article>
+        <article class="feature">
+          <h2 class="feature__title">Built for the field</h2>
+          <p class="feature__text">
+            Mobile-first UI for quick requests on site — desktop-friendly when you need the full view.
+          </p>
+        </article>
+      </section>
+
+      <footer class="footer">
+        <p class="footer__copy">&copy; <span id="year"></span> Segments</p>
+        <a class="footer__link" href="https://app.getsegments.co">app.getsegments.co</a>
+      </footer>
+    </div>
+
+    <script>
+      document.getElementById('year').textContent = String(new Date().getFullYear())
+    </script>
+  </body>
+</html>
