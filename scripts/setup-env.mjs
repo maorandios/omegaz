@@ -28,3 +28,17 @@ if (!hasUrl || !hasKey) {
   console.warn('  (Use the same values as Vercel Production env vars.)')
   console.warn('')
 }
+
+const hasPaypalClient = /^VITE_PAYPAL_CLIENT_ID=.+$/m.test(content)
+const hasPaypalPlan = /^VITE_PAYPAL_PLAN_ID=.+$/m.test(content)
+
+if (!hasPaypalClient || !hasPaypalPlan) {
+  console.warn('[segments] PayPal subscriptions are not configured locally.')
+  console.warn('  1. PayPal Developer → My Apps & Credentials → grab the client id.')
+  console.warn('  2. Create a GBP £39/month subscription plan and copy its plan id.')
+  console.warn('  3. Set VITE_PAYPAL_CLIENT_ID + VITE_PAYPAL_PLAN_ID in .env.local.')
+  console.warn('  4. For webhooks + cancel routes, also set PAYPAL_CLIENT_ID,')
+  console.warn('     PAYPAL_SECRET, PAYPAL_WEBHOOK_ID, and SUPABASE_SERVICE_ROLE_KEY')
+  console.warn('     in Vercel env vars (Production + Preview).')
+  console.warn('')
+}

@@ -1,16 +1,22 @@
-import { LogOut, MessageCircleCheck, Trash2 } from 'lucide-react'
+import { Lock, LogOut, MessageCircleCheck, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { CancelSubscriptionSheet } from '@/components/profile/CancelSubscriptionSheet'
 import { DeleteAccountSheet } from '@/components/profile/DeleteAccountSheet'
+import { UpgradeSubscriptionSheet } from '@/components/profile/UpgradeSubscriptionSheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { openAppInviteWhatsApp } from '@/lib/appInvite'
+import { PRO_PRICE_LABEL } from '@/lib/pricing'
 import { isLocalAuthBypass } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/appStore'
 import { useAuthStore } from '@/store/authStore'
-import { formatSubscriptionPeriodEnd } from '@/store/userTypes'
+import {
+  entitlementFor,
+  formatSubscriptionPeriodEnd,
+  trialDaysRemaining,
+} from '@/store/userTypes'
 
 const readOnlyInputClass =
   'cursor-default border-border bg-surface/25 text-muted focus-visible:ring-0'
@@ -31,6 +37,7 @@ export function ProfileScreen() {
   const showSignInScreen = useAuthStore((s) => s.showSignInScreen)
 
   const [cancelOpen, setCancelOpen] = useState(false)
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -56,8 +63,42 @@ export function ProfileScreen() {
     if (!open) setDeleteError(null)
   }
 
-  const isCancelled =
-    subscription.status === 'cancelled' || subscription.cancelAtPeriodEnd
+  const entitlement = entitlementFor(subscription)
+  const isTrial = entitlement === 'trial'
+  const isLocked = entitlement === 'locked'
+  const isPaid = entitlement === 'paid'
+  const isCancelling = isPaid && subscription.cancelAtPeriodEnd
+  const trialDays = trialDaysRemaining(subscription)
+
+  const badge = (() => {
+    if (isLocked) {
+      return { label: 'Trial ended', className: 'bg-destructive/15 text-destructive' }
+    }
+    if (isTrial) {
+      const label =
+        trialDays === 1 ? 'Trial · 1 day left' : `Trial · ${trialDays} days left`
+      return { label, className: 'bg-primary/15 text-primary' }
+    }
+    if (isCancelling) {
+      return { label: 'Cancelling', className: 'bg-primary/15 text-primary' }
+    }
+    return { label: 'Active', className: 'bg-secondary/20 text-primary' }
+  })()
+
+  const renewLine = (() => {
+    if (isLocked) {
+      return 'Your free trial has ended. Subscribe to keep building.'
+    }
+    if (isTrial) {
+      return `Free trial · ends ${formatSubscriptionPeriodEnd(
+        subscription.trialEndsAt ?? subscription.currentPeriodEnd,
+      )}`
+    }
+    if (isCancelling) {
+      return `Cancels on ${formatSubscriptionPeriodEnd(subscription.currentPeriodEnd)}`
+    }
+    return `Active · renews ${formatSubscriptionPeriodEnd(subscription.currentPeriodEnd)}`
+  })()
 
   return (
     <div className="space-y-3 pb-2">
@@ -148,51 +189,53 @@ export function ProfileScreen() {
 
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-lg font-semibold text-foreground">{subscription.planName} plan</p>
-            <p className="mt-1 text-sm text-muted">
-              {subscription.status === 'cancelled' ? (
-                'Subscription ended'
-              ) : subscription.cancelAtPeriodEnd ? (
-                <>Cancels on {formatSubscriptionPeriodEnd(subscription.currentPeriodEnd)}</>
-              ) : (
-                <>
-                  Active · renews {formatSubscriptionPeriodEnd(subscription.currentPeriodEnd)}
-                </>
-              )}
+            <p className="text-lg font-semibold text-foreground">
+              {subscription.planName} plan
             </p>
+            <p className="mt-1 text-sm text-muted">{renewLine}</p>
           </div>
           <span
             className={cn(
               'shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium',
-              subscription.status === 'cancelled'
-                ? 'bg-surface-raised text-muted'
-                : subscription.cancelAtPeriodEnd
-                  ? 'bg-primary/15 text-primary'
-                  : 'bg-secondary/20 text-primary',
+              badge.className,
             )}
           >
-            {subscription.status === 'cancelled'
-              ? 'Ended'
-              : subscription.cancelAtPeriodEnd
-                ? 'Cancelling'
-                : 'Active'}
+            {badge.label}
           </span>
         </div>
 
-        {subscription.planId !== 'free' &&
-          subscription.status === 'active' &&
-          !subscription.cancelAtPeriodEnd && (
-            <Button
-              type="button"
-              variant="outline"
-              className={profileActionButtonClass}
-              onClick={() => setCancelOpen(true)}
-            >
-              Cancel subscription
-            </Button>
-          )}
+        {isLocked ? (
+          <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-xs leading-relaxed text-destructive">
+            <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>
+              Projects and the Create button are locked. Subscribe to unlock the rest of the
+              app and continue working on your plates.
+            </span>
+          </div>
+        ) : null}
 
-        {isCancelled && subscription.status !== 'cancelled' && (
+        {(isTrial || isLocked) && (
+          <Button
+            type="button"
+            className={profileActionButtonClass}
+            onClick={() => setUpgradeOpen(true)}
+          >
+            Subscribe — {PRO_PRICE_LABEL}
+          </Button>
+        )}
+
+        {isPaid && !isCancelling && (
+          <Button
+            type="button"
+            variant="outline"
+            className={profileActionButtonClass}
+            onClick={() => setCancelOpen(true)}
+          >
+            Cancel subscription
+          </Button>
+        )}
+
+        {isCancelling && (
           <p className="text-xs leading-relaxed text-muted">
             Pro features remain available until the end of your billing period.
           </p>
@@ -237,7 +280,14 @@ export function ProfileScreen() {
         open={cancelOpen}
         periodEnd={subscription.currentPeriodEnd}
         onOpenChange={setCancelOpen}
-        onConfirm={cancelSubscription}
+        onConfirm={() => {
+          void cancelSubscription()
+        }}
+      />
+
+      <UpgradeSubscriptionSheet
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
       />
 
       <DeleteAccountSheet

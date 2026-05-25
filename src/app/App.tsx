@@ -14,6 +14,7 @@ import { rootStackDirection, workflowStackDirection } from '@/lib/stackNavigatio
 import { isWorkflowStep, useAppStore } from '@/store/appStore'
 import { isAuthenticatedSession, useAuthStore } from '@/store/authStore'
 import { useProfileStore } from '@/store/profileStore'
+import { isSubscriptionLocked } from '@/store/userTypes'
 
 const ProfileScreen = lazy(() =>
   import('@/screens/ProfileScreen').then((m) => ({ default: m.ProfileScreen })),
@@ -50,11 +51,14 @@ function WorkflowStack() {
 
 export default function App() {
   const mainTab = useAppStore((s) => s.mainTab)
+  const setMainTab = useAppStore((s) => s.setMainTab)
   const hydrated = useAppStore((s) => s.hydrated)
   const projectsLoading = useAppStore((s) => s.projectsLoading)
   const hydrateApp = useAppStore((s) => s.hydrateApp)
+  const subscription = useAppStore((s) => s.subscription)
   const currentStep = useProfileStore((s) => s.currentStep)
   const hydrateFromSession = useProfileStore((s) => s.hydrateFromSession)
+  const restartProfile = useProfileStore((s) => s.restart)
   const authReady = useAuthStore((s) => s.ready)
   const session = useAuthStore((s) => s.session)
   const localDevSignedOut = useAuthStore((s) => s.localDevSignedOut)
@@ -74,6 +78,28 @@ export default function App() {
   const viewingPlateId = useAppStore((s) => s.viewingPlateId)
   const onboardingComplete = useAppStore((s) => s.onboardingComplete)
   const signedIn = isAuthenticatedSession(session, localDevSignedOut)
+  const locked = isSubscriptionLocked(subscription)
+
+  // Trial expired / cancelled grace ended: pop any in-flight workflow + plate
+  // view and pin the user on Profile so they can subscribe.
+  useEffect(() => {
+    if (!hydrated || !signedIn || !onboardingComplete || !locked) return
+    if (mainTab !== 'profile') setMainTab('profile')
+    if (isWorkflowStep(currentStep)) restartProfile()
+    const appState = useAppStore.getState()
+    if (appState.viewingPlateId) appState.closePlateView()
+    if (appState.selectedProjectId) appState.setSelectedProject(null)
+    if (appState.createPlateSheetOpen) appState.closeCreatePlateSheet()
+  }, [
+    hydrated,
+    signedIn,
+    onboardingComplete,
+    locked,
+    mainTab,
+    currentStep,
+    setMainTab,
+    restartProfile,
+  ])
 
   if (!hydrated || !authReady || (signedIn && projectsLoading)) {
     return <ScreenFallback />

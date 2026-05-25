@@ -10,6 +10,7 @@ import { getPlateShapeLabel } from '@/templates/definitions'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/appStore'
 import { useProfileStore } from '@/store/profileStore'
+import { isSubscriptionLocked } from '@/store/userTypes'
 
 interface AppShellProps {
   children: ReactNode
@@ -119,6 +120,7 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
   const resetPlateShape = useProfileStore((s) => s.resetPlateShape)
   const mainTab = useAppStore((s) => s.mainTab)
   const setMainTab = useAppStore((s) => s.setMainTab)
+  const subscription = useAppStore((s) => s.subscription)
   const createPlateSheetOpen = useAppStore((s) => s.createPlateSheetOpen)
   const syncError = useAppStore((s) => s.syncError)
   const clearSyncError = useAppStore((s) => s.clearSyncError)
@@ -225,6 +227,7 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
             <BottomDock
               activeTab={mainTab}
               createSheetOpen={createPlateSheetOpen}
+              locked={isSubscriptionLocked(subscription)}
               onTabChange={setMainTab}
               onCreateClick={() => openCreatePlateSheet('choose')}
             />

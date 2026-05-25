@@ -55,7 +55,7 @@ export const TERMS_DOC: LegalDocument = {
         },
         {
           label: 'Pricing & Billing',
-          text: 'Premium features are billed on a subscription basis (€49 / £39 per month, plus applicable VAT). Subscriptions automatically renew unless cancelled by the user prior to the billing cycle date.',
+          text: 'Premium features are billed on a subscription basis (£39 per month, plus applicable VAT). Subscriptions automatically renew unless cancelled by the user prior to the billing cycle date.',
         },
         {
           label: 'Refunds',

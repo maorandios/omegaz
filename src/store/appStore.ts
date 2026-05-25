@@ -13,10 +13,11 @@ import {
   upsertProfile,
 } from '@/lib/db'
 import { userFromAuthUser } from '@/lib/authUser'
+import { cancelPaypalSubscription } from '@/lib/paypalClient'
 import { isLocalAuthBypass, isSupabaseConfigured, supabase } from '@/lib/supabase'
 import { loadAppData, saveAppData, type StoredSubscription, type StoredUser } from '@/store/projectsPersist'
 import { useAuthStore } from '@/store/authStore'
-import { defaultSubscription } from '@/store/userTypes'
+import { defaultSubscription, isSubscriptionLocked } from '@/store/userTypes'
 import { clearSession } from '@/store/persist'
 import {
   computePlateWeightKg,
@@ -60,7 +61,7 @@ interface AppState {
     subscription: StoredSubscription,
     onboardingComplete?: boolean,
   ) => void
-  cancelSubscription: () => void
+  cancelSubscription: () => Promise<void>
   logout: () => void
   deleteAccount: () => Promise<void>
   hydrateApp: () => Promise<void>
@@ -87,6 +88,15 @@ interface AppState {
 function getCloudUserId(): string | null {
   if (!isSupabaseConfigured) return null
   return useAuthStore.getState().session?.user?.id ?? null
+}
+
+/**
+ * Defense-in-depth: any mutating action checks this and bails out when the
+ * user's subscription has expired. Read-only ops (selectors, view state) stay
+ * available so the Profile screen and bottom dock still work.
+ */
+function isLocked(state: { subscription: StoredSubscription }): boolean {
+  return isSubscriptionLocked(state.subscription)
 }
 
 function persistLocal(state: AppState) {
@@ -154,6 +164,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setMainTab: (tab) => set({ mainTab: tab }),
 
   openCreatePlateSheet: (step = 'choose') => {
+    if (isLocked(get())) return
     const updates: Partial<AppState> = {
       createPlateSheetOpen: true,
       createPlateSheetStep: step,
@@ -201,13 +212,32 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ user, onboardingComplete: true })
   },
 
-  cancelSubscription: () => {
-    const subscription = {
-      ...get().subscription,
-      cancelAtPeriodEnd: true,
+  cancelSubscription: async () => {
+    const previous = get().subscription
+    // Optimistically flip the cancel flag so the UI reacts immediately.
+    const optimistic = { ...previous, cancelAtPeriodEnd: true }
+    set({ subscription: optimistic })
+
+    if (previous.provider === 'paypal' && previous.paypalSubscriptionId) {
+      try {
+        await cancelPaypalSubscription()
+        // The webhook will finalize `status`; re-pull the canonical state.
+        await get().hydrateApp()
+      } catch (err) {
+        console.error('Cancel subscription failed', err)
+        set({
+          subscription: previous,
+          syncError:
+            err instanceof Error ? err.message : 'Failed to cancel subscription',
+        })
+        return
+      }
+      return
     }
-    set({ subscription })
-    syncProfile({ ...get(), subscription })
+
+    // No PayPal subscription yet (trial or legacy local-only) — just persist
+    // the optimistic state.
+    syncProfile({ ...get(), subscription: optimistic })
   },
 
   logout: () => {
@@ -351,6 +381,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }),
 
   createProject: (name) => {
+    if (isLocked(get())) return null
     const trimmed = name.trim()
     if (!trimmed) return null
 
@@ -389,6 +420,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   savePlateToActiveProject: (profile, selectedTemplate) => {
+    if (isLocked(get())) return false
     const { activeProjectId, editingPlateId, projects } = get()
     if (!activeProjectId) return false
 
@@ -464,6 +496,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   startPlateEdit: () => {
+    if (isLocked(get())) return
     const ctx = get().getViewingPlate()
     if (!ctx) return
 
@@ -481,6 +514,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   renameProject: (projectId, name) => {
+    if (isLocked(get())) return false
     const trimmed = name.trim()
     if (!trimmed) return false
 
@@ -510,6 +544,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   deleteProject: (projectId) => {
+    if (isLocked(get())) return
     const { activeProjectId, selectedProjectId, viewingPlateId } = get()
     const clearsProject = selectedProjectId === projectId
     const next = get().projects.filter((p) => p.id !== projectId)
@@ -533,6 +568,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   deletePlate: (projectId, plateId) => {
+    if (isLocked(get())) return
     const now = new Date().toISOString()
     let changedProject: ProjectRecord | null = null
 
