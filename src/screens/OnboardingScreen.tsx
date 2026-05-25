@@ -32,6 +32,7 @@ interface StepShellProps {
   primaryLabel: string
   secondaryLabel?: string
   onSecondary?: () => void
+  onBack?: () => void
   primaryDisabled?: boolean
   primaryLoading?: boolean
   error?: string | null
@@ -53,6 +54,7 @@ function StepShell({
   primaryLabel,
   secondaryLabel,
   onSecondary,
+  onBack,
   primaryDisabled,
   primaryLoading,
   error,
@@ -105,13 +107,34 @@ function StepShell({
         ) : null}
 
         <div className="mt-7 flex w-full flex-col items-center gap-2">
-          <Button
-            type="submit"
-            className="h-12 w-full rounded-2xl text-base font-semibold"
-            disabled={primaryDisabled || primaryLoading}
-          >
-            {primaryLoading ? 'Saving…' : primaryLabel}
-          </Button>
+          {onBack ? (
+            <div className="grid w-full grid-cols-[2fr_3fr] gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 rounded-2xl text-base font-semibold"
+                onClick={onBack}
+                disabled={primaryLoading}
+              >
+                Back
+              </Button>
+              <Button
+                type="submit"
+                className="h-12 rounded-2xl text-base font-semibold"
+                disabled={primaryDisabled || primaryLoading}
+              >
+                {primaryLoading ? 'Saving…' : primaryLabel}
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="submit"
+              className="h-12 w-full rounded-2xl text-base font-semibold"
+              disabled={primaryDisabled || primaryLoading}
+            >
+              {primaryLoading ? 'Saving…' : primaryLabel}
+            </Button>
+          )}
           {secondaryLabel && onSecondary ? (
             <Button
               type="button"
@@ -147,6 +170,15 @@ export function OnboardingScreen() {
 
   const stepIndex = STEP_KEYS.indexOf(stepKey)
   const progressPct = ((stepIndex + 1) / STEP_KEYS.length) * 100
+  const canGoBack = stepIndex > 0 && !submitting
+
+  const goBack = () => {
+    if (!canGoBack) return
+    setError(null)
+    setNameError(null)
+    const prev = STEP_KEYS[stepIndex - 1]
+    if (prev) setStepKey(prev)
+  }
 
   const handleNameSubmit = () => {
     if (!fullName.trim()) {
@@ -212,6 +244,7 @@ export function OnboardingScreen() {
         onSubmit={goToPhone}
         primaryLabel="Continue"
         primaryDisabled={!businessName.trim()}
+        onBack={canGoBack ? goBack : undefined}
         secondaryLabel="Skip for now"
         onSecondary={goToPhone}
       />
@@ -232,6 +265,7 @@ export function OnboardingScreen() {
         onSubmit={() => void handleFinish()}
         primaryLabel="Enter Segments"
         primaryDisabled={!phone.trim()}
+        onBack={canGoBack ? goBack : undefined}
         secondaryLabel="Skip for now"
         onSecondary={() => {
           setPhone('')
