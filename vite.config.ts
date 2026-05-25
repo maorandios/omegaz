@@ -26,7 +26,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'prompt',
+      // Auto-activate new SWs so the latest deploy ships to returning users on
+      // the next page load. Without this, the old bundle keeps serving until
+      // the user manually clears storage.
+      registerType: 'autoUpdate',
       includeAssets: ['new_fav.png', 'segments-logo.svg'],
       manifest: {
         name: 'Segments — Fabrication Request',
@@ -45,6 +48,14 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,ttf}'],
         globIgnores: ['**/konva-canvas-*.js'],
         maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
+        // Take control of any open clients the moment the new SW activates,
+        // and skip the "waiting" state — combined with registerType:'autoUpdate'
+        // this means returning users get the latest deploy on next reload.
+        clientsClaim: true,
+        skipWaiting: true,
+        // PayPal redirect URLs must always hit the network so the user lands
+        // on the live billing landing page, not a stale cached copy.
+        navigateFallbackDenylist: [/^\/api\//, /^\/billing\//],
       },
     }),
   ],
