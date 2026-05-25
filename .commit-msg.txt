@@ -1,8 +1,0 @@
-Support multilingual PDF text and add project rename.
-
-Bundles Noto Sans + Noto Sans Hebrew so notes, project names, and plate
-names render correctly when typed in non-Latin scripts (notably Hebrew),
-with a manual visual-order pass since jsPDF 4.x has no bidi. Slugify now
-preserves Unicode letters so Hebrew names survive into PDF and ZIP
-filenames. Adds a Rename project action and bottom sheet on the project
-screen wired through the existing sync pipeline.
