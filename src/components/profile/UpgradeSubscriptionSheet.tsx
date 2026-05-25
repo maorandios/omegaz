@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -28,11 +28,49 @@ export function UpgradeSubscriptionSheet({
 }: UpgradeSubscriptionSheetProps) {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  // Mirror submitting into a ref so the bfcache/visibility handlers below can
+  // read the current value without re-binding the listeners on every render.
+  const submittingRef = useRef(false)
+  submittingRef.current = submitting
+
+  // The PayPal flow does a full-page navigation away. If the user backs out
+  // of PayPal without completing checkout (browser back button, iOS "Done",
+  // or closing the in-app browser), our page is restored from bfcache with
+  // `submitting === true` from before the redirect. That leaves the button
+  // disabled and the sheet looking frozen. Reset on return so the UI is
+  // immediately usable again.
+  useEffect(() => {
+    const reset = () => {
+      if (!submittingRef.current) return
+      setSubmitting(false)
+      setError(null)
+      onOpenChange(false)
+    }
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) reset()
+    }
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') reset()
+    }
+
+    window.addEventListener('pageshow', handlePageShow)
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
+  }, [onOpenChange])
 
   const handleOpenChange = (next: boolean) => {
-    if (submitting) return
+    // Never trap the user. If they want to dismiss the sheet (swipe down,
+    // escape, tap outside) we let them, even mid-submit — the redirect will
+    // either fire or it won't.
     onOpenChange(next)
-    if (!next) setError(null)
+    if (!next) {
+      setError(null)
+      setSubmitting(false)
+    }
   }
 
   const handleSubscribe = async () => {
