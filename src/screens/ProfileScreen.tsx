@@ -1,6 +1,7 @@
-import { LogOut, MessageCircleCheck } from 'lucide-react'
+import { LogOut, MessageCircleCheck, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { CancelSubscriptionSheet } from '@/components/profile/CancelSubscriptionSheet'
+import { DeleteAccountSheet } from '@/components/profile/DeleteAccountSheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -26,9 +27,34 @@ export function ProfileScreen() {
   const setUser = useAppStore((s) => s.setUser)
   const cancelSubscription = useAppStore((s) => s.cancelSubscription)
   const logout = useAppStore((s) => s.logout)
+  const deleteAccount = useAppStore((s) => s.deleteAccount)
   const showSignInScreen = useAuthStore((s) => s.showSignInScreen)
 
   const [cancelOpen, setCancelOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const handleDeleteConfirm = async () => {
+    setDeleteError(null)
+    setDeleteLoading(true)
+    try {
+      await deleteAccount()
+      setDeleteOpen(false)
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : 'Could not delete account. Please try again.',
+      )
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  const handleDeleteOpenChange = (open: boolean) => {
+    if (deleteLoading) return
+    setDeleteOpen(open)
+    if (!open) setDeleteError(null)
+  }
 
   const isCancelled =
     subscription.status === 'cancelled' || subscription.cancelAtPeriodEnd
@@ -80,7 +106,7 @@ export function ProfileScreen() {
                 setUser({ phone: trimmed || undefined })
               }}
               autoComplete="tel"
-              placeholder="+1 555 000 0000"
+              placeholder="+44 7700 900123"
             />
           </div>
 
@@ -187,6 +213,18 @@ export function ProfileScreen() {
         <Button
           type="button"
           variant="outline"
+          className={cn(
+            profileActionButtonClass,
+            'gap-2 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive',
+          )}
+          onClick={() => setDeleteOpen(true)}
+        >
+          <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+          Delete account
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
           className={cn(profileActionButtonClass, 'gap-2')}
           onClick={logout}
         >
@@ -200,6 +238,14 @@ export function ProfileScreen() {
         periodEnd={subscription.currentPeriodEnd}
         onOpenChange={setCancelOpen}
         onConfirm={cancelSubscription}
+      />
+
+      <DeleteAccountSheet
+        open={deleteOpen}
+        loading={deleteLoading}
+        error={deleteError}
+        onOpenChange={handleDeleteOpenChange}
+        onConfirm={() => void handleDeleteConfirm()}
       />
     </div>
   )

@@ -13,7 +13,7 @@ import {
   upsertProfile,
 } from '@/lib/db'
 import { userFromAuthUser } from '@/lib/authUser'
-import { isLocalAuthBypass, isSupabaseConfigured } from '@/lib/supabase'
+import { isLocalAuthBypass, isSupabaseConfigured, supabase } from '@/lib/supabase'
 import { loadAppData, saveAppData, type StoredSubscription, type StoredUser } from '@/store/projectsPersist'
 import { useAuthStore } from '@/store/authStore'
 import { defaultSubscription } from '@/store/userTypes'
@@ -62,6 +62,7 @@ interface AppState {
   ) => void
   cancelSubscription: () => void
   logout: () => void
+  deleteAccount: () => Promise<void>
   hydrateApp: () => Promise<void>
   clearSyncError: () => void
   completeOnboarding: (patch: Partial<StoredUser>) => Promise<void>
@@ -236,6 +237,19 @@ export const useAppStore = create<AppState>((set, get) => ({
         subscription: defaultSubscription(),
       })
     }
+  },
+
+  deleteAccount: async () => {
+    if (isSupabaseConfigured) {
+      if (!supabase) {
+        throw new Error('Account deletion is unavailable right now.')
+      }
+      const { error } = await supabase.rpc('delete_user_account')
+      if (error) {
+        throw new Error(error.message || 'Could not delete account. Please try again.')
+      }
+    }
+    get().logout()
   },
 
   hydrateApp: async () => {

@@ -5,10 +5,10 @@ import { computeProfileMetrics } from '@/lib/profileMetrics'
 import type { ProjectRecord } from '@/store/projectTypes'
 
 /** All plate drawings in one multi-page PDF (one page per plate). */
-export function generateProjectDrawingsPdf(
+export async function generateProjectDrawingsPdf(
   project: ProjectRecord,
   options?: PdfExportOptions,
-): Blob {
+): Promise<Blob> {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
 
   if (project.plates.length === 0) {
@@ -18,14 +18,17 @@ export function generateProjectDrawingsPdf(
     return doc.output('blob')
   }
 
-  project.plates.forEach((plate, index) => {
+  for (const [index, plate] of project.plates.entries()) {
     if (index > 0) doc.addPage()
     const metrics = computeProfileMetrics(plate.profile)
-    appendPlateDrawingPage(doc, plate.profile, metrics, {
-      clientName: options?.clientName,
+    // Spread plate options first, then let caller-provided clientName win so
+    // an explicit "—" fallback from pdfExportOptionsForPlate (when no user was
+    // passed) does not erase the user-derived clientName.
+    await appendPlateDrawingPage(doc, plate.profile, metrics, {
       ...pdfExportOptionsForPlate(project, plate),
+      clientName: options?.clientName,
     })
-  })
+  }
 
   return doc.output('blob')
 }

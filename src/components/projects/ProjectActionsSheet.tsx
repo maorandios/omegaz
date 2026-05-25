@@ -148,7 +148,7 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
       const exportOptions = { clientName: pdfClientNameFromUser(user) }
       const blob =
         mode === 'drawings'
-          ? generateProjectDrawingsPdf(project, exportOptions)
+          ? await generateProjectDrawingsPdf(project, exportOptions)
           : await generateProjectZip(project, 'full', exportOptions, user)
       const filename = projectFilename(mode)
 

@@ -121,21 +121,33 @@ export async function upsertProfileFromSession(
   const mapped = userFromAuthUser(session.user)
   const existing = await fetchProfile(session.user.id)
 
+  if (existing) {
+    // The profiles row is the source of truth for user-managed fields.
+    // Falling back to auth metadata here would reintroduce values the user
+    // has intentionally cleared (e.g. removing phone/business name on the
+    // profile screen). Only the email is refreshed from auth in case it was
+    // changed via the provider.
+    if (existing.user.email !== mapped.email) {
+      const updated = normalizeUser({ ...existing.user, email: mapped.email })
+      await upsertProfile(session.user.id, updated, existing.subscription)
+      return { ...existing, user: updated }
+    }
+    return existing
+  }
+
   const mergedUser = normalizeUser({
-    fullName: existing?.user.fullName || localUser?.fullName || mapped.fullName,
+    fullName: localUser?.fullName || mapped.fullName,
     email: mapped.email,
-    phone: existing?.user.phone ?? localUser?.phone ?? mapped.phone,
-    businessName:
-      existing?.user.businessName ?? localUser?.businessName ?? mapped.businessName,
+    phone: localUser?.phone ?? mapped.phone,
+    businessName: localUser?.businessName ?? mapped.businessName,
   })
 
-  const subscription = existing?.subscription ?? defaultSubscription()
-
+  const subscription = defaultSubscription()
   await upsertProfile(session.user.id, mergedUser, subscription)
 
   return {
     user: mergedUser,
     subscription,
-    onboardingComplete: existing?.onboardingComplete ?? false,
+    onboardingComplete: false,
   }
 }

@@ -9,6 +9,7 @@ import { normalizeFabrication, type FoldedProfile, type Point2D, type Segment } 
 import { buildPlateInfoFields } from '@/export/plateInfoFields'
 import { drawPdfSegmentDimLabel } from '@/export/pdfSegmentLabel'
 import type { PdfExportOptions } from '@/export/pdfExportTypes'
+import { loadPdfLogo } from '@/export/pdfLogo'
 import { NAME_SERIAL_SEPARATOR } from '@/lib/format'
 import type { ProfileMetrics } from '@/lib/profileMetrics'
 
@@ -30,12 +31,19 @@ const CELL_VALUE_Y =
 const FOOTER_FONT_SIZE = 6.5 * 1.25
 const FOOTER_PAD = 4
 const FOOTER_LINE_H = 3.6
+/** Extra space between the branded headline and the disclaimer body. */
+const FOOTER_HEADLINE_GAP = 1.6
+const FOOTER_LOGO_SIZE = 4.6 / 1.25
+const FOOTER_LOGO_GAP_BEFORE = 1
+const FOOTER_LOGO_GAP_AFTER = 0.3
 const SECTION_STROKE = 0.25
 const PROFILE_STROKE = 0.5 * 1.25
 const PDF_DIM_FONT = 10 * 1.25
 const PDF_DEG_FONT = 11 * 1.25
 
-const PDF_FOOTER_HEADLINE = 'Generated via Segments (www.getsegments.co)'
+const PDF_FOOTER_BRAND_PREFIX = 'Generated via'
+const PDF_FOOTER_BRAND_SUFFIX = 'Segments — www.getsegments.co'
+const PDF_FOOTER_HEADLINE_FALLBACK = `${PDF_FOOTER_BRAND_PREFIX} ${PDF_FOOTER_BRAND_SUFFIX}`
 const PDF_FOOTER_BODY =
   'All dimensions are nominal outside dimensions. Fabricator: Please apply your shop\'s specific bend deductions, thickness allowances, and tooling configurations before production. The user assumes responsibility for final fitment verification.'
 
@@ -232,7 +240,8 @@ function drawNotesStripe(
   return stripeH
 }
 
-const TITLE_COLS = 2
+const TITLE_PROJECT_FRACTION = 0.5
+const TITLE_PLATE_NAME_FRACTION = 0.25
 /** Slightly larger middle dot in PDF title values (mm text is small). */
 const TITLE_SEP_FONT_SIZE = CELL_VALUE_SIZE + 2.5
 
@@ -314,30 +323,47 @@ function drawTitleBar(
   profile: FoldedProfile,
   options?: PdfExportOptions,
 ): void {
-  const colW = w / TITLE_COLS
+  const projectColW = w * TITLE_PROJECT_FRACTION
+  const plateNameColW = w * TITLE_PLATE_NAME_FRACTION
+  const plateNumberColW = w - projectColW - plateNameColW
+
+  const plateNameX = x + projectColW
+  const plateNumberX = plateNameX + plateNameColW
+
   doc.setLineWidth(SECTION_STROKE)
   doc.setDrawColor(0)
-  doc.line(x + colW, y, x + colW, y + TITLE_SECTION_H)
+  doc.line(plateNameX, y, plateNameX, y + TITLE_SECTION_H)
+  doc.line(plateNumberX, y, plateNumberX, y + TITLE_SECTION_H)
 
   const fab = normalizeFabrication(profile.fabrication)
+  const plateName = options?.plateName ?? fab.partName ?? profile.name
 
   drawTitleValueCell(
     doc,
     x,
     y,
-    colW,
+    projectColW,
     'Project name',
     options?.projectName,
     options?.projectSerial,
   )
   drawTitleValueCell(
     doc,
-    x + colW,
+    plateNameX,
     y,
-    colW,
+    plateNameColW,
     'Plate name',
-    options?.plateName ?? fab.partName ?? profile.name,
+    plateName,
+    undefined,
+  )
+  drawTitleValueCell(
+    doc,
+    plateNumberX,
+    y,
+    plateNumberColW,
+    'Plate number',
     options?.plateSerial,
+    undefined,
   )
 }
 
@@ -354,12 +380,14 @@ function buildPlateInfoColumns(
 }
 
 /** Renders one A4 plate drawing page onto an existing jsPDF document. */
-export function appendPlateDrawingPage(
+export async function appendPlateDrawingPage(
   doc: jsPDF,
   profile: FoldedProfile,
   metrics: ProfileMetrics,
   options?: PdfExportOptions,
-): void {
+): Promise<void> {
+  const logoDataUrl = await loadPdfLogo()
+
   const pageW = doc.internal.pageSize.getWidth()
   const pageH = doc.internal.pageSize.getHeight()
   const contentW = pageW - MARGIN * 2
@@ -373,10 +401,11 @@ export function appendPlateDrawingPage(
   doc.setFontSize(FOOTER_FONT_SIZE)
   const footerCenterX = MARGIN + contentW / 2
   const footerWrapW = contentW - 10
-  const headlineLines = doc.splitTextToSize(PDF_FOOTER_HEADLINE, footerWrapW)
   const bodyLines = doc.splitTextToSize(PDF_FOOTER_BODY, footerWrapW)
-  const footerLineCount = headlineLines.length + bodyLines.length
-  const footerH = footerLineCount * FOOTER_LINE_H + FOOTER_PAD * 2
+  const footerLineCount = 1 + bodyLines.length
+  const footerTextH =
+    footerLineCount * FOOTER_LINE_H + FOOTER_HEADLINE_GAP
+  const footerH = footerTextH + FOOTER_PAD * 2
   const footerY = pageH - MARGIN - footerH
 
   const columns = buildPlateInfoColumns(profile, metrics, options)
@@ -423,14 +452,10 @@ export function appendPlateDrawingPage(
 
   doc.setFontSize(FOOTER_FONT_SIZE)
   doc.setTextColor(80)
-  const footerTextBlockH = footerLineCount * FOOTER_LINE_H
-  let footerTextY = footerY + (footerH - footerTextBlockH) / 2 + FOOTER_LINE_H / 2
+  let footerTextY = footerY + (footerH - footerTextH) / 2 + FOOTER_LINE_H / 2
 
-  doc.setFont('helvetica', 'bold')
-  headlineLines.forEach((line: string) => {
-    doc.text(line, footerCenterX, footerTextY, { align: 'center', baseline: 'middle' })
-    footerTextY += FOOTER_LINE_H
-  })
+  drawFooterHeadline(doc, footerCenterX, footerTextY, logoDataUrl)
+  footerTextY += FOOTER_LINE_H + FOOTER_HEADLINE_GAP
 
   doc.setFont('helvetica', 'normal')
   bodyLines.forEach((line: string) => {
@@ -440,12 +465,49 @@ export function appendPlateDrawingPage(
   doc.setTextColor(0)
 }
 
-export function generatePdf(
+function drawFooterHeadline(
+  doc: jsPDF,
+  centerX: number,
+  baselineY: number,
+  logoDataUrl: string | null,
+): void {
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(FOOTER_FONT_SIZE)
+
+  if (!logoDataUrl) {
+    doc.text(PDF_FOOTER_HEADLINE_FALLBACK, centerX, baselineY, {
+      align: 'center',
+      baseline: 'middle',
+    })
+    return
+  }
+
+  const prefixText = `${PDF_FOOTER_BRAND_PREFIX} `
+  const suffixText = ` ${PDF_FOOTER_BRAND_SUFFIX}`
+  const prefixW = pdfTextWidthMm(doc, prefixText, FOOTER_FONT_SIZE)
+  const suffixW = pdfTextWidthMm(doc, suffixText, FOOTER_FONT_SIZE)
+  const logoW = FOOTER_LOGO_SIZE
+  const totalW =
+    prefixW + FOOTER_LOGO_GAP_BEFORE + logoW + FOOTER_LOGO_GAP_AFTER + suffixW
+  const startX = centerX - totalW / 2
+
+  doc.text(prefixText, startX, baselineY, { baseline: 'middle' })
+
+  const logoX = startX + prefixW + FOOTER_LOGO_GAP_BEFORE
+  const logoY = baselineY - FOOTER_LOGO_SIZE / 2
+  doc.addImage(logoDataUrl, 'PNG', logoX, logoY, logoW, FOOTER_LOGO_SIZE)
+
+  doc.text(suffixText, logoX + logoW + FOOTER_LOGO_GAP_AFTER, baselineY, {
+    baseline: 'middle',
+  })
+}
+
+export async function generatePdf(
   profile: FoldedProfile,
   metrics: ProfileMetrics,
   options?: PdfExportOptions,
-): Blob {
+): Promise<Blob> {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-  appendPlateDrawingPage(doc, profile, metrics, options)
+  await appendPlateDrawingPage(doc, profile, metrics, options)
   return doc.output('blob')
 }

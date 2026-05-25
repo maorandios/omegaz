@@ -32,16 +32,18 @@ export async function generateProjectZip(
   zip.file(platesListExcelFilename(), generateProjectPlatesExcel(project, options))
   zip.file(
     projectDrawingsPdfFilename(project, user),
-    generateProjectDrawingsPdf(project, options),
+    await generateProjectDrawingsPdf(project, options),
   )
 
   for (const plate of project.plates) {
     const metrics = computeProfileMetrics(plate.profile)
+    // Same caller-wins ordering as generateProjectDrawingsPdf so the user's
+    // clientName isn't overwritten by pdfExportOptionsForPlate's undefined.
     zip.file(
       platePdfFilename(project, plate),
-      generatePdf(plate.profile, metrics, {
-        clientName: options?.clientName,
+      await generatePdf(plate.profile, metrics, {
         ...pdfExportOptionsForPlate(project, plate),
+        clientName: options?.clientName,
       }),
     )
   }

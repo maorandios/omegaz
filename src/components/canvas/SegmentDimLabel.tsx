@@ -22,7 +22,10 @@ export function SegmentDimLabel({ layout, fontSize, fill, fontStyle }: SegmentDi
   useLayoutEffect(() => {
     const node = textRef.current
     if (!node) return
-    const w = node.width()
+    // getTextWidth() returns the natural text width regardless of any width
+    // prop on the node, so it grows correctly when digits are appended
+    // (e.g. typing 10 → 100 in the wizard).
+    const w = node.getTextWidth()
     const h = node.height()
     if (w > 0 && h > 0) setSize({ width: w, height: h })
   }, [layout.text, layout.rotationDeg, fontSize, fontStyle])
@@ -41,8 +44,6 @@ export function SegmentDimLabel({ layout, fontSize, fill, fontStyle }: SegmentDi
         ref={textRef}
         x={-halfW}
         y={-halfH}
-        width={size.width}
-        height={size.height}
         text={layout.text}
         fontSize={fontSize}
         fontStyle={fontStyle}

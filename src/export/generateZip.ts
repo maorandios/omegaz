@@ -24,7 +24,7 @@ export async function generateFabricationZip(
   const zip = new JSZip()
   const stem = archiveBasename ?? 'segments_plate'
 
-  const pdfBlob = generatePdf(profile, metrics, options)
+  const pdfBlob = await generatePdf(profile, metrics, options)
   const xlsxBlob = generateExcel(profile, metrics, templateId, options)
 
   zip.file(`${stem}.pdf`, pdfBlob)

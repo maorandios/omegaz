@@ -22,7 +22,7 @@ export function ProjectDetailView() {
   const weightValue = projectWeightNumeric(project)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-6">
       <div>
         <p className="font-mono text-sm text-muted">
           {project.serial}
