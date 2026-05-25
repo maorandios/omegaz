@@ -79,6 +79,7 @@ interface AppState {
   closePlateView: () => void
   startPlateEdit: () => void
   getViewingPlate: () => { project: ProjectRecord; plate: PlateRecord } | null
+  renameProject: (projectId: string, name: string) => boolean
   deleteProject: (projectId: string) => void
   deletePlate: (projectId: string, plateId: string) => void
 }
@@ -477,6 +478,35 @@ export const useAppStore = create<AppState>((set, get) => ({
     const plate = project?.plates.find((p) => p.id === viewingPlateId)
     if (!project || !plate) return null
     return { project, plate }
+  },
+
+  renameProject: (projectId, name) => {
+    const trimmed = name.trim()
+    if (!trimmed) return false
+
+    const { projects } = get()
+    const current = projects.find((p) => p.id === projectId)
+    if (!current) return false
+    if (current.name === trimmed) return true
+
+    const now = new Date().toISOString()
+    let changedProject: ProjectRecord | null = null
+
+    const next = projects.map((project) => {
+      if (project.id !== projectId) return project
+      changedProject = { ...project, name: trimmed, updatedAt: now }
+      return changedProject
+    })
+
+    set({ projects: next })
+
+    if (changedProject) {
+      const userId = getCloudUserId()
+      if (userId) syncProject(changedProject)
+      else persistLocal({ ...get(), projects: next })
+    }
+
+    return true
   },
 
   deleteProject: (projectId) => {

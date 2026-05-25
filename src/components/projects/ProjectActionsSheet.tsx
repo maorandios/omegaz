@@ -3,12 +3,14 @@ import {
   ArrowDownToLine,
   CirclePlus,
   MessageCircleCheck,
+  PencilLine,
   Send,
   Settings2,
   Trash2,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { DeleteProjectSheet } from '@/components/projects/DeleteProjectSheet'
+import { RenameProjectSheet } from '@/components/projects/RenameProjectSheet'
 import { ActionRow } from '@/components/shell/ActionRow'
 import { ActionsSheetLayout } from '@/components/shell/ActionsSheetLayout'
 import { PROJECT_PACKAGE_OPTIONS } from '@/components/shell/packagePickerOptions'
@@ -31,7 +33,7 @@ interface ProjectActionsSheetProps {
   onOpenChange: (open: boolean) => void
 }
 
-type ActionId = 'add' | 'download' | 'whatsapp' | 'email' | 'delete'
+type ActionId = 'add' | 'rename' | 'download' | 'whatsapp' | 'email' | 'delete'
 type SheetView = 'actions' | 'package-picker'
 type PickerMode = 'download' | 'whatsapp' | 'email'
 
@@ -49,6 +51,12 @@ const PROJECT_ACTIONS: ActionRowConfig[] = [
     icon: CirclePlus,
     title: 'Add new plate',
     description: 'Start another plate in this project.',
+  },
+  {
+    id: 'rename',
+    icon: PencilLine,
+    title: 'Rename project',
+    description: 'Change the project name.',
   },
   {
     id: 'download',
@@ -104,6 +112,7 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
   const setSelectedProject = useAppStore((s) => s.setSelectedProject)
   const openCreatePlateSheet = useAppStore((s) => s.openCreatePlateSheet)
   const deleteProject = useAppStore((s) => s.deleteProject)
+  const renameProject = useAppStore((s) => s.renameProject)
   const restart = useProfileStore((s) => s.restart)
   const user = useAppStore((s) => s.user)
 
@@ -112,6 +121,7 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
   const [busyPicker, setBusyPicker] = useState<PackageMode | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [renameOpen, setRenameOpen] = useState(false)
 
   useEffect(() => {
     if (!open) {
@@ -171,6 +181,11 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
     setDeleteOpen(true)
   }
 
+  const handleRenameRequest = () => {
+    closeActions()
+    setRenameOpen(true)
+  }
+
   const openPicker = (mode: PickerMode) => {
     setPickerMode(mode)
     setSheetView('package-picker')
@@ -180,6 +195,9 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
     switch (id) {
       case 'add':
         handleAddPlate()
+        break
+      case 'rename':
+        handleRenameRequest()
         break
       case 'download':
         openPicker('download')
@@ -250,6 +268,15 @@ export function ProjectActionsSheet({ open, onOpenChange }: ProjectActionsSheetP
           </ul>
         )}
       </ActionsSheetLayout>
+
+      <RenameProjectSheet
+        open={renameOpen}
+        currentName={project.name}
+        onOpenChange={setRenameOpen}
+        onConfirm={(name) => {
+          renameProject(project.id, name)
+        }}
+      />
 
       <DeleteProjectSheet
         open={deleteOpen}

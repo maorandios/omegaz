@@ -10,6 +10,15 @@ import { buildPlateInfoFields } from '@/export/plateInfoFields'
 import { drawPdfSegmentDimLabel } from '@/export/pdfSegmentLabel'
 import type { PdfExportOptions } from '@/export/pdfExportTypes'
 import { loadPdfLogo } from '@/export/pdfLogo'
+import {
+  ensurePdfFonts,
+  fontFamilyForText,
+  isRtlText,
+  PDF_FONT_FALLBACK,
+  PDF_FONT_LATIN,
+  toVisualOrder,
+  type FontContext,
+} from '@/export/pdfFonts'
 import { NAME_SERIAL_SEPARATOR } from '@/lib/format'
 import type { ProfileMetrics } from '@/lib/profileMetrics'
 
@@ -63,6 +72,60 @@ function drawSectionRect(doc: jsPDF, x: number, y: number, w: number, h: number)
   doc.setDrawColor(0)
   doc.setLineWidth(SECTION_STROKE)
   doc.rect(x, y, w, h)
+}
+
+/** UI/label font (always Latin; falls back to helvetica before fonts load). */
+function setLabelFont(
+  doc: jsPDF,
+  ctx: FontContext,
+  weight: 'normal' | 'bold' = 'normal',
+): void {
+  doc.setFont(ctx.unicodeReady ? PDF_FONT_LATIN : PDF_FONT_FALLBACK, weight)
+}
+
+/** Picks the right registered font for a user-entered value (Hebrew vs Latin). */
+function setValueFont(
+  doc: jsPDF,
+  ctx: FontContext,
+  text: string,
+  weight: 'normal' | 'bold' = 'normal',
+): void {
+  doc.setFont(fontFamilyForText(text, ctx), weight)
+}
+
+/**
+ * Renders user-entered text, swapping in the Hebrew font for RTL strings and
+ * applying a manual visual-order pass since jsPDF 4.x doesn't do bidi.
+ */
+function drawValueText(
+  doc: jsPDF,
+  ctx: FontContext,
+  text: string,
+  x: number,
+  y: number,
+  options: Parameters<jsPDF['text']>[3] = {},
+): void {
+  setValueFont(doc, ctx, text, 'normal')
+  const display = ctx.unicodeReady && isRtlText(text) ? toVisualOrder(text) : text
+  doc.text(display, x, y, options)
+}
+
+/** Same as drawValueText but for an array of pre-split lines. */
+function drawValueLines(
+  doc: jsPDF,
+  ctx: FontContext,
+  text: string,
+  lines: string[],
+  x: number,
+  y: number,
+  options: Parameters<jsPDF['text']>[3] = {},
+): void {
+  setValueFont(doc, ctx, text, 'normal')
+  const display =
+    ctx.unicodeReady && isRtlText(text)
+      ? lines.map((line) => toVisualOrder(line))
+      : lines
+  doc.text(display, x, y, options)
 }
 
 function clampToClip(
@@ -124,6 +187,7 @@ function createProfileTransform(
 
 function drawProfileGeometry(
   doc: jsPDF,
+  ctx: FontContext,
   profile: FoldedProfile,
   tx: (p: Point2D) => Point2D,
   labelStyle: ReturnType<typeof labelStyleForPdfDrawing>,
@@ -149,7 +213,7 @@ function drawProfileGeometry(
     doc.line(s.x, s.y, e.x, e.y)
   })
 
-  doc.setFont('helvetica', 'normal')
+  setLabelFont(doc, ctx, 'normal')
   doc.setTextColor(0)
 
   segmentLabels.forEach((lbl) => {
@@ -168,23 +232,26 @@ function drawProfileGeometry(
 
 function drawDataCell(
   doc: jsPDF,
+  ctx: FontContext,
   x: number,
   y: number,
   w: number,
   cell: DataCell,
 ): void {
   doc.setFontSize(CELL_LABEL_SIZE)
-  doc.setFont('helvetica', 'bold')
+  setLabelFont(doc, ctx, 'bold')
   doc.setTextColor(0)
   doc.text(cell.label, x + CELL_PAD_X, y + CELL_PAD_TOP)
-  doc.setFont('helvetica', 'normal')
+  setValueFont(doc, ctx, cell.value, 'normal')
   doc.setFontSize(CELL_VALUE_SIZE)
+  // splitTextToSize must measure with the value font so Hebrew widths are right.
   const valueLines = doc.splitTextToSize(cell.value, w - CELL_PAD_X * 2)
-  doc.text(valueLines, x + CELL_PAD_X, y + CELL_VALUE_Y)
+  drawValueLines(doc, ctx, cell.value, valueLines, x + CELL_PAD_X, y + CELL_VALUE_Y)
 }
 
 function drawThreeColumnGrid(
   doc: jsPDF,
+  ctx: FontContext,
   x: number,
   y: number,
   w: number,
@@ -208,7 +275,7 @@ function drawThreeColumnGrid(
 
   columns.forEach((cells, col) => {
     cells.forEach((cell, row) => {
-      drawDataCell(doc, x + col * colW, y + row * DATA_ROW_H, colW, cell)
+      drawDataCell(doc, ctx, x + col * colW, y + row * DATA_ROW_H, colW, cell)
     })
   })
 
@@ -217,6 +284,7 @@ function drawThreeColumnGrid(
 
 function drawNotesStripe(
   doc: jsPDF,
+  ctx: FontContext,
   x: number,
   y: number,
   w: number,
@@ -225,14 +293,14 @@ function drawNotesStripe(
   doc.line(x, y, x + w, y)
   const labelY = y + CELL_PAD_TOP
   doc.setFontSize(CELL_LABEL_SIZE)
-  doc.setFont('helvetica', 'bold')
+  setLabelFont(doc, ctx, 'bold')
   doc.text('Notes', x + CELL_PAD_X, labelY)
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(CELL_VALUE_SIZE)
   const body = notes.trim() ? notes.trim() : 'None'
+  setValueFont(doc, ctx, body, 'normal')
+  doc.setFontSize(CELL_VALUE_SIZE)
   const lines = doc.splitTextToSize(body, w - CELL_PAD_X * 2)
   const lineH = 4
-  doc.text(lines, x + CELL_PAD_X, y + CELL_VALUE_Y)
+  drawValueLines(doc, ctx, body, lines, x + CELL_PAD_X, y + CELL_VALUE_Y)
   const stripeH = Math.max(
     NOTES_STRIPE_MIN_H,
     CELL_VALUE_Y + lines.length * lineH + CELL_PAD_TOP,
@@ -244,6 +312,8 @@ const TITLE_PROJECT_FRACTION = 0.5
 const TITLE_PLATE_NAME_FRACTION = 0.25
 /** Slightly larger middle dot in PDF title values (mm text is small). */
 const TITLE_SEP_FONT_SIZE = CELL_VALUE_SIZE + 2.5
+/** Floor for title auto-shrink so values never become unreadable. */
+const TITLE_VALUE_MIN_FONT = CELL_VALUE_SIZE * 0.65
 
 function pdfTextWidthMm(doc: jsPDF, text: string, fontSizePt: number): number {
   doc.setFontSize(fontSizePt)
@@ -251,8 +321,43 @@ function pdfTextWidthMm(doc: jsPDF, text: string, fontSizePt: number): number {
   return (doc.getStringUnitWidth(text) * fontSizePt) / sf
 }
 
+/**
+ * Returns the largest font size <= base that lets `text` (or `text` + sep + serial)
+ * fit on a single line inside `maxWidth`. Falls back to `min` if even that overflows.
+ */
+function fitTitleFontSize(
+  doc: jsPDF,
+  name: string,
+  serial: string | undefined,
+  maxWidth: number,
+  base: number,
+  min: number,
+): number {
+  const measure = (size: number) => {
+    let w = pdfTextWidthMm(doc, name, size)
+    if (serial) {
+      const sepSize = size + (TITLE_SEP_FONT_SIZE - CELL_VALUE_SIZE)
+      w += pdfTextWidthMm(doc, NAME_SERIAL_SEPARATOR, sepSize)
+      w += pdfTextWidthMm(doc, serial, size)
+    }
+    return w
+  }
+
+  if (measure(base) <= maxWidth) return base
+
+  let lo = min
+  let hi = base
+  for (let i = 0; i < 12; i++) {
+    const mid = (lo + hi) / 2
+    if (measure(mid) <= maxWidth) lo = mid
+    else hi = mid
+  }
+  return Math.max(min, lo)
+}
+
 function drawTitleValueCell(
   doc: jsPDF,
+  ctx: FontContext,
   x: number,
   y: number,
   w: number,
@@ -261,62 +366,85 @@ function drawTitleValueCell(
   serial: string | undefined,
 ): void {
   doc.setFontSize(CELL_LABEL_SIZE)
-  doc.setFont('helvetica', 'bold')
+  setLabelFont(doc, ctx, 'bold')
   doc.setTextColor(0)
   doc.text(label, x + CELL_PAD_X, y + CELL_PAD_TOP)
 
   const valueY = y + CELL_VALUE_Y
   const padX = x + CELL_PAD_X
+  const innerW = w - CELL_PAD_X * 2
   const displayName = name?.trim()
   const displaySerial = serial?.trim()
 
-  doc.setFontSize(CELL_VALUE_SIZE)
+  doc.setTextColor(0)
 
   if (!displayName && !displaySerial) {
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(0)
+    setLabelFont(doc, ctx, 'normal')
+    doc.setFontSize(CELL_VALUE_SIZE)
     doc.text('—', padX, valueY)
     return
   }
 
   if (!displaySerial) {
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(0)
-    doc.text(
-      doc.splitTextToSize(displayName!, w - CELL_PAD_X * 2),
-      padX,
-      valueY,
+    setValueFont(doc, ctx, displayName!, 'normal')
+    const valueSize = fitTitleFontSize(
+      doc,
+      displayName!,
+      undefined,
+      innerW,
+      CELL_VALUE_SIZE,
+      TITLE_VALUE_MIN_FONT,
     )
-    doc.setTextColor(0)
+    doc.setFontSize(valueSize)
+    drawValueText(doc, ctx, displayName!, padX, valueY)
     return
   }
 
   if (!displayName) {
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(0)
-    doc.text(displaySerial, padX, valueY)
+    setValueFont(doc, ctx, displaySerial, 'normal')
+    const valueSize = fitTitleFontSize(
+      doc,
+      displaySerial,
+      undefined,
+      innerW,
+      CELL_VALUE_SIZE,
+      TITLE_VALUE_MIN_FONT,
+    )
+    doc.setFontSize(valueSize)
+    drawValueText(doc, ctx, displaySerial, padX, valueY)
     return
   }
 
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(0)
-  doc.text(displayName, padX, valueY)
+  setValueFont(doc, ctx, displayName, 'normal')
+  const valueSize = fitTitleFontSize(
+    doc,
+    displayName,
+    displaySerial,
+    innerW,
+    CELL_VALUE_SIZE,
+    TITLE_VALUE_MIN_FONT,
+  )
+  const sepSize = valueSize + (TITLE_SEP_FONT_SIZE - CELL_VALUE_SIZE)
 
-  const nameW = pdfTextWidthMm(doc, displayName, CELL_VALUE_SIZE)
+  doc.setFontSize(valueSize)
+  drawValueText(doc, ctx, displayName, padX, valueY)
+
+  const nameW = pdfTextWidthMm(doc, displayName, valueSize)
   const sepX = padX + nameW
 
-  doc.setFontSize(TITLE_SEP_FONT_SIZE)
-  doc.setFont('helvetica', 'normal')
-  const sepW = pdfTextWidthMm(doc, NAME_SERIAL_SEPARATOR, TITLE_SEP_FONT_SIZE)
+  setLabelFont(doc, ctx, 'normal')
+  doc.setFontSize(sepSize)
+  const sepW = pdfTextWidthMm(doc, NAME_SERIAL_SEPARATOR, sepSize)
   doc.text(NAME_SERIAL_SEPARATOR, sepX, valueY - 0.15)
 
-  doc.setFontSize(CELL_VALUE_SIZE)
-  doc.text(displaySerial, sepX + sepW, valueY)
-  doc.setTextColor(0)
+  setValueFont(doc, ctx, displaySerial, 'normal')
+  doc.setFontSize(valueSize)
+  drawValueText(doc, ctx, displaySerial, sepX + sepW, valueY)
 }
 
 function drawTitleBar(
   doc: jsPDF,
+  ctx: FontContext,
   x: number,
   y: number,
   w: number,
@@ -340,6 +468,7 @@ function drawTitleBar(
 
   drawTitleValueCell(
     doc,
+    ctx,
     x,
     y,
     projectColW,
@@ -349,6 +478,7 @@ function drawTitleBar(
   )
   drawTitleValueCell(
     doc,
+    ctx,
     plateNameX,
     y,
     plateNameColW,
@@ -358,6 +488,7 @@ function drawTitleBar(
   )
   drawTitleValueCell(
     doc,
+    ctx,
     plateNumberX,
     y,
     plateNumberColW,
@@ -386,7 +517,11 @@ export async function appendPlateDrawingPage(
   metrics: ProfileMetrics,
   options?: PdfExportOptions,
 ): Promise<void> {
-  const logoDataUrl = await loadPdfLogo()
+  const [logoDataUrl, unicodeReady] = await Promise.all([
+    loadPdfLogo(),
+    ensurePdfFonts(doc),
+  ])
+  const ctx: FontContext = { unicodeReady }
 
   const pageW = doc.internal.pageSize.getWidth()
   const pageH = doc.internal.pageSize.getHeight()
@@ -396,8 +531,9 @@ export async function appendPlateDrawingPage(
   const titleY = MARGIN
   drawSectionRect(doc, MARGIN, titleY, contentW, TITLE_SECTION_H)
   doc.setTextColor(0)
-  drawTitleBar(doc, MARGIN, titleY, contentW, profile, options)
+  drawTitleBar(doc, ctx, MARGIN, titleY, contentW, profile, options)
 
+  setLabelFont(doc, ctx, 'normal')
   doc.setFontSize(FOOTER_FONT_SIZE)
   const footerCenterX = MARGIN + contentW / 2
   const footerWrapW = contentW - 10
@@ -410,8 +546,12 @@ export async function appendPlateDrawingPage(
 
   const columns = buildPlateInfoColumns(profile, metrics, options)
   const gridH = DATA_GRID_ROWS * DATA_ROW_H
-  doc.setFontSize(CELL_VALUE_SIZE)
   const notesBody = fab.notes.trim() ? fab.notes.trim() : 'None'
+  // Use the value font so notes width is measured against the right glyphs
+  // (Hebrew is narrower than helvetica's stand-ins, so this prevents
+  // over-wrapping when the notes are in Hebrew).
+  setValueFont(doc, ctx, notesBody, 'normal')
+  doc.setFontSize(CELL_VALUE_SIZE)
   const notesLines = doc.splitTextToSize(notesBody, contentW - CELL_PAD_X * 2)
   const notesStripeH = Math.max(
     NOTES_STRIPE_MIN_H,
@@ -444,20 +584,21 @@ export async function appendPlateDrawingPage(
   const bounds = calculateProfileBounds(profile.segments)
   const drawSpanMm = Math.max(bounds.width * scale, bounds.height * scale, 1)
   const labelStyle = labelStyleForPdfDrawing(drawSpanMm)
-  drawProfileGeometry(doc, profile, tx, labelStyle, clip)
+  drawProfileGeometry(doc, ctx, profile, tx, labelStyle, clip)
 
   drawSectionRect(doc, MARGIN, dataSectionY, contentW, dataSectionH)
-  drawThreeColumnGrid(doc, MARGIN, dataSectionY, contentW, columns)
-  drawNotesStripe(doc, MARGIN, dataSectionY + gridH, contentW, fab.notes)
+  drawThreeColumnGrid(doc, ctx, MARGIN, dataSectionY, contentW, columns)
+  drawNotesStripe(doc, ctx, MARGIN, dataSectionY + gridH, contentW, fab.notes)
 
+  setLabelFont(doc, ctx, 'normal')
   doc.setFontSize(FOOTER_FONT_SIZE)
   doc.setTextColor(80)
   let footerTextY = footerY + (footerH - footerTextH) / 2 + FOOTER_LINE_H / 2
 
-  drawFooterHeadline(doc, footerCenterX, footerTextY, logoDataUrl)
+  drawFooterHeadline(doc, ctx, footerCenterX, footerTextY, logoDataUrl)
   footerTextY += FOOTER_LINE_H + FOOTER_HEADLINE_GAP
 
-  doc.setFont('helvetica', 'normal')
+  setLabelFont(doc, ctx, 'normal')
   bodyLines.forEach((line: string) => {
     doc.text(line, footerCenterX, footerTextY, { align: 'center', baseline: 'middle' })
     footerTextY += FOOTER_LINE_H
@@ -467,11 +608,12 @@ export async function appendPlateDrawingPage(
 
 function drawFooterHeadline(
   doc: jsPDF,
+  ctx: FontContext,
   centerX: number,
   baselineY: number,
   logoDataUrl: string | null,
 ): void {
-  doc.setFont('helvetica', 'bold')
+  setLabelFont(doc, ctx, 'bold')
   doc.setFontSize(FOOTER_FONT_SIZE)
 
   if (!logoDataUrl) {

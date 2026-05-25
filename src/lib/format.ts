@@ -67,12 +67,20 @@ export function formatAreaM2(mm2: number): string {
   return `${formatNumber(m2, 4)} m²`
 }
 
+/**
+ * Filesystem-safe slug that keeps letters from any script (Hebrew, Arabic,
+ * Cyrillic, …) and digits, while stripping path/OS-unsafe punctuation. The
+ * Unicode `\p{L}` and `\p{N}` classes are what makes Hebrew project names
+ * survive into PDF/ZIP filenames instead of collapsing to "project".
+ */
 export function slugify(text: string): string {
   return (
     text
       .toLowerCase()
       .trim()
-      .replace(/[^\w\s-]/g, '')
+      // Strip characters that aren't a letter (any script), number, whitespace
+      // or a small set of safe separators.
+      .replace(/[^\p{L}\p{N}\s_-]+/gu, '')
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '') || 'custom-profile'
   )
