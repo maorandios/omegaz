@@ -80,6 +80,22 @@
     margin: 0;
   }
 
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  textarea:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--color-foreground);
+    -webkit-box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-surface) 40%, transparent)
+      inset;
+    box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-surface) 40%, transparent) inset;
+    caret-color: var(--color-foreground);
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
   html {
     --wizard-header-h: 3rem;
     --wizard-dock-h: 3.5rem;
@@ -665,6 +681,28 @@
     }
     to {
       opacity: 0;
+    }
+  }
+
+  @keyframes legal-dialog-in {
+    from {
+      opacity: 0;
+      scale: 0.96;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  @keyframes legal-dialog-out {
+    from {
+      opacity: 1;
+      scale: 1;
+    }
+    to {
+      opacity: 0;
+      scale: 0.97;
     }
   }
 

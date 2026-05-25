@@ -18,6 +18,7 @@ export interface DbProfileRow {
   phone: string | null
   business_name: string | null
   subscription: unknown
+  onboarding_complete: boolean
   created_at: string
   updated_at: string
 }

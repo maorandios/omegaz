@@ -8,6 +8,8 @@ export {
   fetchProfile,
   upsertProfile,
   upsertProfileFromSession,
+  syncAuthUserMetadata,
+  completeOnboarding,
   type ProfileBundle,
 } from '@/lib/db/profilesRepository'
 export { migrateLocalProjectsIfNeeded } from '@/lib/db/migrateLocalStorage'

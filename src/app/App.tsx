@@ -9,6 +9,7 @@ import { SketchScreen } from '@/screens/SketchScreen'
 import { PlateViewScreen } from '@/screens/PlateViewScreen'
 import { SummaryScreen } from '@/screens/SummaryScreen'
 import { AuthScreen } from '@/screens/AuthScreen'
+import { OnboardingScreen } from '@/screens/OnboardingScreen'
 import { rootStackDirection, workflowStackDirection } from '@/lib/stackNavigation'
 import { isWorkflowStep, useAppStore } from '@/store/appStore'
 import { isAuthenticatedSession, useAuthStore } from '@/store/authStore'
@@ -71,6 +72,7 @@ export default function App() {
 
   const inWorkflow = isWorkflowStep(currentStep)
   const viewingPlateId = useAppStore((s) => s.viewingPlateId)
+  const onboardingComplete = useAppStore((s) => s.onboardingComplete)
   const signedIn = isAuthenticatedSession(session, localDevSignedOut)
 
   if (!hydrated || !authReady || (signedIn && projectsLoading)) {
@@ -82,6 +84,16 @@ export default function App() {
       <div className="app-shell text-foreground">
         <div className="app-shell__body mx-auto flex h-full min-h-0 w-full max-w-lg flex-1 flex-col px-4 py-4">
           <AuthScreen />
+        </div>
+      </div>
+    )
+  }
+
+  if (!onboardingComplete) {
+    return (
+      <div className="app-shell text-foreground">
+        <div className="app-shell__body mx-auto flex h-full min-h-0 w-full max-w-lg flex-1 flex-col">
+          <OnboardingScreen />
         </div>
       </div>
     )

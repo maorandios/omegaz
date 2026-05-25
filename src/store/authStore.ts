@@ -15,11 +15,14 @@ interface AuthState {
   /** Local dev without Supabase: false = in app, true = show sign-in screen. */
   localDevSignedOut: boolean
   magicLinkSent: boolean
+  /** Email the OTP/magic link was sent to (used by the verify-code screen). */
+  pendingEmail: string | null
   authError: string | null
-  loadingAction: 'google' | 'magic-link' | null
+  loadingAction: 'google' | 'magic-link' | 'verify-otp' | null
   initAuth: () => () => void
   signInWithGoogle: () => Promise<void>
   sendMagicLink: (email: string) => Promise<void>
+  verifyEmailOtp: (token: string) => Promise<boolean>
   resetMagicLinkState: () => void
   clearAuthError: () => void
   signOut: () => Promise<void>
@@ -34,7 +37,9 @@ async function syncAppUserFromSession(session: Session | null): Promise<void> {
 
   try {
     const bundle = await upsertProfileFromSession(session, current)
-    useAppStore.getState().setProfileBundle(bundle.user, bundle.subscription)
+    useAppStore
+      .getState()
+      .setProfileBundle(bundle.user, bundle.subscription, bundle.onboardingComplete)
   } catch (err) {
     console.error('Failed to sync profile from session', err)
   }
@@ -45,11 +50,12 @@ function wantsAuthPreviewOnLoad(): boolean {
   return new URLSearchParams(window.location.search).has('auth')
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   ready: false,
   session: null,
   localDevSignedOut: false,
   magicLinkSent: false,
+  pendingEmail: null,
   authError: null,
   loadingAction: null,
 
@@ -120,10 +126,54 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ authError: error.message })
       return
     }
-    set({ magicLinkSent: true })
+    set({ magicLinkSent: true, pendingEmail: trimmed })
   },
 
-  resetMagicLinkState: () => set({ magicLinkSent: false, authError: null }),
+  verifyEmailOtp: async (token) => {
+    if (!supabase) {
+      set({ authError: 'Sign-in is not configured yet.' })
+      return false
+    }
+
+    const email = get().pendingEmail
+    if (!email) {
+      set({ authError: 'Send the code again — no email on file.' })
+      return false
+    }
+
+    const cleaned = token.replace(/\D/g, '')
+    if (cleaned.length !== 6) {
+      set({ authError: 'Enter all 6 digits.' })
+      return false
+    }
+
+    set({ authError: null, loadingAction: 'verify-otp' })
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token: cleaned,
+      type: 'email',
+    })
+    set({ loadingAction: null })
+
+    if (error || !data.session) {
+      set({
+        authError:
+          error?.message ?? 'That code is invalid or expired. Request a new one.',
+      })
+      return false
+    }
+
+    set({
+      session: data.session,
+      magicLinkSent: false,
+      pendingEmail: null,
+      authError: null,
+    })
+    return true
+  },
+
+  resetMagicLinkState: () =>
+    set({ magicLinkSent: false, pendingEmail: null, authError: null }),
 
   clearAuthError: () => set({ authError: null }),
 
@@ -132,6 +182,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({
       session: null,
       magicLinkSent: false,
+      pendingEmail: null,
       authError: null,
       localDevSignedOut: isLocalAuthBypass,
     })

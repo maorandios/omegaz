@@ -3,6 +3,7 @@ import { buildWizardSteps } from '@/geometry/calculateProfilePoints'
 import { cloneFoldedProfile, type FoldedProfile } from '@/geometry/types'
 import { createId } from '@/geometry/types'
 import {
+  completeOnboarding as completeOnboardingDb,
   fetchProfile,
   fetchProjectsForUser,
   migrateLocalProjectsIfNeeded,
@@ -47,17 +48,23 @@ interface AppState {
   hydrated: boolean
   projectsLoading: boolean
   syncError: string | null
+  onboardingComplete: boolean
 
   setMainTab: (tab: MainTab) => void
   openCreatePlateSheet: (step?: CreatePlateSheetStep) => void
   closeCreatePlateSheet: () => void
   setCreatePlateSheetStep: (step: CreatePlateSheetStep) => void
   setUser: (patch: Partial<StoredUser>) => void
-  setProfileBundle: (user: StoredUser, subscription: StoredSubscription) => void
+  setProfileBundle: (
+    user: StoredUser,
+    subscription: StoredSubscription,
+    onboardingComplete?: boolean,
+  ) => void
   cancelSubscription: () => void
   logout: () => void
   hydrateApp: () => Promise<void>
   clearSyncError: () => void
+  completeOnboarding: (patch: Partial<StoredUser>) => Promise<void>
   setActiveProject: (projectId: string | null) => void
   setSelectedProject: (projectId: string | null) => void
   createProject: (name: string) => string | null
@@ -140,6 +147,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   hydrated: false,
   projectsLoading: false,
   syncError: null,
+  onboardingComplete: true,
 
   setMainTab: (tab) => set({ mainTab: tab }),
 
@@ -167,8 +175,28 @@ export const useAppStore = create<AppState>((set, get) => ({
     syncProfile({ ...get(), user })
   },
 
-  setProfileBundle: (user, subscription) => {
-    set({ user, subscription })
+  setProfileBundle: (user, subscription, onboardingComplete) => {
+    set({
+      user,
+      subscription,
+      ...(onboardingComplete !== undefined ? { onboardingComplete } : {}),
+    })
+  },
+
+  completeOnboarding: async (patch) => {
+    const userId = getCloudUserId()
+    if (!userId) {
+      const user = { ...get().user, ...patch }
+      set({ user, onboardingComplete: true })
+      persistLocal({ ...get(), user })
+      return
+    }
+
+    const user = { ...get().user, ...patch }
+    const subscription = get().subscription
+
+    await completeOnboardingDb(userId, user, subscription)
+    set({ user, onboardingComplete: true })
   },
 
   cancelSubscription: () => {
@@ -198,6 +226,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       syncError: null,
       projectsLoading: false,
       hydrated: true,
+      onboardingComplete: true,
     })
     if (!isSupabaseConfigured) {
       persistLocal({
@@ -229,6 +258,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           profileBundle?.user ??
           userFromAuthUser(session.user)
         const subscription = profileBundle?.subscription ?? defaultSubscription()
+        const onboardingComplete = profileBundle?.onboardingComplete ?? false
 
         set({
           user,
@@ -238,6 +268,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           viewingPlateId: null,
           hydrated: true,
           projectsLoading: false,
+          onboardingComplete,
         })
       } catch (err) {
         console.error('Failed to hydrate from Supabase', err)
@@ -262,6 +293,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         viewingPlateId: null,
         hydrated: true,
         projectsLoading: false,
+        onboardingComplete: true,
       })
       return
     }
@@ -276,6 +308,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         viewingPlateId: null,
         hydrated: true,
         projectsLoading: false,
+        onboardingComplete: true,
       })
       return
     }
@@ -286,6 +319,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       viewingPlateId: null,
       hydrated: true,
       projectsLoading: false,
+      onboardingComplete: false,
     })
   },
 

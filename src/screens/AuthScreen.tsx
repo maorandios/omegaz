@@ -1,6 +1,8 @@
 import { Mail } from 'lucide-react'
 import { useState } from 'react'
 import { GoogleIcon } from '@/components/auth/GoogleIcon'
+import { LegalLinks } from '@/components/auth/LegalLinks'
+import { OtpInput, OTP_LENGTH } from '@/components/auth/OtpInput'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,16 +19,20 @@ const authButtonClass = 'h-12 w-full rounded-2xl text-base font-semibold'
 
 export function AuthScreen() {
   const magicLinkSent = useAuthStore((s) => s.magicLinkSent)
+  const pendingEmail = useAuthStore((s) => s.pendingEmail)
   const authError = useAuthStore((s) => s.authError)
   const loadingAction = useAuthStore((s) => s.loadingAction)
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle)
   const sendMagicLink = useAuthStore((s) => s.sendMagicLink)
+  const verifyEmailOtp = useAuthStore((s) => s.verifyEmailOtp)
   const resetMagicLinkState = useAuthStore((s) => s.resetMagicLinkState)
   const clearAuthError = useAuthStore((s) => s.clearAuthError)
   const continueLocalDev = useAuthStore((s) => s.continueLocalDev)
 
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState<string | null>(null)
+  const [otp, setOtp] = useState('')
+  const [resendCooldown, setResendCooldown] = useState(false)
 
   const isDevPreview = isLocalAuthBypass && !isSupabaseConfigured
 
@@ -40,7 +46,22 @@ export function AuthScreen() {
       return
     }
     setEmailError(null)
+    setOtp('')
     await sendMagicLink(trimmed)
+  }
+
+  const handleVerifyOtp = async (code: string) => {
+    if (loadingAction != null) return
+    const ok = await verifyEmailOtp(code)
+    if (!ok) setOtp('')
+  }
+
+  const handleResend = async () => {
+    if (!pendingEmail || resendCooldown) return
+    setOtp('')
+    setResendCooldown(true)
+    await sendMagicLink(pendingEmail)
+    window.setTimeout(() => setResendCooldown(false), 20_000)
   }
 
   const signInForm = (
@@ -70,7 +91,7 @@ export function AuthScreen() {
             type="email"
             inputMode="email"
             autoComplete="email"
-            placeholder="you@company.com"
+            placeholder="your-email@gmail.com"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value)
@@ -90,14 +111,90 @@ export function AuthScreen() {
           className={authButtonClass}
           disabled={isDevPreview || loadingAction != null || !email.trim()}
         >
-          {loadingAction === 'magic-link' ? 'Sending link…' : 'Send magic link'}
+          {loadingAction === 'magic-link' ? 'Sending link…' : 'Send Secure Login Link'}
         </Button>
       </form>
 
       <p className="text-center text-xs leading-relaxed text-muted">
-        No password needed — we email you a one-time sign-in link.
+        No password needed. We&rsquo;ll email you a secure link to sign in instantly.
       </p>
     </>
+  )
+
+  const verifyOtpView = (
+    <div className="flex flex-col items-center gap-5 text-center">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/15">
+        <Mail className="h-5 w-5 text-primary" aria-hidden />
+      </div>
+      <div className="space-y-1">
+        <p className="text-base font-semibold text-foreground">Check your email</p>
+        <p className="text-sm leading-relaxed text-muted">
+          We sent a 6-digit code to{' '}
+          <span className="font-medium text-foreground">{pendingEmail ?? email.trim()}</span>.
+          Enter it below to sign in.
+        </p>
+      </div>
+
+      <form
+        className="flex w-full flex-col items-center gap-3"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void handleVerifyOtp(otp)
+        }}
+      >
+        <OtpInput
+          value={otp}
+          onChange={(next) => {
+            setOtp(next)
+            if (authError) clearAuthError()
+          }}
+          onComplete={(code) => void handleVerifyOtp(code)}
+          disabled={loadingAction === 'verify-otp'}
+          autoFocus
+        />
+
+        {authError ? (
+          <p className="text-sm text-destructive" role="alert">
+            {authError}
+          </p>
+        ) : null}
+
+        <Button
+          type="submit"
+          className={cn(authButtonClass, 'mt-1')}
+          disabled={loadingAction != null || otp.length !== OTP_LENGTH}
+        >
+          {loadingAction === 'verify-otp' ? 'Verifying…' : 'Verify & sign in'}
+        </Button>
+      </form>
+
+      <div className="flex w-full flex-col items-center gap-1">
+        <button
+          type="button"
+          className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
+          onClick={() => void handleResend()}
+          disabled={resendCooldown || loadingAction === 'magic-link'}
+        >
+          {loadingAction === 'magic-link'
+            ? 'Sending…'
+            : resendCooldown
+              ? 'Code sent — check your inbox'
+              : 'Resend code'}
+        </button>
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-10 rounded-2xl text-sm text-muted hover:text-foreground"
+          onClick={() => {
+            resetMagicLinkState()
+            setEmailError(null)
+            setOtp('')
+          }}
+        >
+          Use a different email
+        </Button>
+      </div>
+    </div>
   )
 
   return (
@@ -112,7 +209,7 @@ export function AuthScreen() {
             width={168}
           />
           <p className="mt-5 max-w-[18rem] text-sm leading-relaxed text-muted">
-            Sign in to save projects and pick up where you left off.
+            Sheet metal flashing design, straight from the job site.
           </p>
         </div>
 
@@ -131,34 +228,13 @@ export function AuthScreen() {
               </Button>
             </>
           ) : magicLinkSent ? (
-            <div className="space-y-4 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/15">
-                <Mail className="h-5 w-5 text-primary" aria-hidden />
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-foreground">Check your email</p>
-                <p className="text-sm leading-relaxed text-muted">
-                  We sent a sign-in link to{' '}
-                  <span className="font-medium text-foreground">{email.trim()}</span>. Open it on
-                  this device to continue.
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                className="h-11 w-full rounded-2xl text-sm text-muted hover:text-foreground"
-                onClick={() => {
-                  resetMagicLinkState()
-                  setEmailError(null)
-                }}
-              >
-                Use a different email
-              </Button>
-            </div>
+            verifyOtpView
           ) : (
             signInForm
           )}
         </section>
+
+        <LegalLinks />
       </div>
     </div>
   )

@@ -27,7 +27,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['fav.png', 'segments-logo.svg'],
+      includeAssets: ['new_fav.png', 'segments-logo.svg'],
       manifest: {
         name: 'Segments — Fabrication Request',
         short_name: 'Segments',
@@ -37,8 +37,8 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         icons: [
-          { src: 'fav.png', sizes: '192x192', type: 'image/png' },
-          { src: 'fav.png', sizes: 'any', type: 'image/png', purpose: 'any' },
+          { src: 'new_fav.png', sizes: '192x192', type: 'image/png' },
+          { src: 'new_fav.png', sizes: 'any', type: 'image/png', purpose: 'any' },
         ],
       },
       workbox: {
