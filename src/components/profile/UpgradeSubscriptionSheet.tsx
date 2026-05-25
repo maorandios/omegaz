@@ -1,9 +1,4 @@
-import {
-  PayPalButtons,
-  PayPalScriptProvider,
-  type ReactPayPalScriptOptions,
-} from '@paypal/react-paypal-js'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -11,17 +6,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { confirmPaypalSubscription } from '@/lib/paypalClient'
-import { PRO_CURRENCY, PRO_PRICE_LABEL, TRIAL_DAYS } from '@/lib/pricing'
-import { useAppStore } from '@/store/appStore'
+import { startPaypalSubscription } from '@/lib/paypalClient'
+import { PRO_CURRENCY, PRO_PRICE_LABEL } from '@/lib/pricing'
 
 interface UpgradeSubscriptionSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID
-const PAYPAL_PLAN_ID = import.meta.env.VITE_PAYPAL_PLAN_ID
+const PAYPAL_CONFIGURED = Boolean(import.meta.env.VITE_PAYPAL_PLAN_ID)
 
 const FEATURE_BULLETS = [
   'Unlimited projects & plates',
@@ -33,25 +26,31 @@ export function UpgradeSubscriptionSheet({
   open,
   onOpenChange,
 }: UpgradeSubscriptionSheetProps) {
-  const hydrateApp = useAppStore((s) => s.hydrateApp)
   const [error, setError] = useState<string | null>(null)
-  const [confirming, setConfirming] = useState(false)
-
-  const scriptOptions = useMemo<ReactPayPalScriptOptions | null>(() => {
-    if (!PAYPAL_CLIENT_ID) return null
-    return {
-      clientId: PAYPAL_CLIENT_ID,
-      intent: 'subscription',
-      vault: true,
-      currency: PRO_CURRENCY,
-      components: 'buttons',
-    }
-  }, [])
+  const [submitting, setSubmitting] = useState(false)
 
   const handleOpenChange = (next: boolean) => {
-    if (confirming) return
+    if (submitting) return
     onOpenChange(next)
     if (!next) setError(null)
+  }
+
+  const handleSubscribe = async () => {
+    setError(null)
+    setSubmitting(true)
+    try {
+      // This call ends with `window.location.href = approveUrl` so the user
+      // is navigated away. We deliberately don't reset `submitting` after
+      // success so the button stays disabled while the page unloads.
+      await startPaypalSubscription()
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Could not start the PayPal checkout. Please try again.',
+      )
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -98,64 +97,28 @@ export function UpgradeSubscriptionSheet({
             </p>
           ) : null}
 
-          {scriptOptions && PAYPAL_PLAN_ID ? (
+          {PAYPAL_CONFIGURED ? (
             <div className="space-y-2">
-              <PayPalScriptProvider options={scriptOptions}>
-                <PayPalButtons
-                  style={{
-                    layout: 'vertical',
-                    label: 'subscribe',
-                    color: 'gold',
-                    shape: 'rect',
-                  }}
-                  disabled={confirming}
-                  createSubscription={(_data, actions) =>
-                    actions.subscription.create({ plan_id: PAYPAL_PLAN_ID })
-                  }
-                  onApprove={async (data) => {
-                    if (!data.subscriptionID) {
-                      setError('PayPal did not return a subscription ID.')
-                      return
-                    }
-                    setError(null)
-                    setConfirming(true)
-                    try {
-                      await confirmPaypalSubscription(data.subscriptionID)
-                      await hydrateApp()
-                      onOpenChange(false)
-                    } catch (err) {
-                      setError(
-                        err instanceof Error
-                          ? err.message
-                          : 'Could not confirm subscription. Please contact support.',
-                      )
-                    } finally {
-                      setConfirming(false)
-                    }
-                  }}
-                  onError={(err) => {
-                    setError(
-                      err instanceof Error
-                        ? err.message
-                        : 'PayPal could not complete the subscription.',
-                    )
-                  }}
-                  onCancel={() => {
-                    setError(null)
-                  }}
-                />
-              </PayPalScriptProvider>
+              <Button
+                type="button"
+                className="h-12 w-full rounded-2xl text-base font-semibold"
+                disabled={submitting}
+                onClick={() => {
+                  void handleSubscribe()
+                }}
+              >
+                {submitting ? 'Redirecting to PayPal…' : `Continue with PayPal`}
+              </Button>
               <p className="text-center text-[11px] leading-relaxed text-muted">
-                {TRIAL_DAYS}-day trial included for new accounts. Subscribing now does
-                not double-bill your trial.
+                You&apos;ll be redirected to PayPal to approve the subscription, then
+                brought straight back to Segments.
               </p>
             </div>
           ) : (
             <div className="space-y-3">
               <p className="text-sm leading-relaxed text-muted">
                 PayPal isn&apos;t configured for this build yet. The Subscribe button
-                will appear once <code>VITE_PAYPAL_CLIENT_ID</code> and{' '}
-                <code>VITE_PAYPAL_PLAN_ID</code> are set.
+                will appear once <code>VITE_PAYPAL_PLAN_ID</code> is set.
               </p>
               <Button
                 type="button"

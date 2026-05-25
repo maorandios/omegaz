@@ -62,6 +62,52 @@ export interface PaypalSubscription {
     next_billing_time?: string
     last_payment?: { time?: string }
   }
+  links?: Array<{ href: string; rel: string; method: string }>
+}
+
+export interface CreateSubscriptionArgs {
+  planId: string
+  returnUrl: string
+  cancelUrl: string
+  /** Use this to stamp the Segments user id onto the PayPal record. */
+  customId?: string
+}
+
+/**
+ * Creates a PayPal subscription server-side and returns the approval link the
+ * client should redirect the user to. This bypasses the JS SDK popup so the
+ * checkout experience is a normal full-page navigation, which is far more
+ * reliable on mobile / inside the installed PWA.
+ */
+export async function createSubscription(
+  args: CreateSubscriptionArgs,
+): Promise<PaypalSubscription> {
+  const token = await getAccessToken()
+  const response = await fetch(`${PAYPAL_API_BASE}/v1/billing/subscriptions`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      plan_id: args.planId,
+      custom_id: args.customId,
+      application_context: {
+        brand_name: 'Segments',
+        locale: 'en-GB',
+        shipping_preference: 'NO_SHIPPING',
+        user_action: 'SUBSCRIBE_NOW',
+        return_url: args.returnUrl,
+        cancel_url: args.cancelUrl,
+      },
+    }),
+  })
+
+  if (!response.ok) {
+    const text = await response.text()
+    throw new Error(`PayPal createSubscription failed (${response.status}): ${text}`)
+  }
+  return (await response.json()) as PaypalSubscription
 }
 
 export async function getSubscription(

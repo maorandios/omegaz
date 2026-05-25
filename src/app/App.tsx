@@ -10,11 +10,21 @@ import { PlateViewScreen } from '@/screens/PlateViewScreen'
 import { SummaryScreen } from '@/screens/SummaryScreen'
 import { AuthScreen } from '@/screens/AuthScreen'
 import { OnboardingScreen } from '@/screens/OnboardingScreen'
+import { BillingReturnScreen } from '@/screens/BillingReturnScreen'
 import { rootStackDirection, workflowStackDirection } from '@/lib/stackNavigation'
+import { PAYPAL_CANCEL_PATH, PAYPAL_RETURN_PATH } from '@/lib/paypalClient'
 import { isWorkflowStep, useAppStore } from '@/store/appStore'
 import { isAuthenticatedSession, useAuthStore } from '@/store/authStore'
 import { useProfileStore } from '@/store/profileStore'
 import { isSubscriptionLocked } from '@/store/userTypes'
+
+function getBillingPathname(): typeof PAYPAL_RETURN_PATH | typeof PAYPAL_CANCEL_PATH | null {
+  if (typeof window === 'undefined') return null
+  const path = window.location.pathname
+  if (path === PAYPAL_RETURN_PATH) return PAYPAL_RETURN_PATH
+  if (path === PAYPAL_CANCEL_PATH) return PAYPAL_CANCEL_PATH
+  return null
+}
 
 const ProfileScreen = lazy(() =>
   import('@/screens/ProfileScreen').then((m) => ({ default: m.ProfileScreen })),
@@ -110,6 +120,21 @@ export default function App() {
       <div className="app-shell text-foreground">
         <div className="app-shell__body mx-auto flex h-full min-h-0 w-full max-w-lg flex-1 flex-col px-4 py-4">
           <AuthScreen />
+        </div>
+      </div>
+    )
+  }
+
+  // PayPal return / cancel landing pages take over the whole shell. We render
+  // these AFTER the auth gate because the confirm call needs a signed-in
+  // session, but BEFORE the onboarding gate so users who subscribe mid-trial
+  // aren't pushed back through onboarding.
+  const billingPath = getBillingPathname()
+  if (billingPath === PAYPAL_RETURN_PATH || billingPath === PAYPAL_CANCEL_PATH) {
+    return (
+      <div className="app-shell text-foreground">
+        <div className="app-shell__body mx-auto flex h-full min-h-0 w-full max-w-lg flex-1 flex-col">
+          <BillingReturnScreen cancelled={billingPath === PAYPAL_CANCEL_PATH} />
         </div>
       </div>
     )
