@@ -236,9 +236,19 @@ export function ProfileScreen() {
         )}
 
         {isCancelling && (
-          <p className="text-xs leading-relaxed text-muted">
-            Pro features remain available until the end of your billing period.
-          </p>
+          <div className="space-y-3">
+            <Button
+              type="button"
+              className={profileActionButtonClass}
+              onClick={() => setUpgradeOpen(true)}
+            >
+              Resume subscription
+            </Button>
+            <p className="text-xs leading-relaxed text-muted">
+              Pro features remain available until the end of your billing period.
+              Resuming starts a new monthly subscription.
+            </p>
+          </div>
         )}
       </section>
 

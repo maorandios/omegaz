@@ -30,7 +30,8 @@ export function CancelSubscriptionSheet({
         <p className="text-sm leading-relaxed text-muted">
           You&apos;ll keep Pro access until{' '}
           <span className="text-foreground">{formatSubscriptionPeriodEnd(periodEnd)}</span>. After
-          that, your account moves to the Free plan.
+          that, Projects and the Create button lock until you subscribe again. You can resume
+          anytime before then.
         </p>
         <div className="mt-6 flex gap-3">
           <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
