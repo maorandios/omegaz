@@ -10,7 +10,11 @@ import { getPlateShapeLabel } from '@/templates/definitions'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/appStore'
 import { useProfileStore } from '@/store/profileStore'
-import { isSubscriptionLocked } from '@/store/userTypes'
+import {
+  entitlementFor,
+  isSubscriptionLocked,
+  trialDaysRemaining,
+} from '@/store/userTypes'
 
 interface AppShellProps {
   children: ReactNode
@@ -32,6 +36,8 @@ function AppHeader({
   onBack,
   showExit,
   onExit,
+  trialDaysLeft,
+  onTrialBadgeClick,
 }: {
   title: string
   showReset: boolean
@@ -40,19 +46,36 @@ function AppHeader({
   onBack: () => void
   showExit: boolean
   onExit: () => void
+  /** Whole days remaining on the trial, or null when not on trial. */
+  trialDaysLeft: number | null
+  onTrialBadgeClick: () => void
 }) {
   const leftHasTwo = showReset && showBack
+  // Only show the trial badge in the empty left slot — never overlap with the
+  // reset/back buttons. Hidden once user is on a paid plan or locked.
+  const showTrialBadge =
+    trialDaysLeft !== null && trialDaysLeft >= 0 && !showReset && !showBack
+  const trialBadgeLabel =
+    trialDaysLeft === 1 ? 'Trial · 1 day left' : `Trial · ${trialDaysLeft} days left`
 
   return (
-    <header
-      data-wizard-header
-      className="shrink-0 bg-background"
-    >
-      <div
-        className={`mx-auto grid h-12 max-w-lg items-center px-2 ${
-          leftHasTwo ? 'grid-cols-[5.5rem_1fr_2.75rem]' : 'grid-cols-[2.75rem_1fr_2.75rem]'
-        }`}
-      >
+    <header data-wizard-header className="shrink-0 bg-background">
+      <div className="relative mx-auto h-12 max-w-lg px-2">
+        {showTrialBadge ? (
+          <button
+            type="button"
+            onClick={onTrialBadgeClick}
+            aria-label={`Trial — ${trialBadgeLabel}. Tap to subscribe.`}
+            className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-warning/15 px-2.5 py-1 text-[11px] font-semibold leading-none text-warning transition-colors hover:bg-warning/25"
+          >
+            {trialBadgeLabel}
+          </button>
+        ) : null}
+        <div
+          className={`grid h-full items-center ${
+            leftHasTwo ? 'grid-cols-[5.5rem_1fr_2.75rem]' : 'grid-cols-[2.75rem_1fr_2.75rem]'
+          }`}
+        >
         <div className="flex items-center justify-start">
           {showReset && (
             <Button
@@ -108,6 +131,7 @@ function AppHeader({
         ) : (
           <span aria-hidden className="block w-[2.75rem]" />
         )}
+        </div>
       </div>
     </header>
   )
@@ -180,6 +204,10 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
     />
   )
 
+  const entitlement = entitlementFor(subscription)
+  const trialDaysLeft =
+    entitlement === 'trial' ? trialDaysRemaining(subscription) : null
+
   const header = (
     <AppHeader
       title={headerTitle}
@@ -189,6 +217,8 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
       onBack={handleHeaderBack}
       showExit={inWorkflow || isPlateView}
       onExit={handleHeaderExit}
+      trialDaysLeft={trialDaysLeft}
+      onTrialBadgeClick={() => setMainTab('profile')}
     />
   )
 

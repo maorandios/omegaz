@@ -6,7 +6,26 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 const OPTIONAL_CHUNKS = /konva|react-konva/
 
+// Where the Vite dev server should proxy /api/* requests. Vercel serverless
+// functions don't run under plain `vite`, so we forward them to the live
+// deployment. Override per-environment via VITE_DEV_API_TARGET in .env.local.
+const DEV_API_TARGET =
+  process.env.VITE_DEV_API_TARGET || 'https://app.getsegments.co'
+
 export default defineConfig({
+  server: {
+    proxy: {
+      // Pipe /api/* through the deployed Vercel API so the PayPal subscribe /
+      // confirm / cancel routes work in `npm run dev`. The local Supabase
+      // session is forwarded as-is, so the production API authenticates the
+      // same user that's signed in locally.
+      '/api': {
+        target: DEV_API_TARGET,
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
   build: {
     modulePreload: {
       resolveDependencies: (_filename, deps) =>

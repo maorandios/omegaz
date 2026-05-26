@@ -16,6 +16,8 @@
   --color-border-subtle: #2a2a2a;
   --color-destructive: #ff0037;
   --color-destructive-foreground: #ffffff;
+  --color-warning: #ff8a1f;
+  --color-warning-foreground: #ffffff;
 
   /* Canvas / profile drawing (light stage on dark shell) */
   --color-canvas: #f8fafc;

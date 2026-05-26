@@ -31,13 +31,18 @@ export function DeleteProjectSheet({
           in it will be permanently removed.
         </p>
         <div className="mt-6 flex gap-3">
-          <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 flex-1 rounded-2xl text-base font-semibold"
+            onClick={() => onOpenChange(false)}
+          >
             Back
           </Button>
           <Button
             type="button"
             variant="destructive"
-            className="flex-1"
+            className="h-12 flex-1 rounded-2xl text-base font-semibold"
             onClick={() => {
               onConfirm()
               onOpenChange(false)

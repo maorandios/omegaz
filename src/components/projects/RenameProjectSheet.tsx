@@ -71,12 +71,16 @@ export function RenameProjectSheet({
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="h-12 flex-1 rounded-2xl text-base font-semibold"
               onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1" disabled={!canSave}>
+            <Button
+              type="submit"
+              className="h-12 flex-1 rounded-2xl text-base font-semibold"
+              disabled={!canSave}
+            >
               Save
             </Button>
           </div>

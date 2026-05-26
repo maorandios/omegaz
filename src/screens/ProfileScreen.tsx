@@ -1,5 +1,6 @@
 import { Lock, LogOut, MessageCircleCheck, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { PaypalIcon } from '@/components/icons/PaypalIcon'
 import { CancelSubscriptionSheet } from '@/components/profile/CancelSubscriptionSheet'
 import { DeleteAccountSheet } from '@/components/profile/DeleteAccountSheet'
 import { UpgradeSubscriptionSheet } from '@/components/profile/UpgradeSubscriptionSheet'
@@ -72,7 +73,7 @@ export function ProfileScreen() {
 
   const badge = (() => {
     if (isLocked) {
-      return { label: 'Trial ended', className: 'bg-destructive/15 text-destructive' }
+      return { label: 'Trial ended', className: 'bg-warning/15 text-warning' }
     }
     if (isTrial) {
       const label =
@@ -80,7 +81,7 @@ export function ProfileScreen() {
       return { label, className: 'bg-primary/15 text-primary' }
     }
     if (isCancelling) {
-      return { label: 'Cancelling', className: 'bg-primary/15 text-primary' }
+      return { label: 'Cancelled', className: 'bg-primary/15 text-primary' }
     }
     return { label: 'Active', className: 'bg-secondary/20 text-primary' }
   })()
@@ -191,6 +192,9 @@ export function ProfileScreen() {
           <div className="min-w-0">
             <p className="text-lg font-semibold text-foreground">
               {subscription.planName} plan
+              <span className="ml-2 text-sm font-medium text-muted">
+                {PRO_PRICE_LABEL}
+              </span>
             </p>
             <p className="mt-1 text-sm text-muted">{renewLine}</p>
           </div>
@@ -205,22 +209,27 @@ export function ProfileScreen() {
         </div>
 
         {isLocked ? (
-          <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-xs leading-relaxed text-destructive">
+          <div className="flex items-start gap-2.5 rounded-xl border border-warning/30 bg-warning/10 px-3 py-3 text-warning">
             <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-            <span>
-              Projects and the Create button are locked. Subscribe to unlock the rest of the
-              app and continue working on your plates.
-            </span>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Workspace Locked</p>
+              <p className="text-xs leading-relaxed text-warning/85">
+                Your 14-day free trial has expired. To resume editing your existing
+                profiles and access the profile creation tool, please activate your
+                subscription.
+              </p>
+            </div>
           </div>
         ) : null}
 
         {(isTrial || isLocked) && (
           <Button
             type="button"
-            className={profileActionButtonClass}
+            className="h-12 w-full gap-2 rounded-2xl text-base font-semibold"
             onClick={() => setUpgradeOpen(true)}
           >
-            Subscribe — {PRO_PRICE_LABEL}
+            <PaypalIcon className="h-5 w-5 shrink-0" />
+            Subscribe via PayPal
           </Button>
         )}
 
@@ -239,7 +248,7 @@ export function ProfileScreen() {
           <div className="space-y-3">
             <Button
               type="button"
-              className={profileActionButtonClass}
+              className="h-12 w-full rounded-2xl text-base font-semibold"
               onClick={() => setUpgradeOpen(true)}
             >
               Resume subscription

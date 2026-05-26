@@ -1,3 +1,10 @@
+import {
+  FileDown,
+  Infinity as InfinityIcon,
+  type LucideIcon,
+  MessageCircle,
+  Smartphone,
+} from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -7,7 +14,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { startPaypalSubscription } from '@/lib/paypalClient'
-import { PRO_CURRENCY, PRO_PRICE_LABEL } from '@/lib/pricing'
+import { PRO_PRICE_LABEL } from '@/lib/pricing'
 
 interface UpgradeSubscriptionSheetProps {
   open: boolean
@@ -16,10 +23,16 @@ interface UpgradeSubscriptionSheetProps {
 
 const PAYPAL_CONFIGURED = Boolean(import.meta.env.VITE_PAYPAL_PLAN_ID)
 
-const FEATURE_BULLETS = [
-  'Unlimited projects & plates',
-  'Branded PDF and ZIP exports',
-  'Cancel anytime — keeps Pro until period end',
+interface Feature {
+  icon: LucideIcon
+  label: string
+}
+
+const FEATURES: Feature[] = [
+  { icon: InfinityIcon, label: 'Unlimited projects & flashing profiles' },
+  { icon: FileDown, label: 'Manufacturer-ready PDF and ZIP exports' },
+  { icon: MessageCircle, label: 'Share projects directly via WhatsApp & email' },
+  { icon: Smartphone, label: 'Instant access on all your mobile devices' },
 ]
 
 export function UpgradeSubscriptionSheet({
@@ -93,7 +106,10 @@ export function UpgradeSubscriptionSheet({
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent side="bottom" className="mx-auto max-w-lg">
+      <SheetContent
+        side="bottom"
+        className="mx-auto max-w-lg border-border bg-background"
+      >
         <div
           className="mx-auto mb-2 h-1 w-10 shrink-0 rounded-full bg-border"
           aria-hidden
@@ -103,7 +119,7 @@ export function UpgradeSubscriptionSheet({
         </SheetHeader>
 
         <div className="mt-2 space-y-4">
-          <div className="rounded-2xl border border-border bg-surface/40 px-4 py-4">
+          <div className="rounded-2xl border border-border bg-surface px-4 py-4">
             <div className="flex items-baseline justify-between">
               <span className="text-base font-semibold text-foreground">Pro</span>
               <span className="text-lg font-semibold text-foreground">
@@ -111,19 +127,23 @@ export function UpgradeSubscriptionSheet({
               </span>
             </div>
             <p className="mt-1 text-xs text-muted">
-              Billed monthly in {PRO_CURRENCY} via PayPal. Cancel anytime.
+              Billed monthly via secure checkout. Cancel anytime.
             </p>
-            <ul className="mt-3 space-y-1.5 text-sm text-foreground/90">
-              {FEATURE_BULLETS.map((line) => (
-                <li key={line} className="flex items-start gap-2">
-                  <span
-                    className="mt-2 h-1 w-1 shrink-0 rounded-full bg-primary"
+            <ul className="mt-4 space-y-2.5 text-sm text-foreground/90">
+              {FEATURES.map(({ icon: Icon, label }) => (
+                <li key={label} className="flex items-start gap-2.5">
+                  <Icon
+                    className="mt-0.5 h-[18px] w-[18px] shrink-0 stroke-[1.75] text-primary"
                     aria-hidden
                   />
-                  <span>{line}</span>
+                  <span className="leading-snug">{label}</span>
                 </li>
               ))}
             </ul>
+            <p className="mt-4 border-t border-border/60 pt-3 text-xs leading-relaxed text-muted">
+              Cancel anytime — you will retain Pro access until the end of your
+              billing cycle.
+            </p>
           </div>
 
           {error ? (
@@ -161,7 +181,7 @@ export function UpgradeSubscriptionSheet({
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="h-12 w-full rounded-2xl text-base font-semibold"
                 onClick={() => onOpenChange(false)}
               >
                 Close

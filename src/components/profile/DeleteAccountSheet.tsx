@@ -23,12 +23,12 @@ export function DeleteAccountSheet({
 }: DeleteAccountSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="mx-auto max-w-lg">
+      <SheetContent side="bottom" className="mx-auto max-w-lg border-border bg-background">
         <div className="mx-auto mb-2 h-1 w-10 shrink-0 rounded-full bg-border" aria-hidden />
         <SheetHeader>
           <SheetTitle>Delete account?</SheetTitle>
         </SheetHeader>
-        <p className="text-sm leading-relaxed text-muted">
+        <p className="mt-2 text-sm leading-relaxed text-muted">
           This permanently removes your account, all your projects, and every plate you&apos;ve
           saved. This action cannot be undone.
         </p>
@@ -39,7 +39,7 @@ export function DeleteAccountSheet({
           <Button
             type="button"
             variant="outline"
-            className="flex-1"
+            className="h-12 flex-1 rounded-2xl text-base font-semibold"
             onClick={() => onOpenChange(false)}
             disabled={loading}
           >
@@ -48,7 +48,7 @@ export function DeleteAccountSheet({
           <Button
             type="button"
             variant="destructive"
-            className="flex-1"
+            className="h-12 flex-1 rounded-2xl text-base font-semibold"
             onClick={onConfirm}
             disabled={loading}
           >
