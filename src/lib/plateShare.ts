@@ -1,6 +1,8 @@
 import type { PackageMode } from '@/lib/packageMode'
-import { formatKg } from '@/lib/format'
-import { getProjectPackageUrl } from '@/lib/projectShare'
+import { formatInteger, formatKg, formatMmValue } from '@/lib/format'
+import { getFabricationMaterialLabel } from '@/geometry/constants'
+import { normalizeFabrication } from '@/geometry/types'
+import { getTemplateDisplayName } from '@/templates/definitions'
 import {
   computePlateWeightKg,
   plateDisplayName,
@@ -8,28 +10,29 @@ import {
   type ProjectRecord,
 } from '@/store/projectTypes'
 
-function plateAttachmentLine(mode: PackageMode): string {
-  return mode === 'drawings'
-    ? 'Drawing only (PDF).'
-    : 'Full plate package (drawing, cut list, preview).'
-}
+const APP_URL = 'https://www.getsegments.co'
 
 export function buildPlateShareMessage(
   project: ProjectRecord,
   plate: PlateRecord,
-  mode: PackageMode = 'full',
+  _mode: PackageMode = 'full',
 ): string {
-  const url = getProjectPackageUrl(project.id)
-  const name = plateDisplayName(plate)
+  const fab = normalizeFabrication(plate.profile.fabrication)
+  const type = getTemplateDisplayName(plate.selectedTemplate)
+  const material = getFabricationMaterialLabel(fab.material, fab.materialCustom)
+  const quantity = formatInteger(fab.quantity)
+  const thickness = `${formatMmValue(fab.thickness)} mm`
   const weight = formatKg(computePlateWeightKg(plate.profile))
 
   return [
-    `Segments plate: ${name}`,
-    `Project: ${project.name} (${project.serial})`,
-    `Est. weight (qty × part): ${weight}`,
+    `Project Name: ${project.name}`,
+    `Type: ${type}`,
+    `Material: ${material}`,
+    `Quantity: ${quantity}`,
+    `Thickness: ${thickness}`,
+    `Est. Weight: ${weight}`,
     '',
-    plateAttachmentLine(mode),
-    `View project: ${url}`,
+    `Generated with ${APP_URL}`,
   ].join('\n')
 }
 

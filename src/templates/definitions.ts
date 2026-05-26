@@ -48,3 +48,9 @@ export function getPlateShapeLabel(templateId: string | null): string {
   if (!templateId) return 'CUSTOM FOLDED'
   return PLATE_SHAPE_LABELS[templateId] ?? 'CUSTOM FOLDED'
 }
+
+/** Friendly mixed-case name (e.g. "Hat", "C - Profile") for share text / PDFs. */
+export function getTemplateDisplayName(templateId: string | null): string {
+  if (!templateId) return 'Custom Folded'
+  return TEMPLATE_DEFINITIONS.find((t) => t.id === templateId)?.name ?? 'Custom Folded'
+}
