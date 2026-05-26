@@ -93,6 +93,10 @@ export function horizontalSegmentIndexForTemplate(templateId: string | null): nu
   if (templateId === 'gutter') return 2
   if (templateId === 'square') return 2
   if (templateId === 'c-profile') return 3
+  if (templateId === 'apron') return 1
+  if (templateId === 'wall-abutment') return 0
+  if (templateId === 'valley-flashing') return 2
+  if (templateId === 'ridge-cap') return 1
   return undefined
 }
 

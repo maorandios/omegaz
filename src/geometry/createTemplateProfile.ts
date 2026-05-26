@@ -16,6 +16,10 @@ type TemplateId =
   | 'l-angle'
   | 'square'
   | 'c-profile'
+  | 'apron'
+  | 'wall-abutment'
+  | 'valley-flashing'
+  | 'ridge-cap'
   | 'custom'
 
 interface TemplateSpec {
@@ -80,6 +84,34 @@ const TEMPLATES: Record<TemplateId, TemplateSpec> = {
     segmentLengths: [20, 50, 100, 50, 20],
     bendAngles: [-90, -90, -90, -90],
     startDirectionDeg: 270,
+  },
+  apron: {
+    name: 'Apron Flashing',
+    /** Vertical leg down → horizontal apron → short 45° drip flap. */
+    segmentLengths: [100, 150, 20],
+    bendAngles: [90, -45],
+    startDirectionDeg: 270,
+  },
+  'wall-abutment': {
+    name: 'Wall Abutment',
+    /** Bottom foot ← up the wall → top deck → short return → tiny hook. */
+    segmentLengths: [50, 150, 120, 20, 15],
+    bendAngles: [-90, -90, -90, -90],
+    startDirectionDeg: 180,
+  },
+  'valley-flashing': {
+    name: 'Valley Flashing',
+    /** Symmetric V: outward drip hem → down the left slope → 40mm channel → up the right slope → outward drip hem. */
+    segmentLengths: [25, 250, 40, 250, 25],
+    bendAngles: [-45, 45, 45, -45],
+    startDirectionDeg: 0,
+  },
+  'ridge-cap': {
+    name: 'Ridge Cap',
+    /** Symmetric tent: drip up → foot in → slope to peak → slope down → foot out → drip down. */
+    segmentLengths: [10, 15, 140, 140, 15, 10],
+    bendAngles: [-90, 60, -120, 60, -90],
+    startDirectionDeg: 90,
   },
   custom: {
     name: 'Custom Folded Profile',

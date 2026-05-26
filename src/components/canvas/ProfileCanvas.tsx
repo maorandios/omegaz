@@ -7,6 +7,7 @@ import {
   CANVAS_LABEL_STYLE,
   computeLabelCentroid,
   computeProfileDrawingLabels,
+  estimateLabelTextBox,
 } from '@/geometry/profileDrawingLabels'
 import { getSquareCornerPairs, isSquareSegmentActive } from '@/geometry/squareProfile'
 import type { FoldedProfile } from '@/geometry/types'
@@ -29,8 +30,34 @@ const BEND_DOT_RADIUS_ACTIVE = 6 // 8 ÷ 1.25 (rounded)
 const KONVA_LABEL_OFFSET_X_FACTOR = CANVAS_LABEL_STYLE.bendLabelCharWidth
 const KONVA_LABEL_OFFSET_Y = 7.5
 
+/** Extra space reserved on each side when labels are shown so dim/deg text
+ *  pushed outward by collision avoidance still lands inside the stage. */
+const CANVAS_LABEL_RESERVE = 22
+const CANVAS_CLAMP_MARGIN = 4
+
 const ACCENT_STROKE = '#00ffd4'
 const ACCENT_PREVIEW_STROKE_WIDTH = 2
+
+function clampLabelToStage(
+  x: number,
+  y: number,
+  text: string,
+  rotationDeg: number,
+  width: number,
+  height: number,
+): { x: number; y: number } {
+  const box = estimateLabelTextBox(text, LABEL_FONT_SIZE)
+  const rad = (rotationDeg * Math.PI) / 180
+  const cos = Math.abs(Math.cos(rad))
+  const sin = Math.abs(Math.sin(rad))
+  const halfW = (cos * box.width + sin * box.height) / 2
+  const halfH = (sin * box.width + cos * box.height) / 2
+  const m = CANVAS_CLAMP_MARGIN
+  return {
+    x: Math.min(Math.max(x, halfW + m), Math.max(halfW + m, width - halfW - m)),
+    y: Math.min(Math.max(y, halfH + m), Math.max(halfH + m, height - halfH - m)),
+  }
+}
 
 export function ProfileCanvas({
   profile,
@@ -91,9 +118,12 @@ export function ProfileCanvas({
   const layout = useMemo(() => {
     const bounds = calculateProfileBounds(segments)
     const pad = 40
+    const reserve = showLabels ? CANVAS_LABEL_RESERVE : 0
     const bw = Math.max(bounds.width, 1)
     const bh = Math.max(bounds.height, 1)
-    const scale = Math.min((size.width - pad * 2) / bw, (size.height - pad * 2) / bh)
+    const innerW = Math.max(size.width - pad * 2 - reserve * 2, 1)
+    const innerH = Math.max(size.height - pad * 2 - reserve * 2, 1)
+    const scale = Math.min(innerW / bw, innerH / bh)
     const offsetX = (size.width - bw * scale) / 2 - bounds.minX * scale
     const offsetY = (size.height - bh * scale) / 2 - bounds.minY * scale
 
@@ -103,7 +133,7 @@ export function ProfileCanvas({
     })
 
     return { scale, tx, bounds }
-  }, [segments, size])
+  }, [segments, size, showLabels])
 
   const drawingLabels = useMemo(() => {
     if (!showLabels) {
@@ -113,7 +143,17 @@ export function ProfileCanvas({
       x: size.width / 2,
       y: size.height / 2,
     })
-    return computeProfileDrawingLabels(profile, layout.tx, centroid, CANVAS_LABEL_STYLE)
+    const raw = computeProfileDrawingLabels(profile, layout.tx, centroid, CANVAS_LABEL_STYLE)
+    return {
+      segmentLabels: raw.segmentLabels.map((lbl) => ({
+        ...lbl,
+        ...clampLabelToStage(lbl.x, lbl.y, lbl.text, lbl.rotationDeg, size.width, size.height),
+      })),
+      bendLabels: raw.bendLabels.map((lbl) => ({
+        ...lbl,
+        ...clampLabelToStage(lbl.x, lbl.y, lbl.text, 0, size.width, size.height),
+      })),
+    }
   }, [showLabels, profile, segments, layout, size.width, size.height])
 
   const flatPoints: number[] = []
@@ -234,6 +274,7 @@ export function ProfileCanvas({
                   fontSize={LABEL_FONT_SIZE}
                   fontStyle={accentPreview ? 'normal' : isActive ? 'bold' : 'normal'}
                   fill={accentPreview ? labelActiveFill : isActive ? labelActiveFill : labelFill}
+                  onSelect={interactive ? () => handleSelect('segment', seg.id) : undefined}
                 />
               )
             })}
@@ -247,19 +288,19 @@ export function ProfileCanvas({
                   if (!lbl) return null
                   const bendId = bendIndex !== null ? bends[bendIndex]?.id : null
                   const isActive = bendId !== null && bendId !== undefined && activeItemId === bendId
+                  const onSelectBend =
+                    interactive && bendId ? () => handleSelect('bend', bendId) : undefined
                   return (
-                    <Text
+                    <BendDegLabel
                       key={`lbl-square-corner-${cornerIdx}`}
                       x={lbl.x}
                       y={lbl.y}
                       text={lbl.text}
-                      fontSize={LABEL_FONT_SIZE}
-                      fontStyle={accentPreview ? 'normal' : isActive ? 'bold' : 'normal'}
-                      fill={accentPreview ? labelActiveFill : isActive ? labelActiveFill : labelFill}
-                      align="center"
-                      offsetX={lbl.text.length * KONVA_LABEL_OFFSET_X_FACTOR * 0.5}
-                      offsetY={KONVA_LABEL_OFFSET_Y}
-                      listening={false}
+                      isActive={isActive}
+                      accentPreview={accentPreview}
+                      labelFill={labelFill}
+                      labelActiveFill={labelActiveFill}
+                      onSelect={onSelectBend}
                     />
                   )
                 })
@@ -267,24 +308,80 @@ export function ProfileCanvas({
                   const lbl = drawingLabels.bendLabels.find((b) => b.bendId === bend.id)
                   if (!lbl) return null
                   const isActive = activeItemId === bend.id
+                  const onSelectBend = interactive
+                    ? () => handleSelect('bend', bend.id)
+                    : undefined
                   return (
-                    <Text
+                    <BendDegLabel
                       key={`lbl-bend-${bend.id}`}
                       x={lbl.x}
                       y={lbl.y}
                       text={lbl.text}
-                      fontSize={LABEL_FONT_SIZE}
-                      fontStyle={accentPreview ? 'normal' : isActive ? 'bold' : 'normal'}
-                      fill={accentPreview ? labelActiveFill : isActive ? labelActiveFill : labelFill}
-                      align="center"
-                      offsetX={lbl.text.length * KONVA_LABEL_OFFSET_X_FACTOR * 0.5}
-                      offsetY={KONVA_LABEL_OFFSET_Y}
-                      listening={false}
+                      isActive={isActive}
+                      accentPreview={accentPreview}
+                      labelFill={labelFill}
+                      labelActiveFill={labelActiveFill}
+                      onSelect={onSelectBend}
                     />
                   )
                 }))}
         </Layer>
       </Stage>
     </div>
+  )
+}
+
+interface BendDegLabelProps {
+  x: number
+  y: number
+  text: string
+  isActive: boolean
+  accentPreview: boolean
+  labelFill: string
+  labelActiveFill: string
+  onSelect?: () => void
+}
+
+const BEND_HIT_PAD_X = 8
+const BEND_HIT_PAD_Y = 6
+
+function BendDegLabel({
+  x,
+  y,
+  text,
+  isActive,
+  accentPreview,
+  labelFill,
+  labelActiveFill,
+  onSelect,
+}: BendDegLabelProps) {
+  const box = estimateLabelTextBox(text, LABEL_FONT_SIZE)
+  const halfW = box.width / 2
+  const halfH = box.height / 2
+  const interactive = Boolean(onSelect)
+  return (
+    <Group x={x} y={y} listening={interactive}>
+      {interactive && (
+        <Rect
+          x={-halfW - BEND_HIT_PAD_X}
+          y={-halfH - BEND_HIT_PAD_Y}
+          width={box.width + BEND_HIT_PAD_X * 2}
+          height={box.height + BEND_HIT_PAD_Y * 2}
+          fill="transparent"
+          onClick={onSelect}
+          onTap={onSelect}
+        />
+      )}
+      <Text
+        text={text}
+        fontSize={LABEL_FONT_SIZE}
+        fontStyle={accentPreview ? 'normal' : isActive ? 'bold' : 'normal'}
+        fill={accentPreview ? labelActiveFill : isActive ? labelActiveFill : labelFill}
+        align="center"
+        offsetX={text.length * KONVA_LABEL_OFFSET_X_FACTOR * 0.5}
+        offsetY={KONVA_LABEL_OFFSET_Y}
+        listening={false}
+      />
+    </Group>
   )
 }

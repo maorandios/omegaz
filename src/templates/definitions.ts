@@ -3,16 +3,29 @@ export interface TemplateDefinition {
   name: string
 }
 
-export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
+/** Pre-shaped real-world trims — user just fills in the millimeters. */
+export const STANDARD_TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
+  { id: 'apron', name: 'Apron Flashing' },
+  { id: 'wall-abutment', name: 'Wall Abutment' },
+  { id: 'valley-flashing', name: 'Valley Flashing' },
+  { id: 'ridge-cap', name: 'Ridge Cap' },
+]
+
+/** Generic shape primitives the user customizes from scratch. */
+export const CORE_TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
   { id: 'l-angle', name: 'L - Angel' },
   { id: 'channel', name: 'C - Channel' },
-  { id: 'zigzag', name: 'Z - ZigZag' },
+  { id: 'zigzag', name: 'Z - Zed' },
   { id: 'omega', name: 'Hat' },
   { id: 'square', name: 'Square' },
   { id: 'c-profile', name: 'C - Profile' },
   { id: 'z-profile', name: 'Z - Profile' },
   { id: 'gutter', name: 'Gutter' },
-  { id: 'custom', name: 'Custom Folded' },
+]
+
+export const TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
+  ...STANDARD_TEMPLATE_DEFINITIONS,
+  ...CORE_TEMPLATE_DEFINITIONS,
 ]
 
 const TEMPLATE_PREVIEW_PATHS: Record<string, string> = {
@@ -24,6 +37,10 @@ const TEMPLATE_PREVIEW_PATHS: Record<string, string> = {
   'l-angle': '/angle-shape.svg',
   square: '/square-shape.svg',
   'c-profile': '/c-shape.svg',
+  apron: '/apron-shape.svg',
+  'wall-abutment': '/wall-abutment-shape.svg',
+  'valley-flashing': '/valley-flashing-shape.svg',
+  'ridge-cap': '/ridge-cap-shape.svg',
   custom: '/custom-shape.svg',
 }
 
@@ -35,12 +52,16 @@ export function getTemplatePreviewPath(id: string): string {
 const PLATE_SHAPE_LABELS: Record<string, string> = {
   'l-angle': 'L - ANGEL',
   channel: 'C - CHANNEL',
-  zigzag: 'Z - ZIGZAG',
+  zigzag: 'Z - ZED',
   omega: 'HAT',
   square: 'SQUARE',
   'c-profile': 'C - PROFILE',
   'z-profile': 'Z - PROFILE',
   gutter: 'GUTTER',
+  apron: 'APRON FLASHING',
+  'wall-abutment': 'WALL ABUTMENT',
+  'valley-flashing': 'VALLEY FLASHING',
+  'ridge-cap': 'RIDGE CAP',
   custom: 'CUSTOM FOLDED',
 }
 

@@ -1,0 +1,11 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M15 36L19 36" stroke="#00FFD4" stroke-width="3" stroke-linecap="round"/>
+
+<path d="M19 36L47 64" stroke="#00FFD4" stroke-width="3" stroke-linecap="round"/>
+
+<path d="M47 64L53 64" stroke="#00FFD4" stroke-width="3" stroke-linecap="round"/>
+
+<path d="M53 64L81 36" stroke="#00FFD4" stroke-width="3" stroke-linecap="round"/>
+
+<path d="M81 36L85 36" stroke="#00FFD4" stroke-width="3" stroke-linecap="round"/>
+</svg>

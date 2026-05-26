@@ -47,13 +47,10 @@ export function DrawShapeScreen() {
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3 px-4 py-3">
-      <div>
-        <h2 className="text-base font-semibold text-foreground">Draw your shape</h2>
-        <p className="text-sm text-muted">
-          Tap on the grid to place vertices. Each tap connects to the previous one
-          with a straight line. You&apos;ll set the real dimensions in the next step.
-        </p>
-      </div>
+      <p className="text-center text-sm text-muted">
+        Tap on the grid to place vertices. Each tap connects to the previous one
+        with a straight line. You&apos;ll set the real dimensions in the next step.
+      </p>
 
       <div className="min-h-0 flex-1">
         <GridDrawCanvas points={drawPoints} onPointsChange={setDrawPoints} />
