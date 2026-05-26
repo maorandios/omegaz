@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { buildProfileFromPolylineGeometry } from '@/geometry/buildProfileFromPolyline'
 import { cleanFreehandSketch } from '@/geometry/cleanFreehandSketch'
 import {
   buildWizardSteps,
@@ -28,6 +29,10 @@ interface ProfileState {
   initialProfile: FoldedProfile | null
   selectedTemplate: string | null
   sketchPoints: Point2D[]
+  /** Tap-placed vertices for the grid-draw flow (canvas pixel space). */
+  drawPoints: Point2D[]
+  /** Grid pitch in pixels at the moment drawPoints were captured. */
+  drawPixelsPerCell: number
   wizardIndex: number
   activeItemId: string | null
   /**
@@ -40,9 +45,12 @@ interface ProfileState {
 
   setStep: (step: AppStep) => void
   loadTemplate: (templateId: string) => void
+  startDrawShape: () => void
   resetPlateShape: () => void
   setSketchPoints: (points: Point2D[]) => void
   applyCleanedSketch: () => boolean
+  setDrawPoints: (points: Point2D[], pixelsPerCell: number) => void
+  applyDrawnShape: () => boolean
   setSegmentLength: (segmentId: string, length: number) => void
   setBendAngle: (bendId: string, angle: number) => void
   previewSegmentLength: (segmentId: string, length: number) => void
@@ -83,6 +91,8 @@ function schedulePersist(get: () => ProfileState) {
       initialProfile: s.initialProfile,
       wizardIndex: s.wizardIndex,
       sketchPoints: s.sketchPoints,
+      drawPoints: s.drawPoints,
+      drawPixelsPerCell: s.drawPixelsPerCell,
       selectedTemplate: s.selectedTemplate,
     })
   }, 300)
@@ -136,13 +146,15 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   initialProfile: null,
   selectedTemplate: null,
   sketchPoints: [],
+  drawPoints: [],
+  drawPixelsPerCell: 0,
   wizardIndex: 0,
   activeItemId: null,
   clearWizardInput: false,
   history: [],
 
   setStep: (step) => {
-    if (step === 'sketch') {
+    if (step === 'sketch' || step === 'draw') {
       useAppStore.setState({ editingPlateId: null })
     }
     set({ currentStep: step })
@@ -166,11 +178,33 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     schedulePersist(get)
   },
 
+  startDrawShape: () => {
+    useAppStore.setState({ editingPlateId: null })
+    set({
+      currentStep: 'draw',
+      drawPoints: [],
+      drawPixelsPerCell: 0,
+      profile: null,
+      initialProfile: null,
+      selectedTemplate: null,
+      wizardIndex: 0,
+      activeItemId: null,
+      clearWizardInput: false,
+      history: [],
+    })
+    schedulePersist(get)
+  },
+
   resetPlateShape: () => {
     const { currentStep, initialProfile, selectedTemplate, profile } = get()
 
     if (currentStep === 'sketch') {
       set({ sketchPoints: [] })
+      schedulePersist(get)
+      return
+    }
+    if (currentStep === 'draw') {
+      set({ drawPoints: [], drawPixelsPerCell: 0 })
       schedulePersist(get)
       return
     }
@@ -206,6 +240,36 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     if (cleaned.segments.length < 1) return false
 
     const profile = createProfileFromSketch(cleaned.segments, cleaned.bends)
+    const initialProfile = snapshotProfile(profile)
+    set({
+      profile,
+      initialProfile,
+      selectedTemplate: null,
+      wizardIndex: 0,
+      activeItemId: syncWizardActive(get(), profile),
+      currentStep: 'segment-wizard',
+      clearWizardInput: false,
+      history: [],
+    })
+    schedulePersist(get)
+    return true
+  },
+
+  setDrawPoints: (points, pixelsPerCell) => {
+    set({ drawPoints: points, drawPixelsPerCell: pixelsPerCell })
+    schedulePersist(get)
+  },
+
+  applyDrawnShape: () => {
+    const { drawPoints, drawPixelsPerCell } = get()
+    if (drawPoints.length < 2 || drawPixelsPerCell <= 0) return false
+    const { segments, bends } = buildProfileFromPolylineGeometry(
+      drawPoints,
+      drawPixelsPerCell,
+    )
+    if (segments.length < 1) return false
+
+    const profile = createProfileFromSketch(segments, bends, 'Drawn Profile')
     const initialProfile = snapshotProfile(profile)
     set({
       profile,
@@ -304,6 +368,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       initialProfile: null,
       selectedTemplate: null,
       sketchPoints: [],
+      drawPoints: [],
+      drawPixelsPerCell: 0,
       wizardIndex: 0,
       activeItemId: null,
       clearWizardInput: false,
@@ -429,7 +495,20 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   hydrateFromSession: () => {
     try {
       const saved = loadSession()
-      if (!saved?.profile || !saved.currentStep) return
+      if (!saved) return
+
+      // Sketch / draw flow: no profile yet, but restore the in-progress canvas.
+      if (saved.currentStep === 'sketch' || saved.currentStep === 'draw') {
+        set({
+          currentStep: saved.currentStep,
+          sketchPoints: saved.sketchPoints,
+          drawPoints: saved.drawPoints,
+          drawPixelsPerCell: saved.drawPixelsPerCell,
+        })
+        return
+      }
+
+      if (!saved.profile || !saved.currentStep) return
       const profile = ensureHorizontalLock(
         migrateProfileBends(saved.profile),
         saved.selectedTemplate,
@@ -446,6 +525,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         initialProfile,
         wizardIndex: saved.wizardIndex,
         sketchPoints: saved.sketchPoints,
+        drawPoints: saved.drawPoints,
+        drawPixelsPerCell: saved.drawPixelsPerCell,
         selectedTemplate: saved.selectedTemplate,
         activeItemId: syncWizardActive(
           { ...get(), wizardIndex: saved.wizardIndex },
@@ -466,6 +547,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       initialProfile: s.initialProfile,
       wizardIndex: s.wizardIndex,
       sketchPoints: s.sketchPoints,
+      drawPoints: s.drawPoints,
+      drawPixelsPerCell: s.drawPixelsPerCell,
       selectedTemplate: s.selectedTemplate,
     })
   },

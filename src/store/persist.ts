@@ -8,6 +8,8 @@ export interface PersistedState {
   initialProfile: FoldedProfile | null
   wizardIndex: number
   sketchPoints: Point2D[]
+  drawPoints: Point2D[]
+  drawPixelsPerCell: number
   selectedTemplate: string | null
 }
 
@@ -27,6 +29,8 @@ export function loadSession(): PersistedState | null {
       initialProfile: (parsed.initialProfile as PersistedState['initialProfile']) ?? null,
       wizardIndex: (parsed.wizardIndex as number) ?? 0,
       sketchPoints: (parsed.sketchPoints as PersistedState['sketchPoints']) ?? [],
+      drawPoints: (parsed.drawPoints as PersistedState['drawPoints']) ?? [],
+      drawPixelsPerCell: (parsed.drawPixelsPerCell as number) ?? 0,
       selectedTemplate: (parsed.selectedTemplate as string | null) ?? null,
     }
   } catch {

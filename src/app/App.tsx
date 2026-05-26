@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { AppShell } from '@/app/AppShell'
 import { ScreenStack } from '@/components/shell/ScreenStack'
 import { PullToRefresh } from '@/components/shell/PullToRefresh'
+import { DrawShapeScreen } from '@/screens/DrawShapeScreen'
 import { FabricationScreen } from '@/screens/FabricationScreen'
 import { ProjectsScreen } from '@/screens/ProjectsScreen'
 import { SegmentWizardScreen } from '@/screens/SegmentWizardScreen'
@@ -50,6 +51,7 @@ function WorkflowStack() {
       className="h-full min-h-0 flex-1"
       screens={{
         sketch: <SketchScreen />,
+        draw: <DrawShapeScreen />,
         'segment-wizard': <SegmentWizardScreen />,
         fabrication: <FabricationScreen />,
         summary: <SummaryScreen />,

@@ -605,6 +605,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 export function isWorkflowStep(step: string | null): boolean {
   return (
     step === 'sketch' ||
+    step === 'draw' ||
     step === 'segment-wizard' ||
     step === 'fabrication' ||
     step === 'summary' ||

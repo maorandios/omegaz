@@ -7,6 +7,7 @@ import {
 
 export type AppStep =
   | 'sketch'
+  | 'draw'
   | 'segment-wizard'
   | 'fabrication'
   | 'summary'

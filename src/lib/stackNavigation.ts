@@ -11,6 +11,7 @@ export function projectsStackDirection(_fromKey: string, toKey: string): StackDi
 
 const WORKFLOW_STEP_ORDER: AppStep[] = [
   'sketch',
+  'draw',
   'segment-wizard',
   'fabrication',
   'summary',
