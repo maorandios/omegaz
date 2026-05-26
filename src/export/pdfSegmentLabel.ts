@@ -1,6 +1,13 @@
 import type { jsPDF } from 'jspdf'
 
-/** Draw dim text with its visual center at (centerX, centerY). */
+/**
+ * Draw dim text with its visual center at (centerX, centerY).
+ *
+ * `angleDeg` follows the Konva / screen convention (positive = clockwise in a
+ * y-down coordinate system). jsPDF rotates counter-clockwise for positive
+ * angles, so we negate before forwarding to keep the on-screen preview and
+ * the printed PDF visually identical.
+ */
 export function drawPdfSegmentDimLabel(
   doc: jsPDF,
   text: string,
@@ -13,6 +20,6 @@ export function drawPdfSegmentDimLabel(
   doc.text(text, centerX, centerY, {
     align: 'center',
     baseline: 'middle',
-    angle: angleDeg,
+    angle: -angleDeg,
   })
 }

@@ -18,11 +18,10 @@ export function getProjectPackageUrl(projectId: string): string {
   return `${origin}/p/${projectId}`
 }
 
-function summarizeProfileTypes(plates: PlateRecord[]): string {
-  if (plates.length === 0) return '—'
+function countDistinctProfileTypes(plates: PlateRecord[]): number {
   const names = new Set<string>()
   for (const plate of plates) names.add(getTemplateDisplayName(plate.selectedTemplate))
-  return Array.from(names).join(', ')
+  return names.size
 }
 
 function totalProjectQuantity(plates: PlateRecord[]): number {
@@ -47,14 +46,14 @@ export function buildProjectShareMessage(
   project: ProjectRecord,
   _mode: PackageMode = 'full',
 ): string {
-  const profileType = summarizeProfileTypes(project.plates)
+  const profileTypeCount = formatInteger(countDistinctProfileTypes(project.plates))
   const quantity = formatInteger(totalProjectQuantity(project.plates))
   const weight = formatKg(computeProjectWeightKg(project.plates))
   const sqm = formatAreaM2(totalProjectAreaMm2(project.plates))
 
   return [
     `Project Name: ${project.name}`,
-    `Profile Type: ${profileType}`,
+    `Profile Type: ${profileTypeCount}`,
     `Quantity: ${quantity}`,
     `Est. Weight: ${weight}`,
     `Est. Sqm: ${sqm}`,

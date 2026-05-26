@@ -30,7 +30,11 @@ interface ProfileState {
   sketchPoints: Point2D[]
   wizardIndex: number
   activeItemId: string | null
-  /** When true, wizard input mounts empty (after Next or first entry). */
+  /**
+   * When true, the wizard input mounts empty. We default to false so each step
+   * is prefilled with the current geometry value — the user can click Next
+   * without retyping if the default is acceptable.
+   */
   clearWizardInput: boolean
   history: FoldedProfile[]
 
@@ -134,7 +138,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   sketchPoints: [],
   wizardIndex: 0,
   activeItemId: null,
-  clearWizardInput: true,
+  clearWizardInput: false,
   history: [],
 
   setStep: (step) => {
@@ -156,7 +160,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       wizardIndex: 0,
       activeItemId: syncWizardActive(get(), profile),
       currentStep: 'segment-wizard',
-      clearWizardInput: true,
+      clearWizardInput: false,
       history: [],
     })
     schedulePersist(get)
@@ -185,7 +189,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       profile: nextProfile,
       wizardIndex: 0,
       activeItemId: syncWizardActive(get(), nextProfile),
-      clearWizardInput: true,
+      clearWizardInput: false,
       history: [],
     })
     schedulePersist(get)
@@ -210,7 +214,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       wizardIndex: 0,
       activeItemId: syncWizardActive(get(), profile),
       currentStep: 'segment-wizard',
-      clearWizardInput: true,
+      clearWizardInput: false,
       history: [],
     })
     schedulePersist(get)
@@ -302,7 +306,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       sketchPoints: [],
       wizardIndex: 0,
       activeItemId: null,
-      clearWizardInput: true,
+      clearWizardInput: false,
       history: [],
     })
   },
@@ -400,7 +404,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       profile: next,
       wizardIndex: newIndex,
       activeItemId: steps[newIndex]?.id ?? null,
-      clearWizardInput: true,
+      clearWizardInput: false,
     })
     schedulePersist(get)
   },

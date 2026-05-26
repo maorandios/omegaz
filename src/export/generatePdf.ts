@@ -217,7 +217,8 @@ function drawProfileGeometry(
   doc.setTextColor(0)
 
   segmentLabels.forEach((lbl) => {
-    drawPdfSegmentDimLabel(doc, lbl.text, lbl.x, lbl.y, PDF_DIM_FONT, lbl.rotationDeg)
+    const p = clampToClip(lbl.x, lbl.y, lbl.text, PDF_DIM_FONT, clip, lbl.rotationDeg)
+    drawPdfSegmentDimLabel(doc, lbl.text, p.x, p.y, PDF_DIM_FONT, lbl.rotationDeg)
   })
 
   bendLabels.forEach((lbl) => {
