@@ -23,6 +23,7 @@ type TemplateId =
   | 'barge-verge'
   | 'drip-edge-tray'
   | 'eaves-flashing'
+  | 'external-corner'
   | 'custom'
 
 interface TemplateSpec {
