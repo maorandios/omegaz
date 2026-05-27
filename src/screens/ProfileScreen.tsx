@@ -7,8 +7,9 @@ import { UpgradeSubscriptionSheet } from '@/components/profile/UpgradeSubscripti
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useTrialCountdown } from '@/hooks/useTrialCountdown'
 import { openAppInviteWhatsApp } from '@/lib/appInvite'
-import { PRO_PRICE_LABEL } from '@/lib/pricing'
+import { PRO_PRICE_LABEL, TRIAL_DAYS } from '@/lib/pricing'
 import { isLocalAuthBypass } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/appStore'
@@ -16,7 +17,8 @@ import { useAuthStore } from '@/store/authStore'
 import {
   entitlementFor,
   formatSubscriptionPeriodEnd,
-  trialDaysRemaining,
+  trialCountdownBadgeText,
+  trialCountdownSubtext,
 } from '@/store/userTypes'
 
 const readOnlyInputClass =
@@ -69,16 +71,17 @@ export function ProfileScreen() {
   const isLocked = entitlement === 'locked'
   const isPaid = entitlement === 'paid'
   const isCancelling = isPaid && subscription.cancelAtPeriodEnd
-  const trialDays = trialDaysRemaining(subscription)
+  const trialDays = useTrialCountdown(subscription) ?? 0
 
   const badge = (() => {
     if (isLocked) {
       return { label: 'Trial ended', className: 'bg-warning/15 text-warning' }
     }
-    if (isTrial) {
-      const label =
-        trialDays === 1 ? 'Trial · 1 day left' : `Trial · ${trialDays} days left`
-      return { label, className: 'bg-primary/15 text-primary' }
+    if (isTrial && trialDays > 0) {
+      return {
+        label: trialCountdownBadgeText(trialDays),
+        className: 'bg-warning/15 text-warning',
+      }
     }
     if (isCancelling) {
       return { label: 'Cancelled', className: 'bg-primary/15 text-primary' }
@@ -207,6 +210,30 @@ export function ProfileScreen() {
             {badge.label}
           </span>
         </div>
+
+        {isTrial && trialDays > 0 ? (
+          <div
+            className="rounded-2xl border border-warning/25 bg-warning/10 px-4 py-5 text-center"
+            role="status"
+            aria-live="polite"
+            aria-label={trialCountdownSubtext(trialDays)}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide text-warning/90">
+              Free trial — days remaining
+            </p>
+            <p className="mt-2 text-6xl font-bold tabular-nums leading-none text-warning">
+              {trialDays}
+            </p>
+            <p className="mt-2 text-sm text-warning/90">{trialCountdownSubtext(trialDays)}</p>
+            <p className="mt-1 text-xs text-muted">
+              Ends{' '}
+              {formatSubscriptionPeriodEnd(
+                subscription.trialEndsAt ?? subscription.currentPeriodEnd,
+              )}{' '}
+              · {TRIAL_DAYS}-day trial
+            </p>
+          </div>
+        ) : null}
 
         {isLocked ? (
           <div className="flex items-start gap-2.5 rounded-xl border border-warning/30 bg-warning/10 px-3 py-3 text-warning">

@@ -9,6 +9,10 @@ export const STANDARD_TEMPLATE_DEFINITIONS: TemplateDefinition[] = [
   { id: 'wall-abutment', name: 'Wall Abutment' },
   { id: 'valley-flashing', name: 'Valley Flashing' },
   { id: 'ridge-cap', name: 'Ridge Cap' },
+  { id: 'barge-verge', name: 'Barge / Verge Board' },
+  { id: 'drip-edge-tray', name: 'Drip Edge / Tray' },
+  { id: 'eaves-flashing', name: 'Eaves flashing' },
+  { id: 'external-corner', name: 'External Corner Trim' },
 ]
 
 /** Generic shape primitives the user customizes from scratch. */
@@ -41,6 +45,10 @@ const TEMPLATE_PREVIEW_PATHS: Record<string, string> = {
   'wall-abutment': '/wall-abutment-shape.svg',
   'valley-flashing': '/valley-flashing-shape.svg',
   'ridge-cap': '/ridge-cap-shape.svg',
+  'barge-verge': '/barge-verge-shape.svg',
+  'drip-edge-tray': '/drip-edge-tray-shape.svg',
+  'eaves-flashing': '/eaves-flashing-shape.svg',
+  'external-corner': '/external-corner-shape.svg',
   custom: '/custom-shape.svg',
 }
 
@@ -62,6 +70,10 @@ const PLATE_SHAPE_LABELS: Record<string, string> = {
   'wall-abutment': 'WALL ABUTMENT',
   'valley-flashing': 'VALLEY FLASHING',
   'ridge-cap': 'RIDGE CAP',
+  'barge-verge': 'BARGE / VERGE BOARD',
+  'drip-edge-tray': 'DRIP EDGE / TRAY',
+  'eaves-flashing': 'EAVES FLASHING',
+  'external-corner': 'EXTERNAL CORNER TRIM',
   custom: 'CUSTOM FOLDED',
 }
 

@@ -10,10 +10,10 @@ import { getPlateShapeLabel } from '@/templates/definitions'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/appStore'
 import { useProfileStore } from '@/store/profileStore'
+import { useTrialCountdown } from '@/hooks/useTrialCountdown'
 import {
-  entitlementFor,
   isSubscriptionLocked,
-  trialDaysRemaining,
+  trialCountdownBadgeText,
 } from '@/store/userTypes'
 
 interface AppShellProps {
@@ -54,9 +54,8 @@ function AppHeader({
   // Only show the trial badge in the empty left slot — never overlap with the
   // reset/back buttons. Hidden once user is on a paid plan or locked.
   const showTrialBadge =
-    trialDaysLeft !== null && trialDaysLeft >= 0 && !showReset && !showBack
-  const trialBadgeLabel =
-    trialDaysLeft === 1 ? 'Trial · 1 day left' : `Trial · ${trialDaysLeft} days left`
+    trialDaysLeft !== null && trialDaysLeft > 0 && !showReset && !showBack
+  const trialBadgeLabel = trialDaysLeft !== null ? trialCountdownBadgeText(trialDaysLeft) : ''
 
   return (
     <header data-wizard-header className="shrink-0 bg-background">
@@ -65,7 +64,7 @@ function AppHeader({
           <button
             type="button"
             onClick={onTrialBadgeClick}
-            aria-label={`Trial — ${trialBadgeLabel}. Tap to subscribe.`}
+            aria-label={`${trialBadgeLabel}. Tap to subscribe.`}
             className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-warning/15 px-2.5 py-1 text-[11px] font-semibold leading-none text-warning transition-colors hover:bg-warning/25"
           >
             {trialBadgeLabel}
@@ -204,9 +203,7 @@ export function AppShell({ children, inWorkflow }: AppShellProps) {
     />
   )
 
-  const entitlement = entitlementFor(subscription)
-  const trialDaysLeft =
-    entitlement === 'trial' ? trialDaysRemaining(subscription) : null
+  const trialDaysLeft = useTrialCountdown(subscription)
 
   const header = (
     <AppHeader

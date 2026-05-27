@@ -97,6 +97,10 @@ export function horizontalSegmentIndexForTemplate(templateId: string | null): nu
   if (templateId === 'wall-abutment') return 0
   if (templateId === 'valley-flashing') return 2
   if (templateId === 'ridge-cap') return 1
+  if (templateId === 'barge-verge') return 2
+  if (templateId === 'drip-edge-tray') return 0
+  if (templateId === 'eaves-flashing') return 1
+  if (templateId === 'external-corner') return 2
   return undefined
 }
 

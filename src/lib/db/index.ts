@@ -5,6 +5,11 @@ export {
   deleteProjectFromDb,
 } from '@/lib/db/projectsRepository'
 export {
+  fetchPlateFavoritesForUser,
+  upsertPlateFavorite,
+  deletePlateFavoriteFromDb,
+} from '@/lib/db/favoritesRepository'
+export {
   fetchProfile,
   upsertProfile,
   upsertProfileFromSession,

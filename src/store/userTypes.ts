@@ -91,7 +91,7 @@ export function isSubscriptionLocked(
   return entitlementFor(subscription, now) === 'locked'
 }
 
-/** Whole days of trial remaining (>= 0). Use for "Trial · N days left" UI. */
+/** Whole days of trial remaining (>= 0). Counts down 14 → 13 → … → 1 → 0. */
 export function trialDaysRemaining(
   subscription: StoredSubscription,
   now: Date = new Date(),
@@ -102,6 +102,18 @@ export function trialDaysRemaining(
   const diffMs = end - now.getTime()
   if (diffMs <= 0) return 0
   return Math.ceil(diffMs / (24 * 60 * 60 * 1000))
+}
+
+/** Header / pill badge copy: `Trial · 14 days left` */
+export function trialCountdownBadgeText(days: number): string {
+  return days === 1 ? 'Trial · 1 day left' : `Trial · ${days} days left`
+}
+
+/** Longer copy under the big countdown number. */
+export function trialCountdownSubtext(days: number): string {
+  if (days <= 0) return 'Trial ended'
+  if (days === 1) return '1 day left on your free trial'
+  return `${days} days left on your free trial`
 }
 
 export function userDisplayName(user: StoredUser): string {

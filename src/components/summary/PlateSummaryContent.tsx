@@ -1,3 +1,4 @@
+import { Star } from 'lucide-react'
 import { ProfileCanvas } from '@/components/canvas/ProfileCanvas'
 import { PlateShapeThumb } from '@/components/projects/PlateShapeThumb'
 import { getFabricationMaterialLabel } from '@/geometry/constants'
@@ -32,12 +33,18 @@ interface PlateSummaryContentProps {
   selectedTemplate: string | null
   /** Plate serial within the project (e.g. p01); shown in the title when set. */
   plateSerial?: string
+  isFavorite?: boolean
+  favoriteBusy?: boolean
+  onToggleFavorite?: () => void
 }
 
 export function PlateSummaryContent({
   profile,
   selectedTemplate,
   plateSerial,
+  isFavorite = false,
+  favoriteBusy = false,
+  onToggleFavorite,
 }: PlateSummaryContentProps) {
   const fab = profile.fabrication
   const metrics = useProfileMetrics(profile)
@@ -65,7 +72,7 @@ export function PlateSummaryContent({
           <PlateShapeThumb templateId={selectedTemplate} size="sm" />
           <h2
             id="summary-review-title"
-            className="summary-review__title flex min-w-0 flex-wrap items-baseline gap-x-1.5"
+            className="summary-review__title flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1.5"
           >
             <span className="truncate">{fab.partName || profile.name}</span>
             {plateSerial?.trim() ? (
@@ -79,6 +86,39 @@ export function PlateSummaryContent({
               </>
             ) : null}
           </h2>
+          {onToggleFavorite ? (
+            <button
+              type="button"
+              onClick={onToggleFavorite}
+              disabled={favoriteBusy}
+              className={cn(
+                'ml-auto flex max-w-[11rem] shrink-0 items-center gap-1.5 rounded-full border border-border px-2.5 py-1.5 transition-colors',
+                'hover:bg-surface/55 disabled:opacity-50',
+                isFavorite && 'border-warning/40 bg-warning/10',
+              )}
+              aria-label={
+                isFavorite ? 'Remove from favourites' : 'Save to favourites'
+              }
+            >
+              <Star
+                className={cn(
+                  'h-4 w-4 shrink-0 stroke-[1.75px]',
+                  isFavorite
+                    ? 'fill-warning text-warning'
+                    : 'text-muted',
+                )}
+                aria-hidden
+              />
+              <span
+                className={cn(
+                  'text-left text-[11px] font-semibold leading-tight',
+                  isFavorite ? 'text-warning' : 'text-muted',
+                )}
+              >
+                {isFavorite ? 'Remove from favourites' : 'Save to favourites'}
+              </span>
+            </button>
+          ) : null}
         </header>
 
         <div className="summary-review__body">

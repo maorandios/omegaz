@@ -20,6 +20,9 @@ type TemplateId =
   | 'wall-abutment'
   | 'valley-flashing'
   | 'ridge-cap'
+  | 'barge-verge'
+  | 'drip-edge-tray'
+  | 'eaves-flashing'
   | 'custom'
 
 interface TemplateSpec {
@@ -113,6 +116,34 @@ const TEMPLATES: Record<TemplateId, TemplateSpec> = {
     bendAngles: [-90, 60, -120, 60, -90],
     startDirectionDeg: 90,
   },
+  'barge-verge': {
+    name: 'Barge / Verge Board',
+    /** Foot out → up the verge → horizontal barge → 45° drip (like apron + bottom foot). */
+    segmentLengths: [15, 100, 150, 15],
+    bendAngles: [90, -90, -45],
+    startDirectionDeg: 0,
+  },
+  'drip-edge-tray': {
+    name: 'Drip Edge / Tray',
+    /** Tray lip across → down the face → short 45° drip outward (down-right). */
+    segmentLengths: [80, 60, 20],
+    bendAngles: [-90, 45],
+    startDirectionDeg: 0,
+  },
+  'eaves-flashing': {
+    name: 'Eaves flashing',
+    /** Sloped top lip → vertical drop → short outward 45° drip. */
+    segmentLengths: [120, 60, 20],
+    bendAngles: [-85, 45],
+    startDirectionDeg: 355,
+  },
+  'external-corner': {
+    name: 'External Corner Trim',
+    /** Top return → down wall → along soffit → small downstand. */
+    segmentLengths: [15, 120, 120, 15],
+    bendAngles: [-90, 90, -90],
+    startDirectionDeg: 0,
+  },
   custom: {
     name: 'Custom Folded Profile',
     /** Default L: left leg up 50 → top leg right 50 (matches template preview). */
@@ -179,6 +210,11 @@ export function createTemplateProfile(templateId: string): FoldedProfile {
       ? {
           layoutOrigin: { x: 100, y: -100 } as const,
           horizontalReferenceDeg: 180 as const,
+        }
+      : {}),
+    ...(templateId === 'eaves-flashing'
+      ? {
+          horizontalReferenceDeg: 270 as const,
         }
       : {}),
   }

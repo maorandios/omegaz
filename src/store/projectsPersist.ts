@@ -11,6 +11,7 @@ import {
   type PlateRecord,
   type ProjectRecord,
 } from '@/store/projectTypes'
+import { normalizePlateFavorites, type PlateFavoriteRecord } from '@/store/favoriteTypes'
 import {
   defaultSubscription,
   normalizeSubscription,
@@ -23,7 +24,7 @@ export type { StoredSubscription, StoredUser }
 
 const STORAGE_KEY = 'segments-app'
 const MIGRATED_STORAGE_KEY = 'segments-app-migrated'
-const DATA_VERSION = 3
+const DATA_VERSION = 4
 
 export const SEED_PROJECT_IDS = new Set(['proj-seed-1', 'proj-seed-2'])
 
@@ -52,11 +53,13 @@ export function loadLegacyLocalAppData(): StoredAppData | null {
     const parsed = JSON.parse(raw) as StoredAppData & { projects?: unknown }
     if (!parsed.user) return null
     const projects = normalizeProjects(parsed.projects)
+    const plateFavorites = normalizePlateFavorites(parsed.plateFavorites)
     return {
       version: DATA_VERSION,
       user: normalizeUser(parsed.user),
       subscription: normalizeSubscription(parsed.subscription),
       projects,
+      plateFavorites,
     }
   } catch {
     return null
@@ -68,6 +71,7 @@ export interface StoredAppData {
   user: StoredUser
   subscription: StoredSubscription
   projects: ProjectRecord[]
+  plateFavorites?: PlateFavoriteRecord[]
 }
 
 function plateFromLegacy(
@@ -233,12 +237,14 @@ export function loadAppData(options?: { skipSeeds?: boolean }): StoredAppData {
       const parsed = JSON.parse(raw) as StoredAppData & { projects?: unknown }
       if (parsed.user) {
         const projects = normalizeProjects(parsed.projects)
+        const plateFavorites = normalizePlateFavorites(parsed.plateFavorites)
         const fallback = options?.skipSeeds ? [] : seedProjects()
         return {
           version: DATA_VERSION,
           user: normalizeUser(parsed.user),
           subscription: normalizeSubscription(parsed.subscription),
           projects: projects.length > 0 ? projects : fallback,
+          plateFavorites,
         }
       }
     }
@@ -254,6 +260,7 @@ export function loadAppData(options?: { skipSeeds?: boolean }): StoredAppData {
     }),
     subscription: defaultSubscription(),
     projects: options?.skipSeeds ? [] : seedProjects(),
+    plateFavorites: [],
   }
 }
 

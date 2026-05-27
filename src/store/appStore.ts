@@ -4,17 +4,25 @@ import { cloneFoldedProfile, type FoldedProfile } from '@/geometry/types'
 import { createId } from '@/geometry/types'
 import {
   completeOnboarding as completeOnboardingDb,
+  deletePlateFavoriteFromDb,
+  fetchPlateFavoritesForUser,
   fetchProfile,
   fetchProjectsForUser,
   migrateLocalProjectsIfNeeded,
   registerSyncErrorHandler,
   scheduleProjectUpsert,
   syncProjectDelete,
+  upsertPlateFavorite,
   upsertProfile,
 } from '@/lib/db'
+import { plateFavoriteFingerprint } from '@/lib/plateFavoriteFingerprint'
 import { userFromAuthUser } from '@/lib/authUser'
 import { cancelPaypalSubscription } from '@/lib/paypalClient'
 import { isLocalAuthBypass, isSupabaseConfigured, supabase } from '@/lib/supabase'
+import {
+  createPlateFavoriteRecord,
+  type PlateFavoriteRecord,
+} from '@/store/favoriteTypes'
 import { loadAppData, saveAppData, type StoredSubscription, type StoredUser } from '@/store/projectsPersist'
 import { useAuthStore } from '@/store/authStore'
 import { defaultSubscription, isSubscriptionLocked } from '@/store/userTypes'
@@ -41,6 +49,7 @@ interface AppState {
   user: StoredUser
   subscription: StoredSubscription
   projects: ProjectRecord[]
+  plateFavorites: PlateFavoriteRecord[]
   activeProjectId: string | null
   editingPlateId: string | null
   /** Browsing an existing plate (read-only) before optional edit. */
@@ -83,6 +92,15 @@ interface AppState {
   renameProject: (projectId: string, name: string) => boolean
   deleteProject: (projectId: string) => void
   deletePlate: (projectId: string, plateId: string) => void
+  findPlateFavorite: (
+    profile: FoldedProfile,
+    selectedTemplate: string | null,
+  ) => PlateFavoriteRecord | null
+  togglePlateFavorite: (
+    profile: FoldedProfile,
+    selectedTemplate: string | null,
+  ) => Promise<void>
+  startPlateFromFavorite: (favoriteId: string) => void
 }
 
 function getCloudUserId(): string | null {
@@ -104,6 +122,7 @@ function persistLocal(state: AppState) {
     user: state.user,
     subscription: state.subscription,
     projects: state.projects,
+    plateFavorites: state.plateFavorites,
   })
 }
 
@@ -128,7 +147,11 @@ function syncProject(project: ProjectRecord) {
   scheduleProjectUpsert(project, userId)
 }
 
-function loadProfileIntoWorkflow(profile: FoldedProfile, selectedTemplate: string | null) {
+function loadProfileIntoWorkflow(
+  profile: FoldedProfile,
+  selectedTemplate: string | null,
+  options?: { clearWizardInput?: boolean },
+) {
   const draft = cloneFoldedProfile(profile)
   const steps = buildWizardSteps(draft, selectedTemplate)
   useProfileStore.setState({
@@ -139,7 +162,9 @@ function loadProfileIntoWorkflow(profile: FoldedProfile, selectedTemplate: strin
     wizardIndex: 0,
     activeItemId: steps[0]?.id ?? null,
     sketchPoints: [],
-    clearWizardInput: true,
+    drawPoints: [],
+    drawPixelsPerCell: 0,
+    clearWizardInput: options?.clearWizardInput ?? true,
     history: [],
   })
   useProfileStore.getState().persistToSession()
@@ -152,6 +177,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   user: { fullName: 'Guest User', email: 'guest@getsegments.co' },
   subscription: defaultSubscription(),
   projects: [],
+  plateFavorites: [],
   activeProjectId: null,
   editingPlateId: null,
   viewingPlateId: null,
@@ -253,6 +279,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       viewingPlateId: null,
       selectedProjectId: null,
       projects: [],
+      plateFavorites: [],
       user: { fullName: 'Guest User', email: 'guest@getsegments.co' },
       subscription: defaultSubscription(),
       syncError: null,
@@ -293,9 +320,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (isSupabaseConfigured && userId) {
       set({ projectsLoading: true, syncError: null })
       try {
-        const [profileBundle, remoteProjects] = await Promise.all([
+        const [profileBundle, remoteProjects, remoteFavorites] = await Promise.all([
           fetchProfile(userId),
           fetchProjectsForUser(userId),
+          fetchPlateFavoritesForUser(userId),
         ])
 
         const projects = await migrateLocalProjectsIfNeeded(userId, remoteProjects)
@@ -309,6 +337,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           user,
           subscription,
           projects,
+          plateFavorites: remoteFavorites,
           activeProjectId: null,
           viewingPlateId: null,
           hydrated: true,
@@ -323,6 +352,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           syncError:
             err instanceof Error ? err.message : 'Failed to load your projects',
           projects: [],
+          plateFavorites: [],
         })
       }
       return
@@ -334,6 +364,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         user: data.user,
         subscription: data.subscription,
         projects: data.projects,
+        plateFavorites: data.plateFavorites ?? [],
         activeProjectId: null,
         viewingPlateId: null,
         hydrated: true,
@@ -349,6 +380,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         user: data.user,
         subscription: data.subscription,
         projects: data.projects,
+        plateFavorites: data.plateFavorites ?? [],
         activeProjectId: null,
         viewingPlateId: null,
         hydrated: true,
@@ -360,6 +392,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     set({
       projects: [],
+      plateFavorites: [],
       activeProjectId: null,
       viewingPlateId: null,
       hydrated: true,
@@ -599,6 +632,76 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (userId) syncProject(changedProject)
       else persistLocal({ ...get(), projects: next })
     }
+  },
+
+  findPlateFavorite: (profile, selectedTemplate) => {
+    const fingerprint = plateFavoriteFingerprint(profile, selectedTemplate)
+    return get().plateFavorites.find((f) => f.fingerprint === fingerprint) ?? null
+  },
+
+  togglePlateFavorite: async (profile, selectedTemplate) => {
+    if (isLocked(get())) return
+
+    const existing = get().findPlateFavorite(profile, selectedTemplate)
+    const userId = getCloudUserId()
+
+    if (existing) {
+      const next = get().plateFavorites.filter((f) => f.id !== existing.id)
+      set({ plateFavorites: next })
+      if (userId) {
+        try {
+          await deletePlateFavoriteFromDb(existing.id)
+        } catch (err) {
+          console.error('Failed to remove favourite', err)
+          set({ plateFavorites: get().plateFavorites })
+          set({
+            syncError:
+              err instanceof Error ? err.message : 'Failed to remove favourite',
+          })
+        }
+      } else {
+        persistLocal({ ...get(), plateFavorites: next })
+      }
+      return
+    }
+
+    const record = createPlateFavoriteRecord(profile, selectedTemplate)
+    const next = [record, ...get().plateFavorites]
+    set({ plateFavorites: next })
+
+    if (userId) {
+      try {
+        const saved = await upsertPlateFavorite(record, userId)
+        set({
+          plateFavorites: [saved, ...get().plateFavorites.filter((f) => f.id !== record.id)],
+        })
+      } catch (err) {
+        console.error('Failed to save favourite', err)
+        set({
+          plateFavorites: get().plateFavorites.filter((f) => f.id !== record.id),
+          syncError: err instanceof Error ? err.message : 'Failed to save favourite',
+        })
+      }
+    } else {
+      persistLocal({ ...get(), plateFavorites: next })
+    }
+  },
+
+  startPlateFromFavorite: (favoriteId) => {
+    if (isLocked(get())) return
+    const favorite = get().plateFavorites.find((f) => f.id === favoriteId)
+    if (!favorite) return
+
+    useAppStore.setState({
+      editingPlateId: null,
+      viewingPlateId: null,
+      createPlateSheetOpen: false,
+      createPlateSheetStep: 'choose',
+    })
+
+    loadProfileIntoWorkflow(favorite.profile, favorite.selectedTemplate, {
+      clearWizardInput: false,
+    })
   },
 }))
 
