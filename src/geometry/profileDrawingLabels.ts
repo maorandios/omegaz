@@ -43,6 +43,9 @@ export interface SegmentLabelLayout {
   x: number
   y: number
   rotationDeg: number
+  /** Exterior normal (unit) used for placement — PDF anchor correction. */
+  normalX: number
+  normalY: number
 }
 
 export interface BendLabelLayout {
@@ -247,11 +250,25 @@ function distanceToLineSegment(
   return { distance: Math.hypot(px - cx, py - cy), cx, cy }
 }
 
+/** Half-width of the label measured perpendicular to a segment (rotation ≈ tangent). */
+function labelHalfExtentPerpendicularToSegment(
+  text: string,
+  rotationDeg: number,
+  style: LabelStyle,
+): number {
+  const { width, height } = estimateLabelTextBox(text, style.actualFontSize)
+  const halfW = width / 2
+  const halfH = height / 2
+  const segRad = (rotationDeg * Math.PI) / 180
+  const sin = Math.sin(segRad)
+  const cos = Math.cos(segRad)
+  return Math.abs(halfW * sin) + Math.abs(halfH * cos)
+}
+
 /**
- * Treat each geometry segment line as an obstacle. The clearance scales with
- * the label's visual half-extent (we use halfH because for rotated dim labels
- * the perpendicular-to-line extent is the label's text height; for axis-
- * aligned deg labels it's still a good worst-case clearance).
+ * Treat each geometry segment line as an obstacle. Clearance uses the label
+ * extent perpendicular to the segment (for vertical dims that is ~half the
+ * string width, not the font height).
  */
 function findLineCollision(
   pos: { x: number; y: number },
@@ -356,7 +373,7 @@ function pushSegmentLabelOutward(
 
   const maxIter = Math.max(1, Math.ceil(maxDistance / step))
   let pos = { ...initial }
-  const halfExtent = (style.actualFontSize * 1.2) / 2
+  const halfExtent = labelHalfExtentPerpendicularToSegment(text, rotationDeg, style)
 
   for (let iter = 0; iter < maxIter; iter++) {
     const selfBox = makeLabelBox(text, pos.x, pos.y, rotationDeg, style)
@@ -485,10 +502,15 @@ export function computeProfileDrawingLabels(
       if (dB < minB) minB = dB
     }
 
-    // Bias toward the centroid-based default — only flip if the other side
-    // is meaningfully more open than the default (roughly a full text height).
+    // Only flip when the exterior (centroid) side is cramped — not merely when
+    // the interior is more open (wide profiles would flip right-hand vertical
+    // dims inward onto the stroke).
     const flipMargin = style.actualFontSize * 1.2
-    if (minB > minA + flipMargin) {
+    const exteriorCramped = Math.max(
+      g.effectiveOffset * 1.25,
+      style.actualFontSize * 2.25,
+    )
+    if (minA < exteriorCramped && minB > minA + flipMargin) {
       g.nx = -g.nx
       g.ny = -g.ny
     }
@@ -500,6 +522,8 @@ export function computeProfileDrawingLabels(
       x: g.midX + g.nx * g.effectiveOffset,
       y: g.midY + g.ny * g.effectiveOffset,
       rotationDeg: g.angleDeg,
+      normalX: g.nx,
+      normalY: g.ny,
     },
     normal: { x: g.nx, y: g.ny },
     line: g.line,

@@ -3,6 +3,7 @@ import { calculateProfileBounds } from '@/geometry/calculateProfileBounds'
 import {
   computeLabelCentroid,
   computeProfileDrawingLabels,
+  estimateLabelTextBox,
   labelStyleForPdfDrawing,
 } from '@/geometry/profileDrawingLabels'
 import { normalizeFabrication, type FoldedProfile, type Point2D, type Segment } from '@/geometry/types'
@@ -136,20 +137,19 @@ function clampToClip(
   clip: ClipRect,
   rotationDeg = 0,
 ): Point2D {
+  const fontMm = fontSizePt * (25.4 / 72)
+  const { width, height } = estimateLabelTextBox(text, fontMm)
+  const halfW = width / 2
+  const halfH = height / 2
   const rad = (rotationDeg * Math.PI) / 180
-  const halfW =
-    (Math.abs(Math.cos(rad)) * text.length + Math.abs(Math.sin(rad)) * 1.2) *
-      fontSizePt *
-      0.16 +
-    1
-  const halfH =
-    Math.abs(Math.cos(rad)) * 1.2 * fontSizePt * 0.16 +
-    Math.abs(Math.sin(rad)) * text.length * fontSizePt * 0.08 +
-    1
+  const cos = Math.abs(Math.cos(rad))
+  const sin = Math.abs(Math.sin(rad))
+  const aabbHalfW = halfW * cos + halfH * sin + 0.5
+  const aabbHalfH = halfW * sin + halfH * cos + 0.5
 
   return {
-    x: Math.min(Math.max(x, clip.left + halfW), clip.right - halfW),
-    y: Math.min(Math.max(y, clip.top + halfH), clip.bottom - halfH),
+    x: Math.min(Math.max(x, clip.left + aabbHalfW), clip.right - aabbHalfW),
+    y: Math.min(Math.max(y, clip.top + aabbHalfH), clip.bottom - aabbHalfH),
   }
 }
 
@@ -218,7 +218,16 @@ function drawProfileGeometry(
 
   segmentLabels.forEach((lbl) => {
     const p = clampToClip(lbl.x, lbl.y, lbl.text, PDF_DIM_FONT, clip, lbl.rotationDeg)
-    drawPdfSegmentDimLabel(doc, lbl.text, p.x, p.y, PDF_DIM_FONT, lbl.rotationDeg)
+    drawPdfSegmentDimLabel(
+      doc,
+      lbl.text,
+      p.x,
+      p.y,
+      PDF_DIM_FONT,
+      lbl.rotationDeg,
+      lbl.normalX,
+      lbl.normalY,
+    )
   })
 
   bendLabels.forEach((lbl) => {
