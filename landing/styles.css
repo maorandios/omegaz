@@ -380,11 +380,12 @@ button {
   --glass-w: 403.24;
   --glass-h: 850;
   --glass-rx: 56.69;
-  --video-w: 374;
-  --video-h: 815;
-  --video-x: 23;
-  --video-y: 22.5;
-  --video-rx: 53;
+  /* Inset ~2–4px per side inside lineup.svg glass so UI accent colour stays off the bezel */
+  --video-w: 366;
+  --video-h: 804;
+  --video-x: 27;
+  --video-y: 25;
+  --video-rx: 52;
 
   margin: 0;
   width: min(315px, 82vw);
@@ -404,7 +405,7 @@ button {
   width: calc(var(--glass-w) / var(--canvas-w) * 100%);
   height: calc(var(--glass-h) / var(--canvas-h) * 100%);
   z-index: 1;
-  background: #0d0d0d;
+  background: var(--background);
   border-radius: calc(var(--glass-rx) / var(--glass-w) * 100%)
     / calc(var(--glass-rx) / var(--glass-h) * 100%);
 }
@@ -426,15 +427,23 @@ button {
   overflow: hidden;
   pointer-events: auto;
   isolation: isolate;
+  contain: paint;
   transform: translateZ(0);
+  background: var(--background);
   border-radius: calc(var(--video-rx) / var(--video-w) * 100%)
     / calc(var(--video-rx) / var(--video-h) * 100%);
-  -webkit-mask-image: url('/lineup-screen-clip.svg');
-  mask-image: url('/lineup-screen-clip.svg');
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
+}
+
+/* Sit above video — masks teal focus/chrome pixels at screen edges */
+.device-mockup__clip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 4px solid var(--background);
+  border-radius: inherit;
+  box-sizing: border-box;
+  pointer-events: none;
 }
 
 .device-mockup__video {
@@ -443,8 +452,13 @@ button {
   height: 100%;
   border: none;
   object-fit: cover;
-  object-position: center center;
-  background: #000;
+  /* Bias away from bottom-right where focus rings / chrome often sit */
+  object-position: 48% 45%;
+  background: var(--background);
+  transform: scale(var(--hero-video-scale, 0.925));
+  transform-origin: center center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .device-mockup__placeholder {

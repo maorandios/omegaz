@@ -1,3 +1,22 @@
+function fitHeroVideoToScreen(video) {
+  const clip = video.parentElement
+  if (!clip || !video.videoWidth || !video.videoHeight) return
+
+  const videoAR = video.videoWidth / video.videoHeight
+  const screenAR = clip.clientWidth / clip.clientHeight
+  if (!screenAR) return
+
+  const ratio = videoAR / screenAR
+  let scale = 0.925
+  if (ratio > 1.02) {
+    scale = 0.925 - (ratio - 1.02) * 0.18
+  } else if (ratio < 0.98) {
+    scale = 0.925 + (0.98 - ratio) * 0.04
+  }
+  scale = Math.min(Math.max(scale, 0.88), 0.94)
+  clip.style.setProperty('--hero-video-scale', String(scale))
+}
+
 function initHeroVideo() {
   const video = document.getElementById('hero-demo-video')
   const placeholder = document.querySelector('[data-hero-placeholder]')
@@ -6,8 +25,22 @@ function initHeroVideo() {
   const hidePlaceholder = () => placeholder?.classList.add('is-hidden')
   const showPlaceholder = () => placeholder?.classList.remove('is-hidden')
 
-  video.addEventListener('playing', hidePlaceholder)
-  video.addEventListener('canplay', hidePlaceholder)
+  const onVideoReady = () => {
+    fitHeroVideoToScreen(video)
+    hidePlaceholder()
+  }
+
+  video.addEventListener('loadedmetadata', () => fitHeroVideoToScreen(video))
+  video.addEventListener('playing', onVideoReady)
+  video.addEventListener('canplay', onVideoReady)
+
+  if (typeof ResizeObserver !== 'undefined') {
+    const clip = video.parentElement
+    if (clip) {
+      const ro = new ResizeObserver(() => fitHeroVideoToScreen(video))
+      ro.observe(clip)
+    }
+  }
   video.addEventListener('error', showPlaceholder)
   video.addEventListener('emptied', showPlaceholder)
 
