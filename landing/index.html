@@ -48,80 +48,52 @@
             </p>
             <div class="hero__actions">
               <a class="btn btn--primary btn--lg" href="https://app.getsegments.co">
-                Download free for iOS / Android
+                Open app
               </a>
             </div>
             <p class="hero__note">Works in the browser — install to your home screen for the full app experience.</p>
           </div>
 
-          <div class="hero__visual" aria-hidden="true">
-            <div class="phone">
-              <div class="phone__bezel">
-                <div class="phone__screen">
-                  <div class="phone__loop" data-hero-loop>
-                    <div class="phone__slide phone__slide--sketch is-active">
-                      <div class="mock-sketch">
-                        <svg class="mock-sketch__path" viewBox="0 0 200 140" fill="none">
-                          <path
-                            d="M30 110 L30 40 L120 40 L120 110 L150 130"
-                            stroke="#00ffd4"
-                            stroke-width="3"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          />
-                          <circle cx="30" cy="110" r="4" fill="#00ffd4" />
-                          <circle cx="150" cy="130" r="4" fill="#00ffd4" />
-                        </svg>
-                        <span class="mock-tag">Free-hand sketch</span>
-                      </div>
-                    </div>
-                    <div class="phone__slide phone__slide--pdf">
-                      <div class="mock-pdf">
-                        <div class="mock-pdf__bar">
-                          <span class="mock-pdf__dot"></span>
-                          <span class="mock-pdf__title">Plate drawing</span>
-                        </div>
-                        <div class="mock-pdf__body">
-                          <svg viewBox="0 0 200 120" fill="none" class="mock-pdf__drawing">
-                            <path
-                              d="M40 95 L40 35 L110 35 L110 95 L135 115"
-                              stroke="#00ffd4"
-                              stroke-width="2.5"
-                              stroke-linecap="round"
-                            />
-                            <text x="18" y="68" fill="#b7b7b7" font-size="9" font-family="sans-serif">100</text>
-                            <text x="68" y="28" fill="#b7b7b7" font-size="9" font-family="sans-serif">120</text>
-                            <text x="118" y="78" fill="#00ffd4" font-size="9" font-family="sans-serif">90°</text>
-                          </svg>
-                        </div>
-                        <span class="mock-tag">Factory-ready PDF</span>
-                      </div>
-                    </div>
-                    <div class="phone__slide phone__slide--share">
-                      <div class="mock-share">
-                        <div class="mock-share__header">
-                          <span class="mock-share__avatar">S</span>
-                          <div>
-                            <p class="mock-share__name">Workshop — WhatsApp</p>
-                            <p class="mock-share__meta">Plate package · PDF attached</p>
-                          </div>
-                        </div>
-                        <div class="mock-share__bubble">
-                          <p class="mock-share__file">📄 Unit-4-parapet.pdf</p>
-                          <p class="mock-share__caption">Generated with Segments</p>
-                        </div>
-                        <span class="mock-tag mock-tag--whatsapp">Sent via WhatsApp</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="phone__steps" aria-hidden="true">
-                    <span class="phone__step is-active" data-step="0">Sketch</span>
-                    <span class="phone__step" data-step="1">PDF</span>
-                    <span class="phone__step" data-step="2">Share</span>
+          <div class="hero__visual">
+            <figure class="device-mockup" aria-label="Segments app demo on iPhone">
+              <div class="device-mockup__stage">
+                <div class="device-mockup__screen">
+                  <video
+                    id="hero-demo-video"
+                    class="device-mockup__video"
+                    autoplay
+                    muted
+                    loop
+                    playsinline
+                    preload="auto"
+                    disablepictureinpicture
+                    disableremoteplayback
+                  >
+                    <source src="/hero-demo.mp4" type="video/mp4" />
+                  </video>
+                  <div class="device-mockup__placeholder" data-hero-placeholder>
+                    <svg viewBox="0 0 200 140" fill="none" aria-hidden="true">
+                      <path
+                        d="M30 110 L30 40 L120 40 L120 110 L150 130"
+                        stroke="#00ffd4"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                    <p>Add <code>hero-demo.mp4</code> to the landing folder</p>
                   </div>
                 </div>
+                <img
+                  class="device-mockup__frame"
+                  src="/lineup.svg"
+                  alt=""
+                  width="430"
+                  height="932"
+                  decoding="async"
+                />
               </div>
-            </div>
+            </figure>
           </div>
         </div>
       </section>

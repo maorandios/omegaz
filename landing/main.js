@@ -1,22 +1,37 @@
-const SLIDE_MS = 5000
+function initHeroVideo() {
+  const video = document.getElementById('hero-demo-video')
+  const placeholder = document.querySelector('[data-hero-placeholder]')
+  if (!video) return
 
-function initHeroLoop() {
-  const loop = document.querySelector('[data-hero-loop]')
-  if (!loop) return
+  const hidePlaceholder = () => placeholder?.classList.add('is-hidden')
+  const showPlaceholder = () => placeholder?.classList.remove('is-hidden')
 
-  const slides = loop.querySelectorAll('.phone__slide')
-  const steps = document.querySelectorAll('.phone__step')
-  let index = 0
+  video.addEventListener('playing', hidePlaceholder)
+  video.addEventListener('canplay', hidePlaceholder)
+  video.addEventListener('error', showPlaceholder)
+  video.addEventListener('emptied', showPlaceholder)
 
-  function show(next) {
-    slides.forEach((slide, i) => slide.classList.toggle('is-active', i === next))
-    steps.forEach((step, i) => step.classList.toggle('is-active', i === next))
-    index = next
+  const tryPlay = () => {
+    if (document.hidden) return
+    const playPromise = video.play()
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        showPlaceholder()
+      })
+    }
   }
 
-  setInterval(() => {
-    show((index + 1) % slides.length)
-  }, SLIDE_MS)
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+  if (prefersReducedMotion.matches) {
+    video.pause()
+    video.removeAttribute('autoplay')
+    showPlaceholder()
+    return
+  }
+
+  tryPlay()
+  document.addEventListener('visibilitychange', tryPlay)
 }
 
 function initLegalDialogs() {
@@ -47,5 +62,5 @@ function initLegalDialogs() {
 }
 
 document.getElementById('year').textContent = String(new Date().getFullYear())
-initHeroLoop()
+initHeroVideo()
 initLegalDialogs()

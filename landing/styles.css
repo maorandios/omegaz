@@ -291,191 +291,97 @@ button {
   color: color-mix(in srgb, var(--muted) 80%, transparent);
 }
 
-/* Phone mockup */
-.phone {
+/* lineup.svg + hero-demo.mp4 both 430×932 */
+.hero__visual {
   display: flex;
   justify-content: center;
-  padding: 0.5rem;
+  padding: 0.5rem 0;
 }
 
-.phone__bezel {
-  width: min(280px, 85vw);
-  padding: 0.65rem;
-  border-radius: 2.25rem;
-  border: 2px solid var(--border);
-  background: linear-gradient(180deg, var(--surface-raised), var(--surface));
-  box-shadow:
-    0 0 0 1px rgb(0 255 212 / 0.08),
-    0 24px 48px rgb(0 0 0 / 0.45);
+.device-mockup {
+  margin: 0;
+  width: min(322px, 82vw);
 }
 
-.phone__screen {
+.device-mockup__stage {
   position: relative;
-  aspect-ratio: 9 / 16;
-  border-radius: 1.75rem;
-  overflow: hidden;
-  background: var(--background);
+  aspect-ratio: 430 / 932;
+  filter: drop-shadow(0 0 48px rgb(0 255 212 / 0.14)) drop-shadow(0 28px 56px rgb(0 0 0 / 0.55));
 }
 
-.phone__loop {
-  position: relative;
-  height: calc(100% - 2.5rem);
-}
-
-.phone__slide {
+.device-mockup__screen {
   position: absolute;
   inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  background: #000;
+  -webkit-mask-image: url('/lineup-screen-mask.svg');
+  mask-image: url('/lineup-screen-mask.svg');
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.device-mockup__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+  object-fit: cover;
+  object-position: center center;
+  background: #000;
+}
+
+.device-mockup__placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  opacity: 0;
-  transform: translateY(8px);
-  transition:
-    opacity 0.5s ease,
-    transform 0.5s ease;
-}
-
-.phone__slide.is-active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.phone__steps {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  gap: 0.35rem;
-  padding: 0.65rem;
-  border-top: 1px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
-}
-
-.phone__step {
-  padding: 0.25rem 0.6rem;
-  border-radius: 9999px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--muted);
-  transition:
-    color 0.3s,
-    background 0.3s;
-}
-
-.phone__step.is-active {
-  color: var(--primary-foreground);
-  background: var(--primary);
-}
-
-.mock-tag {
-  display: block;
-  margin-top: 0.75rem;
+  gap: 1rem;
+  padding: 2rem 1.25rem;
   text-align: center;
+  background: var(--background);
+  transition: opacity 0.35s ease;
+}
+
+.device-mockup__placeholder svg {
+  width: 55%;
+  max-width: 10rem;
+  opacity: 0.85;
+}
+
+.device-mockup__placeholder p {
+  margin: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.device-mockup__placeholder code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.6875rem;
+  background: var(--surface);
   color: var(--primary);
 }
 
-.mock-tag--whatsapp {
-  color: #25d366;
+.device-mockup__placeholder.is-hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
-.mock-sketch,
-.mock-pdf,
-.mock-share {
+.device-mockup__frame {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
   width: 100%;
-}
-
-.mock-sketch__path {
-  width: 100%;
-  height: auto;
-}
-
-.mock-pdf {
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  overflow: hidden;
-  background: var(--surface);
-}
-
-.mock-pdf__bar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.65rem;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.mock-pdf__dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--primary);
-}
-
-.mock-pdf__body {
-  padding: 0.75rem;
-  background: #f8fafc;
-}
-
-.mock-pdf__drawing {
-  width: 100%;
-  height: auto;
-}
-
-.mock-share__header {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  margin-bottom: 0.75rem;
-}
-
-.mock-share__avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 50%;
-  background: var(--secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
-.mock-share__name {
-  margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
-}
-
-.mock-share__meta {
-  margin: 0.15rem 0 0;
-  font-size: 0.6875rem;
-  color: var(--muted);
-}
-
-.mock-share__bubble {
-  padding: 0.75rem;
-  border-radius: 0.75rem 0.75rem 0.75rem 0.25rem;
-  background: color-mix(in srgb, var(--secondary) 35%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--primary) 25%, var(--border));
-}
-
-.mock-share__file {
-  margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
-}
-
-.mock-share__caption {
-  margin: 0.35rem 0 0;
-  font-size: 0.6875rem;
-  color: var(--muted);
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* Paths */
