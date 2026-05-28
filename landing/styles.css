@@ -272,6 +272,12 @@ button {
   display: grid;
   gap: 3rem;
   align-items: center;
+  min-width: 0;
+}
+
+.hero__copy {
+  min-width: 0;
+  max-width: 100%;
 }
 
 @media (min-width: 960px) {
@@ -292,10 +298,11 @@ button {
 
 .hero__lead {
   margin: 1.25rem 0 0;
-  max-width: 36rem;
+  max-width: min(36rem, 100%);
   font-size: clamp(1rem, 2.2vw, 1.125rem);
   line-height: 1.65;
   color: var(--muted);
+  overflow-wrap: break-word;
 }
 
 .hero__actions {
@@ -2754,7 +2761,59 @@ button {
 
 @media (max-width: 767px) {
   .container {
-    padding-inline: 1rem;
+    padding-inline: max(1rem, env(safe-area-inset-left, 0px))
+      max(1rem, env(safe-area-inset-right, 0px));
+  }
+
+  .hero {
+    padding: 1.75rem 0 2.75rem;
+    overflow-x: clip;
+  }
+
+  .hero__grid {
+    gap: 2rem;
+  }
+
+  .hero__title {
+    max-width: none;
+    font-size: clamp(1.65rem, 7.5vw, 2.15rem);
+    line-height: 1.1;
+  }
+
+  .hero__lead {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .hero__actions {
+    margin-top: 1.35rem;
+  }
+
+  .hero__actions .btn {
+    width: 100%;
+  }
+
+  .hero__bullets {
+    flex-direction: column;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: 0.55rem;
+    margin-top: 1rem;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: visible;
+  }
+
+  .hero__bullet {
+    width: 100%;
+    max-width: 100%;
+    white-space: normal;
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .hero__bullet:not(:last-child)::after {
+    content: none;
   }
 
   .section {
@@ -2879,8 +2938,13 @@ button {
     display: none;
   }
 
-  .hero__actions .btn {
-    width: 100%;
+  .site-header__inner {
+    padding-block: 0.85rem;
+  }
+
+  .logo {
+    max-width: 9.5rem;
+    height: 2rem;
   }
 
   .mid-cta {
