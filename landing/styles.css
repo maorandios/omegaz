@@ -2089,21 +2089,30 @@ button {
   color: #25d366;
 }
 
-/* Trust */
-.trust-card {
+/* Aha moment */
+.section-head--center {
   text-align: center;
-  max-width: 40rem;
-  margin: 0 auto;
-  padding: 2.5rem 2rem;
+  margin-inline: auto;
+  max-width: 42rem;
 }
 
-.trust-quote {
-  margin: 1.5rem 0 0;
+.aha-quote.card {
+  max-width: 44rem;
+  margin: 2.5rem auto 0;
+  padding: 2rem 1.75rem;
+  text-align: center;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.aha-quote__text {
+  margin: 0;
   padding: 0;
   border: none;
 }
 
-.trust-quote p {
+.aha-quote__text p {
   margin: 0;
   font-size: clamp(1.125rem, 2.5vw, 1.375rem);
   font-weight: 500;
@@ -2112,27 +2121,240 @@ button {
   color: var(--foreground);
 }
 
-.trust-attribution {
+.aha-quote__attribution {
   margin: 1rem 0 0;
   font-size: 0.875rem;
+  line-height: 1.5;
   color: var(--muted);
 }
 
-/* Final CTA */
-.final-cta {
-  padding: 5rem 0;
-  text-align: center;
+.aha-grid {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2rem;
+  align-items: stretch;
 }
 
-.final-cta__inner {
+@media (min-width: 900px) {
+  .aha-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+.aha-card {
+  height: 100%;
+  padding: 1.5rem 1.35rem 1.45rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  justify-content: center;
+  text-align: center;
+  gap: 0.65rem;
+  border-color: color-mix(in srgb, var(--primary) 14%, var(--border));
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--surface) 72%, transparent),
+    color-mix(in srgb, var(--background) 94%, transparent)
+  );
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
-.final-cta .section-title {
-  max-width: 20ch;
+.aha-card:hover {
+  border-color: color-mix(in srgb, var(--primary) 32%, var(--border));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    0 16px 36px -28px rgb(0 255 212 / 0.22);
+  transform: translateY(-2px);
+}
+
+.aha-card__icon {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border));
+  background: color-mix(in srgb, var(--background) 82%, transparent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  flex-shrink: 0;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--primary) 8%, transparent),
+    0 10px 22px -18px rgb(0 255 212 / 0.55);
+}
+
+.aha-card__icon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  color: var(--primary);
+  stroke-width: 2;
+}
+
+.aha-card__title {
+  margin: 0;
+  width: 100%;
+  max-width: 16rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.32;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.aha-card .card__text {
+  margin: 0;
+  width: 100%;
+  max-width: 18rem;
+  font-size: 0.9rem;
+  line-height: 1.62;
+  color: var(--muted);
+}
+
+/* Mid-page CTA */
+.mid-cta {
+  position: relative;
+  padding: 4.5rem 0;
+  text-align: center;
+  overflow: hidden;
+  border-block: 1px solid var(--border-subtle);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 35%, transparent),
+    transparent 45%,
+    color-mix(in srgb, var(--surface) 25%, transparent)
+  );
+}
+
+.mid-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 50% 40%, rgb(0 255 212 / 0.1), transparent 68%);
+  pointer-events: none;
+}
+
+.mid-cta__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.35rem;
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.mid-cta__title {
+  margin: 0;
+  font-size: clamp(1.75rem, 4.5vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+}
+
+.mid-cta__lead {
+  margin: 0;
+  max-width: 38rem;
+  font-size: clamp(1rem, 2.2vw, 1.125rem);
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.mid-cta__actions {
+  margin-top: 0.35rem;
+}
+
+.btn--xl {
+  min-height: 3.75rem;
+  padding: 0 2rem;
+  font-size: 1.0625rem;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 14px 36px -14px rgb(0 255 212 / 0.5),
+    inset 0 1px 0 rgb(255 255 255 / 0.2);
+}
+
+.btn--xl:hover {
+  box-shadow:
+    0 18px 40px -12px rgb(0 255 212 / 0.55),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+
+.mid-cta__trust {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* Contact */
+.contact {
+  padding: 4.5rem 0 5rem;
+  text-align: center;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.contact__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 36rem;
+  margin: 0 auto;
+}
+
+.contact .section-title {
+  margin: 0;
+  max-width: 16ch;
+}
+
+.contact__lead {
+  margin: 0;
+  max-width: 30rem;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.contact__email {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+  padding: 0.85rem 1.35rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--primary) 40%, var(--border));
+  background: color-mix(in srgb, var(--primary) 12%, var(--background));
+  color: var(--primary);
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.contact__email svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  stroke-width: 2.25;
+  flex-shrink: 0;
+}
+
+.contact__email:hover {
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+  background: color-mix(in srgb, var(--primary) 20%, var(--background));
+  transform: translateY(-1px);
 }
 
 /* Footer */
@@ -2177,13 +2399,15 @@ button {
 
 /* Legal dialog */
 .legal-dialog {
-  width: min(32rem, calc(100% - 2rem));
-  max-height: 85dvh;
+  width: min(36rem, calc(100vw - 2rem));
+  max-height: min(85dvh, calc(100dvh - 2rem));
+  margin: auto;
   padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   background: var(--surface);
   color: var(--foreground);
+  overflow: hidden;
 }
 
 .legal-dialog::backdrop {
@@ -2192,16 +2416,72 @@ button {
 
 .legal-dialog__inner {
   position: relative;
+  box-sizing: border-box;
+  max-height: min(85dvh, calc(100dvh - 2rem));
   padding: 1.5rem;
+  overflow-x: hidden;
   overflow-y: auto;
-  max-height: 85dvh;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--muted) 55%, var(--border)) transparent;
   font-size: 0.9375rem;
   line-height: 1.65;
   color: var(--muted);
 }
 
+.legal-dialog__inner::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+.legal-dialog__inner::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.legal-dialog__inner::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--muted) 45%, var(--border));
+  background-clip: padding-box;
+}
+
+.legal-dialog__inner::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--muted) 65%, var(--border));
+  background-clip: padding-box;
+}
+
 .legal-dialog__inner p {
   margin: 0 0 1rem;
+}
+
+.legal-dialog__inner p:last-child {
+  margin-bottom: 0;
+}
+
+.legal-dialog__heading {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.legal-dialog__list {
+  margin: 0 0 1rem;
+  padding-left: 1.15rem;
+}
+
+.legal-dialog__list li {
+  margin-bottom: 0.75rem;
+}
+
+.legal-dialog__list li:last-child {
+  margin-bottom: 0;
+}
+
+.legal-dialog__list strong {
+  color: var(--foreground);
+  font-weight: 600;
 }
 
 .legal-dialog__title {
@@ -2366,5 +2646,30 @@ button {
 
   .hero__actions .btn {
     width: 100%;
+  }
+
+  .mid-cta {
+    padding: 3.25rem 0;
+  }
+
+  .mid-cta__inner {
+    gap: 1.15rem;
+  }
+
+  .mid-cta__actions {
+    width: 100%;
+  }
+
+  .mid-cta__actions .btn {
+    width: 100%;
+  }
+
+  .aha-quote {
+    margin-top: 2rem;
+    padding: 1.5rem 1.15rem;
+  }
+
+  .aha-grid {
+    margin-top: 1.5rem;
   }
 }
