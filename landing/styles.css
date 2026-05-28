@@ -291,7 +291,7 @@ button {
   color: color-mix(in srgb, var(--muted) 80%, transparent);
 }
 
-/* lineup.svg + hero-demo.mp4 both 430×932 */
+/* lineup.svg 420×860 — hero video shown at 356×776 centred */
 .hero__visual {
   display: flex;
   justify-content: center;
@@ -299,24 +299,64 @@ button {
 }
 
 .device-mockup {
+  --canvas-w: 420;
+  --canvas-h: 860;
+  --glass-x: 8.38;
+  --glass-y: 5.5;
+  --glass-w: 403.24;
+  --glass-h: 850;
+  --glass-rx: 56.69;
+  --video-w: 374;
+  --video-h: 815;
+  --video-x: 23;
+  --video-y: 22.5;
+  --video-rx: 53;
+
   margin: 0;
-  width: min(322px, 82vw);
+  width: min(315px, 82vw);
 }
 
 .device-mockup__stage {
   position: relative;
-  aspect-ratio: 430 / 932;
+  aspect-ratio: 420 / 860;
   filter: drop-shadow(0 0 48px rgb(0 255 212 / 0.14)) drop-shadow(0 28px 56px rgb(0 0 0 / 0.55));
+}
+
+/* App background behind video, inside frame glass */
+.device-mockup__screen-bg {
+  position: absolute;
+  top: calc(var(--glass-y) / var(--canvas-h) * 100%);
+  left: calc(var(--glass-x) / var(--canvas-w) * 100%);
+  width: calc(var(--glass-w) / var(--canvas-w) * 100%);
+  height: calc(var(--glass-h) / var(--canvas-h) * 100%);
+  z-index: 1;
+  background: #0d0d0d;
+  border-radius: calc(var(--glass-rx) / var(--glass-w) * 100%)
+    / calc(var(--glass-rx) / var(--glass-h) * 100%);
 }
 
 .device-mockup__screen {
   position: absolute;
-  inset: 0;
-  z-index: 1;
+  top: calc(var(--video-y) / var(--canvas-h) * 100%);
+  left: calc(var(--video-x) / var(--canvas-w) * 100%);
+  width: calc(var(--video-w) / var(--canvas-w) * 100%);
+  height: calc(var(--video-h) / var(--canvas-h) * 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.device-mockup__clip {
+  position: relative;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  background: #000;
-  -webkit-mask-image: url('/lineup-screen-mask.svg');
-  mask-image: url('/lineup-screen-mask.svg');
+  pointer-events: auto;
+  isolation: isolate;
+  transform: translateZ(0);
+  border-radius: calc(var(--video-rx) / var(--video-w) * 100%)
+    / calc(var(--video-rx) / var(--video-h) * 100%);
+  -webkit-mask-image: url('/lineup-screen-clip.svg');
+  mask-image: url('/lineup-screen-clip.svg');
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;
@@ -337,6 +377,7 @@ button {
   position: absolute;
   inset: 0;
   z-index: 2;
+  border-radius: inherit;
   display: flex;
   flex-direction: column;
   align-items: center;

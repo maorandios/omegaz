@@ -57,39 +57,42 @@
           <div class="hero__visual">
             <figure class="device-mockup" aria-label="Segments app demo on iPhone">
               <div class="device-mockup__stage">
+                <div class="device-mockup__screen-bg" aria-hidden="true"></div>
                 <div class="device-mockup__screen">
-                  <video
-                    id="hero-demo-video"
-                    class="device-mockup__video"
-                    autoplay
-                    muted
-                    loop
-                    playsinline
-                    preload="auto"
-                    disablepictureinpicture
-                    disableremoteplayback
-                  >
-                    <source src="/hero-demo.mp4" type="video/mp4" />
-                  </video>
-                  <div class="device-mockup__placeholder" data-hero-placeholder>
-                    <svg viewBox="0 0 200 140" fill="none" aria-hidden="true">
-                      <path
-                        d="M30 110 L30 40 L120 40 L120 110 L150 130"
-                        stroke="#00ffd4"
-                        stroke-width="3"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                    <p>Add <code>hero-demo.mp4</code> to the landing folder</p>
+                  <div class="device-mockup__clip">
+                    <video
+                      id="hero-demo-video"
+                      class="device-mockup__video"
+                      autoplay
+                      muted
+                      loop
+                      playsinline
+                      preload="auto"
+                      disablepictureinpicture
+                      disableremoteplayback
+                    >
+                      <source src="/hero-demo.mp4" type="video/mp4" />
+                    </video>
+                    <div class="device-mockup__placeholder" data-hero-placeholder>
+                      <svg viewBox="0 0 200 140" fill="none" aria-hidden="true">
+                        <path
+                          d="M30 110 L30 40 L120 40 L120 110 L150 130"
+                          stroke="#00ffd4"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                      <p>Add <code>hero-demo.mp4</code> to the landing folder</p>
+                    </div>
                   </div>
                 </div>
                 <img
                   class="device-mockup__frame"
                   src="/lineup.svg"
                   alt=""
-                  width="430"
-                  height="932"
+                  width="420"
+                  height="860"
                   decoding="async"
                 />
               </div>
