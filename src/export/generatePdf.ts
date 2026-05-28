@@ -218,16 +218,7 @@ function drawProfileGeometry(
 
   segmentLabels.forEach((lbl) => {
     const p = clampToClip(lbl.x, lbl.y, lbl.text, PDF_DIM_FONT, clip, lbl.rotationDeg)
-    drawPdfSegmentDimLabel(
-      doc,
-      lbl.text,
-      p.x,
-      p.y,
-      PDF_DIM_FONT,
-      lbl.rotationDeg,
-      lbl.normalX,
-      lbl.normalY,
-    )
+    drawPdfSegmentDimLabel(doc, lbl.text, p.x, p.y, PDF_DIM_FONT, lbl.rotationDeg)
   })
 
   bendLabels.forEach((lbl) => {

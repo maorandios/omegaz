@@ -14,6 +14,8 @@ const DEV_API_TARGET =
 
 export default defineConfig({
   server: {
+    port: 5173,
+    strictPort: true,
     proxy: {
       // Pipe /api/* through the deployed Vercel API so the PayPal subscribe /
       // confirm / cancel routes work in `npm run dev`. The local Supabase

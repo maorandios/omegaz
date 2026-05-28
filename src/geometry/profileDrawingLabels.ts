@@ -90,6 +90,17 @@ function unitVec(x: number, y: number, len: number): { x: number; y: number } {
   return { x: x / len, y: y / len }
 }
 
+/**
+ * Rotation (degrees, Konva / screen y-down) so dim text is parallel to the
+ * segment and upright — never flipped to horizontal by a single +180° wrap.
+ */
+function segmentLabelRotationDeg(screenDx: number, screenDy: number): number {
+  let angleDeg = (Math.atan2(screenDy, screenDx) * 180) / Math.PI
+  if (angleDeg > 90) angleDeg -= 180
+  else if (angleDeg < -90) angleDeg += 180
+  return angleDeg
+}
+
 /** Perpendicular unit normal on the side farther from the profile centroid (exterior). */
 function outwardSegmentNormal(
   txu: number,
@@ -450,8 +461,7 @@ export function computeProfileDrawingLabels(
 
     const text = formatSegmentDim(seg.length)
 
-    let angleDeg = (Math.atan2(screenDy, screenDx) * 180) / Math.PI
-    if (angleDeg > 90 || angleDeg < -90) angleDeg += 180
+    let angleDeg = segmentLabelRotationDeg(screenDx, screenDy)
 
     // Short segments crowd against their bend labels — give the dim label
     // a larger perpendicular offset so it lands clear of the corner zone.
