@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" fill="none" aria-hidden="true">
+  <g stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Walls -->
+    <path d="M28 76 L28 44 L48 26 L48 56 Z" />
+    <path d="M102 76 L102 44 L124 26 L124 56 Z" />
+    <path d="M28 76 L102 76 L102 44 L28 44 Z" />
+    <path d="M48 56 L124 56 L124 26 L48 26 Z" />
+    <!-- Gabled roof: ridge runs front → back; two slopes (left & right) -->
+    <path d="M28 44 L48 26 L86 23 L65 33 Z" />
+    <path d="M102 44 L124 26 L86 23 L65 33 Z" />
+    <path d="M65 33 L86 23" />
+    <!-- Front & back gable ends (inverted V) -->
+    <path d="M28 44 L102 44 L65 33 Z" />
+    <path d="M48 26 L124 26 L86 23 Z" />
+    <!-- Corrugation on right slope -->
+    <path d="M96 42 L90 34" opacity="0.5" />
+    <path d="M104 40 L98 31" opacity="0.5" />
+    <path d="M112 37 L106 28" opacity="0.5" />
+    <path d="M118 34 L112 26" opacity="0.5" />
+  </g>
+  <g stroke="currentColor" stroke-width="1.15" stroke-linejoin="round">
+    <path d="M34 76 L34 58 L48 58 L48 76 Z" />
+    <path d="M56 76 L56 58 L70 58 L70 76 Z" />
+    <path d="M78 76 L78 58 L92 58 L92 76 Z" />
+    <path d="M108 70 L118 64 L118 46 L108 50 Z" />
+  </g>
+  <g stroke="currentColor" stroke-width="0.9" opacity="0.45">
+    <path d="M40 44 V76" />
+    <path d="M58 44 V76" />
+    <path d="M78 44 V76" />
+    <path d="M94 44 V76" />
+  </g>
+</svg>

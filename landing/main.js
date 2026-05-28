@@ -61,6 +61,25 @@ function initLegalDialogs() {
   })
 }
 
+function initTemplateLoop() {
+  const loop = document.querySelector('[data-template-loop]')
+  if (!loop) return
+
+  const items = loop.querySelectorAll('[data-template-item]')
+  if (items.length < 2) return
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+  if (prefersReducedMotion.matches) return
+
+  let index = 0
+  window.setInterval(() => {
+    items[index].classList.remove('is-active')
+    index = (index + 1) % items.length
+    items[index].classList.add('is-active')
+  }, 2000)
+}
+
 document.getElementById('year').textContent = String(new Date().getFullYear())
 initHeroVideo()
 initLegalDialogs()
+initTemplateLoop()
