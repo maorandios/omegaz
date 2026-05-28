@@ -209,7 +209,7 @@ export function AuthScreen() {
             width={168}
           />
           <p className="mt-5 max-w-[18rem] text-sm leading-relaxed text-muted">
-            Sheet metal flashing design, straight from the job site.
+            Turn hand sketches into perfect fabrication blueprints
           </p>
         </div>
 

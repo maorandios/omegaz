@@ -80,6 +80,9 @@ function initTemplateLoop() {
 }
 
 document.getElementById('year').textContent = String(new Date().getFullYear())
+if (window.lucide?.createIcons) {
+  window.lucide.createIcons()
+}
 initHeroVideo()
 initLegalDialogs()
 initTemplateLoop()

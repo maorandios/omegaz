@@ -551,6 +551,32 @@ button {
   height: 100%;
 }
 
+.feature-copy-icon {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border));
+  background: color-mix(in srgb, var(--background) 82%, transparent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--primary) 8%, transparent),
+    0 10px 22px -18px rgb(0 255 212 / 0.55);
+}
+
+.feature-copy-icon img {
+  display: none;
+}
+
+.feature-copy-icon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  color: var(--primary);
+  stroke-width: 2;
+}
+
 @media (min-width: 900px) {
   .feature-zigzag__item {
     grid-template-columns: 1fr 1fr;
@@ -1056,6 +1082,852 @@ button {
   margin: 0;
   font-size: 0.8125rem;
   color: var(--muted);
+}
+
+.shop-sheet-preview {
+  width: 100%;
+  max-width: 21rem;
+  min-height: 18rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--background) 92%, white 8%),
+    color-mix(in srgb, var(--background) 98%, black 2%)
+  );
+  padding: 0.95rem;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.7rem;
+}
+
+.shop-sheet-preview__head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.shop-sheet-preview__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--border));
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.shop-sheet-preview__title {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+}
+
+.shop-sheet-preview__specs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.shop-sheet-preview__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--background) 80%, transparent);
+  padding: 0.35rem 0.4rem;
+  min-height: 2.35rem;
+}
+
+.shop-sheet-preview__metric-key {
+  font-size: 0.62rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.shop-sheet-preview__metric-value {
+  font-size: 0.62rem;
+  line-height: 1.25;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.shop-sheet-preview__drawing {
+  border: 1px dashed color-mix(in srgb, var(--primary) 28%, var(--border));
+  border-radius: 0.62rem;
+  background:
+    linear-gradient(transparent 95%, rgb(0 255 212 / 0.08) 96%),
+    linear-gradient(90deg, transparent 95%, rgb(0 255 212 / 0.08) 96%);
+  background-size: 1rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem;
+}
+
+.shop-sheet-preview__drawing img {
+  width: min(12.5rem, 100%);
+  height: auto;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(80%) sepia(84%) saturate(1798%) hue-rotate(112deg)
+    brightness(106%) contrast(106%);
+}
+
+/* WhatsApp share animation demo */
+.mock-whatsapp {
+  --wa-cycle: 12s;
+  --wa-green: #25d366;
+  --wa-green-glow: rgb(37 211 102 / 0.35);
+  position: relative;
+  width: 18rem;
+  height: 18rem;
+  max-width: 100%;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
+  border-radius: 1rem;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgb(0 255 212 / 0.08), transparent 55%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 40%, var(--background)), var(--background));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 18px 40px -28px rgb(0 0 0 / 0.85);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.mock-whatsapp__glow {
+  position: absolute;
+  inset: -30% -20% auto;
+  height: 55%;
+  background: radial-gradient(ellipse at center, rgb(0 255 212 / 0.12), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mock-whatsapp__viewport {
+  position: relative;
+  height: calc(100% - 2.35rem);
+  z-index: 1;
+}
+
+.mock-whatsapp__scene {
+  position: absolute;
+  inset: 0;
+  padding: 0.85rem 0.8rem 0.35rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mock-whatsapp__scene--export {
+  animation: wa-scene-export var(--wa-cycle) linear infinite;
+}
+
+.mock-whatsapp__scene--picker {
+  animation: wa-scene-picker var(--wa-cycle) linear infinite;
+}
+
+.mock-whatsapp__scene--sent {
+  display: flex;
+  flex-direction: column;
+  animation: wa-scene-sent var(--wa-cycle) linear infinite;
+}
+
+.mock-whatsapp__app {
+  height: 100%;
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
+  border-radius: 1rem;
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--surface-raised) 88%, transparent), transparent),
+    color-mix(in srgb, var(--surface) 55%, var(--background));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 0.85rem;
+}
+
+.mock-whatsapp__app-preview {
+  width: 8rem;
+  height: 5.75rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
+  border-radius: 0.85rem;
+  background:
+    linear-gradient(transparent 95%, rgb(0 255 212 / 0.06) 96%),
+    linear-gradient(90deg, transparent 95%, rgb(0 255 212 / 0.06) 96%);
+  background-size: 0.85rem 0.85rem;
+  box-shadow:
+    inset 0 0 0 1px rgb(0 255 212 / 0.06),
+    0 10px 24px -18px rgb(0 255 212 / 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem;
+}
+
+.mock-whatsapp__app-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(80%) sepia(84%) saturate(1798%) hue-rotate(112deg)
+    brightness(106%) contrast(106%);
+}
+
+.mock-whatsapp__export {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 7rem;
+  padding: 0.48rem 0.95rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--primary) 50%, var(--border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--primary) 22%, var(--background)),
+    color-mix(in srgb, var(--primary) 8%, var(--background))
+  );
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 10px 22px -16px rgb(0 255 212 / 0.55);
+  animation: wa-export-pulse var(--wa-cycle) linear infinite;
+}
+
+.mock-whatsapp__export svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  stroke-width: 2.25;
+}
+
+.mock-whatsapp__tap {
+  position: absolute;
+  width: 1.1rem;
+  height: 1.1rem;
+  left: 50%;
+  top: 72%;
+  border-radius: 9999px;
+  border: 2px solid var(--primary);
+  transform: translate(-50%, -50%) scale(0.4);
+  opacity: 0;
+  animation: wa-tap-ring var(--wa-cycle) linear infinite;
+}
+
+.mock-whatsapp__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.45);
+  opacity: 0;
+  animation: wa-backdrop-fade var(--wa-cycle) linear infinite;
+}
+
+.mock-whatsapp__picker {
+  position: relative;
+  z-index: 1;
+  margin-top: 2rem;
+  border: 1px solid color-mix(in srgb, var(--foreground) 8%, var(--border));
+  border-bottom: 0;
+  border-radius: 1.15rem 1.15rem 0 0;
+  background: color-mix(in srgb, var(--surface-raised) 92%, transparent);
+  backdrop-filter: blur(14px);
+  padding: 0.5rem 0.55rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  box-shadow:
+    0 -8px 32px -12px rgb(0 0 0 / 0.65),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+  animation: wa-picker-rise var(--wa-cycle) cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.mock-whatsapp__picker-handle {
+  display: block;
+  width: 2.1rem;
+  height: 0.22rem;
+  margin: 0.15rem auto 0.35rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--muted) 55%, transparent);
+}
+
+.mock-whatsapp__picker-title {
+  margin: 0 0 0.2rem;
+  padding: 0 0.15rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+}
+
+.mock-whatsapp__picker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.48rem 0.6rem;
+  border-radius: 1rem;
+  border: 1px solid transparent;
+  font-size: 0.72rem;
+  color: var(--muted);
+  transition: background 0.2s ease;
+}
+
+.mock-whatsapp__picker-label {
+  flex: 1;
+  font-weight: 600;
+}
+
+.mock-whatsapp__picker-chip {
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.14rem 0.38rem;
+  border-radius: 9999px;
+  color: var(--wa-green);
+  border: 1px solid color-mix(in srgb, var(--wa-green) 45%, transparent);
+  background: color-mix(in srgb, var(--wa-green) 12%, transparent);
+  opacity: 0;
+  animation: wa-chip-pop var(--wa-cycle) linear infinite;
+}
+
+.mock-whatsapp__picker-row--wa {
+  color: var(--foreground);
+  animation: wa-picker-highlight var(--wa-cycle) linear infinite;
+}
+
+.mock-whatsapp__picker-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 6px 14px -10px rgb(0 0 0 / 0.8);
+}
+
+.mock-whatsapp__picker-icon svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  stroke-width: 2.25;
+}
+
+.mock-whatsapp__picker-icon--mail {
+  background: linear-gradient(180deg, #3a3a3a, #2a2a2a);
+  color: #c8c8c8;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.mock-whatsapp__picker-icon--wa {
+  background: linear-gradient(180deg, #2dde6a, #1da851);
+  color: #fff;
+  border: 1px solid color-mix(in srgb, #fff 18%, transparent);
+}
+
+.mock-whatsapp__chat-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-color: #0b141a;
+  background-image: radial-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+.mock-whatsapp__chat-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.55rem;
+}
+
+.mock-whatsapp__avatar {
+  width: 1.45rem;
+  height: 1.45rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #2dde6a, #128c7e);
+  color: #fff;
+  font-size: 0.52rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 0 2px rgb(37 211 102 / 0.2);
+}
+
+.mock-whatsapp__chat-title {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #e9edef;
+  letter-spacing: -0.01em;
+}
+
+.mock-whatsapp__bubble {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
+  width: min(100%, 12.75rem);
+  border-radius: 0.75rem 0.75rem 0.15rem 0.75rem;
+  background: linear-gradient(180deg, #0a7f66, #005c4b);
+  padding: 0.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transform: translateY(0.65rem) scale(0.94);
+  opacity: 0;
+  box-shadow:
+    0 12px 28px -18px rgb(0 0 0 / 0.9),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+  animation: wa-bubble-in var(--wa-cycle) cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.mock-whatsapp__bubble-file {
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
+  padding: 0.35rem;
+  border-radius: 0.55rem;
+  background: rgb(0 0 0 / 0.2);
+  border: 1px solid rgb(255 255 255 / 0.06);
+}
+
+.mock-whatsapp__bubble-badge {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.45rem;
+  background: linear-gradient(180deg, #2dde6a, #1da851);
+  color: #fff;
+  font-size: 0.5rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 12px -8px rgb(0 0 0 / 0.6);
+}
+
+.mock-whatsapp__bubble-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  min-width: 0;
+}
+
+.mock-whatsapp__bubble-copy strong {
+  font-size: 0.6rem;
+  line-height: 1.2;
+  color: #e9edef;
+  font-weight: 600;
+}
+
+.mock-whatsapp__bubble-copy small {
+  font-size: 0.52rem;
+  color: rgb(233 237 239 / 0.62);
+}
+
+.mock-whatsapp__bubble-thumb {
+  border-radius: 0.5rem;
+  background: rgb(0 0 0 / 0.28);
+  border: 1px solid rgb(255 255 255 / 0.05);
+  padding: 0.3rem;
+  display: flex;
+  justify-content: center;
+}
+
+.mock-whatsapp__bubble-thumb img {
+  width: min(7.5rem, 100%);
+  height: auto;
+  max-height: 3.6rem;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(80%) sepia(84%) saturate(1798%) hue-rotate(112deg)
+    brightness(106%) contrast(106%);
+}
+
+.mock-whatsapp__bubble-meta {
+  align-self: flex-end;
+  font-size: 0.52rem;
+  color: rgb(233 237 239 / 0.55);
+}
+
+.mock-whatsapp__ticks {
+  color: #53bdeb;
+  animation: wa-ticks-pop var(--wa-cycle) linear infinite;
+}
+
+.mock-whatsapp__steps {
+  position: absolute;
+  left: 0.55rem;
+  right: 0.55rem;
+  bottom: 0.5rem;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--background) 72%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+.mock-whatsapp__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  font-size: 0.56rem;
+  line-height: 1;
+  padding: 0.28rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  color: var(--muted);
+  background: transparent;
+  opacity: 0.5;
+  font-weight: 600;
+}
+
+.mock-whatsapp__step svg {
+  width: 0.68rem;
+  height: 0.68rem;
+  stroke-width: 2.25;
+  opacity: 0.85;
+}
+
+.mock-whatsapp__step--1 {
+  animation: wa-step-1 var(--wa-cycle) linear infinite;
+}
+
+.mock-whatsapp__step--2 {
+  animation: wa-step-2 var(--wa-cycle) linear infinite;
+}
+
+.mock-whatsapp__step--3 {
+  animation: wa-step-3 var(--wa-cycle) linear infinite;
+}
+
+@keyframes wa-scene-export {
+  0%,
+  4% {
+    opacity: 0;
+  }
+  8%,
+  30% {
+    opacity: 1;
+  }
+  36%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes wa-scene-picker {
+  0%,
+  30% {
+    opacity: 0;
+  }
+  36%,
+  62% {
+    opacity: 1;
+  }
+  68%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes wa-scene-sent {
+  0%,
+  62% {
+    opacity: 0;
+  }
+  68%,
+  96% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes wa-backdrop-fade {
+  0%,
+  30% {
+    opacity: 0;
+  }
+  36%,
+  62% {
+    opacity: 1;
+  }
+  68%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes wa-chip-pop {
+  0%,
+  42% {
+    opacity: 0;
+    transform: translateX(4px);
+  }
+  48%,
+  58% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  62%,
+  100% {
+    opacity: 0;
+    transform: translateX(4px);
+  }
+}
+
+@keyframes wa-export-pulse {
+  0%,
+  12% {
+    box-shadow: 0 10px 22px -16px rgb(0 255 212 / 0.55);
+    transform: scale(1);
+  }
+  16%,
+  24% {
+    box-shadow:
+      0 10px 22px -16px rgb(0 255 212 / 0.55),
+      0 0 0 4px color-mix(in srgb, var(--primary) 28%, transparent);
+    transform: scale(1.04);
+  }
+  28%,
+  100% {
+    box-shadow: 0 10px 22px -16px rgb(0 255 212 / 0.55);
+    transform: scale(1);
+  }
+}
+
+@keyframes wa-tap-ring {
+  0%,
+  14% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  24%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.35);
+  }
+}
+
+@keyframes wa-picker-rise {
+  0%,
+  32% {
+    transform: translateY(1.1rem);
+  }
+  38%,
+  62% {
+    transform: translateY(0);
+  }
+  68%,
+  100% {
+    transform: translateY(1.1rem);
+  }
+}
+
+@keyframes wa-picker-highlight {
+  0%,
+  38% {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+  42%,
+  58% {
+    border-color: color-mix(in srgb, var(--wa-green) 55%, var(--border));
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--wa-green) 16%, transparent),
+      color-mix(in srgb, var(--wa-green) 6%, transparent)
+    );
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--wa-green) 20%, transparent),
+      0 10px 24px -16px var(--wa-green-glow);
+  }
+  62%,
+  100% {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+@keyframes wa-bubble-in {
+  0%,
+  66% {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.92);
+  }
+  72%,
+  96% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-0.2rem) scale(0.98);
+  }
+}
+
+@keyframes wa-ticks-pop {
+  0%,
+  78% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  82%,
+  96% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes wa-step-1 {
+  0%,
+  8% {
+    opacity: 1;
+    color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+    box-shadow: 0 8px 18px -14px rgb(0 255 212 / 0.45);
+  }
+  30%,
+  100% {
+    opacity: 0.5;
+    color: var(--muted);
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+@keyframes wa-step-2 {
+  0%,
+  34% {
+    opacity: 0.5;
+    background: transparent;
+    box-shadow: none;
+  }
+  38%,
+  62% {
+    opacity: 1;
+    color: var(--wa-green);
+    background: color-mix(in srgb, var(--wa-green) 14%, transparent);
+    border-color: color-mix(in srgb, var(--wa-green) 40%, transparent);
+    box-shadow: 0 8px 18px -14px var(--wa-green-glow);
+  }
+  66%,
+  100% {
+    opacity: 0.5;
+    color: var(--muted);
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+@keyframes wa-step-3 {
+  0%,
+  66% {
+    opacity: 0.5;
+    background: transparent;
+    box-shadow: none;
+  }
+  70%,
+  96% {
+    opacity: 1;
+    color: #53bdeb;
+    background: color-mix(in srgb, #53bdeb 12%, transparent);
+    border-color: color-mix(in srgb, #53bdeb 40%, transparent);
+    box-shadow: 0 8px 18px -14px rgb(83 189 235 / 0.35);
+  }
+  100% {
+    opacity: 0.5;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mock-whatsapp__scene,
+  .mock-whatsapp__export,
+  .mock-whatsapp__tap,
+  .mock-whatsapp__backdrop,
+  .mock-whatsapp__picker,
+  .mock-whatsapp__picker-row--wa,
+  .mock-whatsapp__picker-chip,
+  .mock-whatsapp__bubble,
+  .mock-whatsapp__ticks,
+  .mock-whatsapp__step {
+    animation: none !important;
+  }
+
+  .mock-whatsapp__backdrop {
+    opacity: 0;
+  }
+
+  .mock-whatsapp__picker-chip {
+    opacity: 1;
+    transform: none;
+  }
+
+  .mock-whatsapp__scene--export,
+  .mock-whatsapp__scene--picker {
+    display: none;
+  }
+
+  .mock-whatsapp__scene--sent {
+    opacity: 1;
+  }
+
+  .mock-whatsapp__bubble {
+    opacity: 1;
+    transform: none;
+  }
+
+  .mock-whatsapp__ticks {
+    opacity: 1;
+    transform: none;
+  }
+
+  .mock-whatsapp__step {
+    opacity: 0.45;
+  }
+
+  .mock-whatsapp__step--3 {
+    opacity: 1;
+    color: #53bdeb;
+    border-color: color-mix(in srgb, #53bdeb 45%, var(--border));
+  }
+}
+
+@media (max-width: 520px) {
+  .shop-sheet-preview__specs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* Output */
