@@ -184,16 +184,20 @@
         </div>
       </section>
 
-      <!-- 3. Core features -->
+      <!-- 3. Features -->
       <section class="section features" id="features" aria-labelledby="features-title">
         <div class="container">
           <div class="section-head">
-            <p class="eyebrow">How it works</p>
-            <h2 id="features-title" class="section-title">Three ways to build any profile</h2>
+            <p class="eyebrow">Features section</p>
+            <h2 id="features-title" class="section-title">Features</h2>
+            <p class="section-lead">
+              Scroll down and explore every part of the Segments workflow, from drawing to delivery.
+            </p>
           </div>
-          <div class="features__list">
-            <article class="card feature-card">
-              <div class="feature-card__visual">
+
+          <div class="features-zigzag">
+            <article class="card feature-zigzag__item">
+              <div class="feature-zigzag__visual">
                 <div class="mock-templates-loop" data-template-loop>
                   <div class="mock-template-item is-active" data-template-item>
                     <img src="/Apron.svg" alt="" width="220" height="220" decoding="async" />
@@ -224,7 +228,7 @@
                   </div>
                 </div>
               </div>
-              <div class="feature-card__body">
+              <div class="feature-zigzag__copy">
                 <h3 class="card__title">Lightning-fast core templates</h3>
                 <p class="card__text">
                   Input your dimensions and watch the geometry scale instantly. Start from
@@ -234,24 +238,28 @@
               </div>
             </article>
 
-            <article class="card feature-card">
-              <div class="feature-card__visual">
+            <article class="card feature-zigzag__item feature-zigzag__item--right">
+              <div class="feature-zigzag__visual">
                 <div class="mock-canvas">
                   <div class="mock-canvas__grid"></div>
-                  <svg viewBox="0 0 160 100" fill="none" class="mock-canvas__line">
-                    <path
-                      d="M20 80 L20 30 L90 30 L110 50"
-                      stroke="#00ffd4"
-                      stroke-width="2.5"
-                      stroke-linecap="round"
-                    />
-                    <circle cx="110" cy="50" r="6" fill="#00ffd4" opacity="0.35" />
-                    <circle cx="110" cy="50" r="3" fill="#00ffd4" />
+                  <svg viewBox="0 0 220 220" fill="none" class="mock-canvas__line" aria-hidden="true">
+                    <path class="mock-canvas__seg mock-canvas__seg--1" d="M88 192L58 162" />
+                    <path class="mock-canvas__seg mock-canvas__seg--2" d="M58 162L58 58" />
+                    <path class="mock-canvas__seg mock-canvas__seg--3" d="M58 58L148 58" />
+                    <path class="mock-canvas__seg mock-canvas__seg--4" d="M148 58L178 88" />
+                    <circle class="mock-canvas__point mock-canvas__point--1" cx="88" cy="192" r="4.5" />
+                    <circle class="mock-canvas__point mock-canvas__point--2" cx="58" cy="162" r="4.5" />
+                    <circle class="mock-canvas__point mock-canvas__point--3" cx="58" cy="58" r="4.5" />
+                    <circle class="mock-canvas__point mock-canvas__point--4" cx="148" cy="58" r="4.5" />
+                    <circle class="mock-canvas__point mock-canvas__point--5" cx="178" cy="88" r="4.5" />
                   </svg>
-                  <span class="mock-canvas__finger" aria-hidden="true">👆</span>
+                  <span class="mock-canvas__cursor" aria-hidden="true">
+                    <span class="mock-canvas__cursor-core"></span>
+                    <span class="mock-canvas__cursor-ring"></span>
+                  </span>
                 </div>
               </div>
-              <div class="feature-card__body">
+              <div class="feature-zigzag__copy">
                 <h3 class="card__title">Infinite free-hand canvas</h3>
                 <p class="card__text">
                   Need a custom structural bracket, a complex mounting cleat, or a rare regional trim
@@ -261,24 +269,30 @@
               </div>
             </article>
 
-            <article class="card feature-card">
-              <div class="feature-card__visual">
+            <article class="card feature-zigzag__item">
+              <div class="feature-zigzag__visual">
                 <div class="mock-favourites">
-                  <div class="mock-favourites__row">
-                    <span class="mock-favourites__star">★</span>
-                    <span class="mock-favourites__name">Parapet flashing</span>
-                  </div>
-                  <div class="mock-favourites__row">
-                    <span class="mock-favourites__star">★</span>
-                    <span class="mock-favourites__name">Eaves trim — Unit 4</span>
-                  </div>
-                  <div class="mock-favourites__row mock-favourites__row--muted">
-                    <span class="mock-favourites__star">★</span>
-                    <span class="mock-favourites__name">Drip edge / tray</span>
+                  <div class="mock-favourites__track">
+                    <div class="mock-favourites__row"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Parapet flashing</span></div>
+                    <div class="mock-favourites__row"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Eaves trim — Unit 4</span></div>
+                    <div class="mock-favourites__row"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Drip edge / tray</span></div>
+                    <div class="mock-favourites__row"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">L-bend plate — 2mm mild steel</span></div>
+                    <div class="mock-favourites__row"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Channel return — 3mm galvanised</span></div>
+                    <div class="mock-favourites__row"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Base cleat bracket — DX51D</span></div>
+                    <div class="mock-favourites__row"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Stair stringer cap — 4mm S275</span></div>
+                    <div class="mock-favourites__row"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Mezzanine edge trim — 2.5mm</span></div>
+                    <div class="mock-favourites__row" aria-hidden="true"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Parapet flashing</span></div>
+                    <div class="mock-favourites__row" aria-hidden="true"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Eaves trim — Unit 4</span></div>
+                    <div class="mock-favourites__row" aria-hidden="true"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Drip edge / tray</span></div>
+                    <div class="mock-favourites__row" aria-hidden="true"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">L-bend plate — 2mm mild steel</span></div>
+                    <div class="mock-favourites__row" aria-hidden="true"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Channel return — 3mm galvanised</span></div>
+                    <div class="mock-favourites__row" aria-hidden="true"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Base cleat bracket — DX51D</span></div>
+                    <div class="mock-favourites__row" aria-hidden="true"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Stair stringer cap — 4mm S275</span></div>
+                    <div class="mock-favourites__row" aria-hidden="true"><span class="mock-favourites__star">★</span><span class="mock-favourites__name">Mezzanine edge trim — 2.5mm</span></div>
                   </div>
                 </div>
               </div>
-              <div class="feature-card__body">
+              <div class="feature-zigzag__copy">
                 <h3 class="card__title">Your smart favourites library</h3>
                 <p class="card__text">
                   Build a personalized database of your most frequently used profiles for
@@ -287,82 +301,40 @@
                 </p>
               </div>
             </article>
-          </div>
-        </div>
-      </section>
 
-      <!-- 4. Output showcase -->
-      <section class="section output" id="output" aria-labelledby="output-title">
-        <div class="container output__grid">
-          <div class="output__copy">
-            <p class="eyebrow">The deliverable</p>
-            <h2 id="output-title" class="section-title">Factory-ready blueprints. Every time.</h2>
-            <ul class="check-list">
-              <li>Perfect angle notation — 90°, 135°, and every bend clearly marked</li>
-              <li>Accurate millimetre face dimensions on every segment</li>
-              <li>No room for manufacturer misinterpretation or wasted metal</li>
-            </ul>
-          </div>
-          <div class="output__visual">
-            <div class="blueprint-sheet card">
-              <div class="blueprint-sheet__stripe">
-                <div class="blueprint-sheet__stripe-left">
-                  <span class="blueprint-sheet__label">Client</span>
-                  <strong>Acme Cladding Ltd</strong>
-                </div>
-                <div class="blueprint-sheet__stripe-right">
-                  <span class="blueprint-sheet__label">Plate</span>
-                  <strong>Parapet flashing · p03</strong>
+            <article class="card feature-zigzag__item feature-zigzag__item--right">
+              <div class="feature-zigzag__visual">
+                <div class="feature-placeholder">
+                  <span class="feature-placeholder__badge">PDF</span>
+                  <h4>Factory-ready blueprints. Every time.</h4>
+                  <p>Preview coming next step.</p>
                 </div>
               </div>
-              <div class="blueprint-sheet__drawing">
-                <svg viewBox="0 0 280 160" fill="none" aria-hidden="true">
-                  <path
-                    d="M50 130 L50 50 L180 50 L180 130 L220 150"
-                    stroke="#00ffd4"
-                    stroke-width="3"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <text x="28" y="95" fill="#666" font-size="11" font-family="sans-serif">120</text>
-                  <text x="105" y="42" fill="#666" font-size="11" font-family="sans-serif">180</text>
-                  <text x="188" y="98" fill="#00ffd4" font-size="11" font-family="sans-serif">90°</text>
-                  <text x="200" y="138" fill="#666" font-size="11" font-family="sans-serif">25</text>
-                </svg>
+              <div class="feature-zigzag__copy">
+                <h3 class="card__title">Factory-ready blueprints. Every time.</h3>
+                <p class="card__text">
+                  Perfect angle notation, accurate millimetre face dimensions, and clean sheets ready
+                  for fabrication without misinterpretation.
+                </p>
               </div>
-              <div class="blueprint-sheet__footer">
-                <span>Galvanized · 1.2 mm · Qty 12</span>
-                <span class="text-primary">Est. flat width 340 mm</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+            </article>
 
-      <!-- 5. WhatsApp -->
-      <section class="section whatsapp" aria-labelledby="whatsapp-title">
-        <div class="container">
-          <div class="card whatsapp-card">
-            <div class="whatsapp-card__copy">
-              <p class="eyebrow">Instant handoff</p>
-              <h2 id="whatsapp-title" class="section-title section-title--sm">
-                No emails. No delays. Just WhatsApp.
-              </h2>
-              <p class="card__text">
-                Tap export, hit the WhatsApp button, and text the clean PDF directly to your fabrication
-                workshop or site manager. Keep your projects moving from anywhere.
-              </p>
-            </div>
-            <div class="whatsapp-card__visual" aria-hidden="true">
-              <div class="whatsapp-pill">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path
-                    d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2m0 1.67c2.2 0 4.26.86 5.82 2.42 1.55 1.56 2.41 3.63 2.41 5.83 0 4.54-3.7 8.23-8.23 8.23-1.48 0-2.93-.39-4.19-1.15l-.3-.17-3.12.82.83-3.04-.2-.32c-.82-1.29-1.26-2.82-1.26-4.38 0-4.54 3.69-8.24 8.24-8.24M8.53 7.33c-.16 0-.43.06-.66.31-.22.25-.87.86-.87 2.07 0 1.22.89 2.39 1 2.56.14.17 1.76 2.67 4.25 3.73.59.27 1.05.42 1.41.53.59.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.1-.22-.16-.47-.27-.25-.14-1.47-.74-1.69-.82-.22-.08-.36-.12-.55.12-.19.25-.67.81-.83.97-.16.17-.32.19-.59.07-.27-.13-1.03-.39-1.96-1.23-.72-.64-1.22-1.44-1.36-1.68-.14-.24 0-.37.12-.48.12-.11.26-.29.39-.44.13-.14.18-.25.29-.41.11-.17.04-.31-.01-.43-.05-.12-.68-2.01-.95-2.29-.25-.28-.53-.25-.97 0Z"
-                  />
-                </svg>
-                <span>Share via WhatsApp</span>
+            <article class="card feature-zigzag__item">
+              <div class="feature-zigzag__visual">
+                <div class="feature-placeholder">
+                  <span class="feature-placeholder__badge feature-placeholder__badge--whatsapp">WA</span>
+                  <h4>No emails. No delays. Just WhatsApp.</h4>
+                  <p>Preview coming next step.</p>
+                </div>
               </div>
-            </div>
+              <div class="feature-zigzag__copy">
+                <h3 class="card__title">No emails. No delays. Just WhatsApp.</h3>
+                <p class="card__text">
+                  Tap export, hit WhatsApp, and send the sheet straight to your fabricator or site
+                  manager to keep work moving instantly.
+                </p>
+              </div>
+            </article>
           </div>
         </div>
       </section>
