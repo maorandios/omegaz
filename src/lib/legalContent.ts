@@ -1,3 +1,5 @@
+import { PRO_PRICE_EUR } from '@/lib/pricing'
+
 export interface LegalSection {
   heading: string
   body: string[]
@@ -55,7 +57,7 @@ export const TERMS_DOC: LegalDocument = {
         },
         {
           label: 'Pricing & Billing',
-          text: 'Premium features are billed on a subscription basis (£39 per month, plus applicable VAT). Subscriptions automatically renew unless cancelled by the user prior to the billing cycle date.',
+          text: `Premium features are billed on a subscription basis (€${PRO_PRICE_EUR} per month, plus applicable VAT). Subscriptions automatically renew unless cancelled by the user prior to the billing cycle date.`,
         },
         {
           label: 'Refunds',
