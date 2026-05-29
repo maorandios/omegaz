@@ -7,6 +7,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import {
+  useBottomSheetKeyboardInset,
+  useDelayedSheetInputFocus,
+} from '@/lib/useBottomSheetKeyboardInset'
 
 interface RenameProjectSheetProps {
   open: boolean
@@ -23,15 +27,14 @@ export function RenameProjectSheet({
 }: RenameProjectSheetProps) {
   const [value, setValue] = useState(currentName)
   const inputRef = useRef<HTMLInputElement>(null)
+  const contentRef = useBottomSheetKeyboardInset(open)
+
+  useDelayedSheetInputFocus(open, inputRef)
 
   // Reset the field to the latest stored name every time the sheet opens so
   // the user always sees the current value, not a stale local edit.
   useEffect(() => {
-    if (open) {
-      setValue(currentName)
-      const id = window.setTimeout(() => inputRef.current?.focus(), 50)
-      return () => window.clearTimeout(id)
-    }
+    if (open) setValue(currentName)
   }, [open, currentName])
 
   const trimmed = value.trim()
@@ -45,7 +48,11 @@ export function RenameProjectSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="mx-auto max-w-lg border-border bg-background">
+      <SheetContent
+        ref={contentRef}
+        side="bottom"
+        className="mx-auto max-w-lg border-border bg-background"
+      >
         <div className="mx-auto mb-2 h-1 w-10 shrink-0 rounded-full bg-border" aria-hidden />
         <SheetHeader>
           <SheetTitle>Rename project</SheetTitle>
