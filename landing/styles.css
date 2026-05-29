@@ -365,7 +365,7 @@ button {
   }
 }
 
-/* lineup.svg 420×860 — hero video shown at 356×776 centred */
+/* lineup.svg 420×860 — video hole tracks inner glass (lineup-screen-clip) */
 .hero__visual {
   display: flex;
   justify-content: center;
@@ -380,12 +380,12 @@ button {
   --glass-w: 403.24;
   --glass-h: 850;
   --glass-rx: 56.69;
-  /* Inset ~2–4px per side inside lineup.svg glass so UI accent colour stays off the bezel */
-  --video-w: 366;
-  --video-h: 804;
-  --video-x: 27;
-  --video-y: 25;
-  --video-rx: 52;
+  /* ~3px inset inside lineup.svg glass (8.5, 5.5, 410×850) — avoids bezel bleed only */
+  --video-w: 404;
+  --video-h: 844;
+  --video-x: 10;
+  --video-y: 8;
+  --video-rx: 55;
 
   margin: 0;
   width: min(315px, 82vw);
@@ -434,13 +434,13 @@ button {
     / calc(var(--video-rx) / var(--video-h) * 100%);
 }
 
-/* Sit above video — masks teal focus/chrome pixels at screen edges */
+/* Thin inner ring — hides sub-pixel bleed at rounded corners only */
 .device-mockup__clip::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 1;
-  border: 4px solid var(--background);
+  border: 2px solid var(--background);
   border-radius: inherit;
   box-sizing: border-box;
   pointer-events: none;
@@ -452,10 +452,9 @@ button {
   height: 100%;
   border: none;
   object-fit: cover;
-  /* Bias away from bottom-right where focus rings / chrome often sit */
-  object-position: 48% 45%;
+  object-position: center center;
   background: var(--background);
-  transform: scale(var(--hero-video-scale, 0.925));
+  transform: scale(var(--hero-video-scale, 0.95));
   transform-origin: center center;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;

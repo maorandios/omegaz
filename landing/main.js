@@ -7,13 +7,13 @@ function fitHeroVideoToScreen(video) {
   if (!screenAR) return
 
   const ratio = videoAR / screenAR
-  let scale = 0.925
+  let scale = 0.95
   if (ratio > 1.02) {
-    scale = 0.925 - (ratio - 1.02) * 0.18
+    scale = 0.95 - (ratio - 1.02) * 0.03
   } else if (ratio < 0.98) {
-    scale = 0.925 + (0.98 - ratio) * 0.04
+    scale = 0.95 + (0.98 - ratio) * 0.02
   }
-  scale = Math.min(Math.max(scale, 0.88), 0.94)
+  scale = Math.min(Math.max(scale, 0.92), 0.97)
   clip.style.setProperty('--hero-video-scale', String(scale))
 }
 
